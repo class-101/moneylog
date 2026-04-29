@@ -291,6 +291,7 @@ svg.chart{display:block;width:100%;}
 .ob-list{display:flex;flex-direction:column;gap:6px;}
 .ob-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--red-light);border:1px solid #fecaca;border-radius:var(--rsm);}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <!-- TOP BUTTON -->
 <button class="top-btn" id="top-btn" onclick="scrollToTop()" title="맨 위로">↑</button>
@@ -1061,69 +1062,51 @@ svg.chart{display:block;width:100%;}
   </div></div>
 
 
-  <!-- ━━ GitHub 동기화 설정 ━━ -->
-  <div class="sechead" style="margin-top:8px;"><h3>☁️ 클라우드 동기화</h3><span class="bdg bdg-gr">무료</span></div>
+  <!-- ━━ Supabase 실시간 동기화 ━━ -->
+  <div class="sechead" style="margin-top:8px;"><h3>🔴 실시간 동기화</h3><span class="bdg bdg-gr">Supabase</span></div>
   <div class="card"><div class="cp">
+    <!-- 연결 상태 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div id="sb-status" style="font-size:13px;font-weight:700;"><span style="color:var(--yellow);">● 연결 중...</span></div>
+      <div style="font-size:11px;color:var(--faint);">도형&예진 공용 DB</div>
+    </div>
+
     <!-- 설명 -->
-    <div class="al info" style="margin-bottom:16px;">
-      <div class="ali">💡</div>
+    <div class="al ok" style="margin-bottom:16px;">
+      <div class="ali">🔴</div>
       <div style="font-size:12px;line-height:1.7;">
-        <b>GitHub Gist로 완전 무료 클라우드 저장.</b><br>
-        도형이 저장 → 예진이 불러오기 → 항상 최신 데이터 공유.<br>
-        거래 입력 30초 후 자동 저장됩니다.
+        <b>실시간 동기화 활성화됨.</b><br>
+        도형이 거래 입력 → 3초 후 자동 저장 → 예진 폰에서 즉시 반영.<br>
+        아무것도 누를 필요 없어요.
       </div>
     </div>
 
-    <!-- 1단계: 토큰 발급 안내 -->
-    <div style="font-size:11px;font-weight:800;color:var(--faint);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Step 1 — GitHub Personal Access Token</div>
-    <div style="font-size:12px;color:var(--sub);margin-bottom:8px;line-height:1.7;">
-      1. <a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--blue);font-weight:700;">github.com/settings/tokens</a> 접속<br>
-      2. <b>Generate new token (classic)</b> 클릭<br>
-      3. Note에 "머니로그" 입력, <b>gist</b> 권한 체크<br>
-      4. 생성된 토큰 복사 (한 번만 표시됨!)
+    <!-- 수동 버튼 (긴급용) -->
+    <div class="btnrow" style="margin-bottom:10px;">
+      <button class="btn btn-green" onclick="isSyncing=false;sbPush()">⬆ 지금 저장</button>
+      <button class="btn btn-outline" onclick="sbPull()">⬇ 지금 불러오기</button>
     </div>
-    <div class="fg" style="margin-bottom:12px;">
-      <label>GitHub Token</label>
-      <input class="fi" id="gist-token-input" type="password" placeholder="ghp_xxxxxxxxxxxxxx" autocomplete="off">
+    <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:14px;">
+      <div id="sb-last-push" style="font-size:11px;color:var(--faint);"></div>
+      <div id="sb-last-pull" style="font-size:11px;color:var(--faint);"></div>
     </div>
 
-    <!-- 2단계: Gist ID -->
-    <div style="font-size:11px;font-weight:800;color:var(--faint);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Step 2 — Gist ID (첫 저장 후 자동 입력됨)</div>
-    <div style="font-size:12px;color:var(--sub);margin-bottom:8px;">처음 저장하면 자동으로 생성됩니다. 예진은 도형의 Gist ID를 입력하세요.</div>
-    <div class="fg" style="margin-bottom:12px;">
-      <label>Gist ID</label>
-      <input class="fi" id="gist-id-input" placeholder="abc123def456..." autocomplete="off">
-    </div>
-
-    <button class="btn btn-blue" onclick="saveGistSettings()" style="margin-bottom:10px;">설정 저장</button>
-
-    <!-- Push / Pull -->
-    <div class="btnrow" style="margin-bottom:8px;">
-      <button id="gist-push-btn" class="btn btn-green" onclick="gistPush()">⬆ GitHub에 저장 (Push)</button>
-      <button id="gist-pull-btn" class="btn btn-outline" onclick="gistPull()">⬇ 불러오기 (Pull)</button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:3px;">
-      <div id="gist-last-push" style="font-size:11px;color:var(--faint);"></div>
-      <div id="gist-last-pull" style="font-size:11px;color:var(--faint);"></div>
-    </div>
-
-    <!-- 사용 시나리오 -->
-    <div style="background:var(--bg);border-radius:var(--rsm);padding:12px;margin-top:12px;">
-      <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;">📋 사용 방법</div>
+    <!-- 사용 안내 -->
+    <div style="background:var(--bg);border-radius:var(--rsm);padding:12px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;">📋 동기화 방식</div>
       <div style="font-size:11px;color:var(--sub);line-height:1.9;">
-        <b>최초 설정 (도형):</b> 토큰 발급 → 설정 저장 → ⬆ Push (Gist 자동 생성)<br>
-        <b>예진 연결:</b> 도형의 토큰 + Gist ID 공유 → 설정 저장 → ⬇ Pull<br>
-        <b>일상 사용:</b> 거래 입력 → 30초 후 자동 저장 → 상대방이 Pull로 최신화<br>
-        <b>월말 정리:</b> 잔액 입력 후 ⬆ Push → 완료
+        <b>자동:</b> 거래 입력/수정 후 3초 뒤 자동 저장 → 상대방 폰에 즉시 반영<br>
+        <b>앱 시작 시:</b> 자동으로 최신 데이터 수신<br>
+        <b>수동:</b> 위 버튼으로 즉시 저장/수신 가능
       </div>
     </div>
 
-    <!-- 기존 백업 (보조) -->
-    <div style="font-size:11px;font-weight:800;color:var(--faint);margin:14px 0 8px;text-transform:uppercase;letter-spacing:.5px;">보조 백업</div>
+    <!-- 보조 백업 -->
+    <div style="font-size:11px;font-weight:800;color:var(--faint);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">보조 백업</div>
     <div class="btnrow">
       <button class="btn btn-outline btn-sm" onclick="exportDataJSON()" style="flex:1;height:38px;font-size:12px;">📥 JSON 백업</button>
       <button class="btn btn-outline btn-sm" onclick="document.getElementById('import-file').click()" style="flex:1;height:38px;font-size:12px;">📤 JSON 복원</button>
-      <button class="btn btn-outline btn-sm" onclick="exportExcel()" style="flex:1;height:38px;font-size:12px;">📊 엑셀 내보내기</button>
+      <button class="btn btn-outline btn-sm" onclick="exportExcel()" style="flex:1;height:38px;font-size:12px;">📊 엑셀</button>
     </div>
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importDataJSON(event)">
   </div></div>
@@ -1180,7 +1163,7 @@ const CAT_TYPE_LABELS={income:'💰 수입',fixed:'🏠 고정지출',variable:'
 const LS = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const LS_SET = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 function getState() { return LS('ml_v4') || {}; }
-function setState(s) { LS_SET('ml_v4', s); scheduleAutoSync(); }
+function setState(s) { LS_SET('ml_v4', s); scheduleSbPush(); }
 function getMonthKey(d) { d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function ensureMonth(s,k) { if(!s[k]) s[k]={snapshot:{},budget:{},transactions:[]}; return s[k]; }
 function getCatMap() { return LS('ml_cats') || {
@@ -3188,11 +3171,7 @@ function scheduleAutoSync() {
 
 // 설정탭 Gist 설정 렌더
 function renderGistSettings() {
-  const cfg = getGistConfig();
-  const ti = $('gist-token-input'); if (ti) ti.value = cfg.token;
-  const gi = $('gist-id-input'); if (gi) gi.value = cfg.gistId;
-  const lp = $('gist-last-push'); if (lp) lp.textContent = localStorage.getItem('ml_last_push') ? '마지막 저장: ' + localStorage.getItem('ml_last_push') : '';
-  const lp2 = $('gist-last-pull'); if (lp2) lp2.textContent = localStorage.getItem('ml_last_pull') ? '마지막 수신: ' + localStorage.getItem('ml_last_pull') : '';
+  updateSyncStatus(); // Supabase 상태로 대체
 }
 function saveGistSettings() {
   const token = ($('gist-token-input') || {}).value || '';
@@ -3200,6 +3179,135 @@ function saveGistSettings() {
   saveGistConfig(token.trim(), gistId.trim());
   showToast('✅ GitHub 설정 저장됨');
 }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 🔴 Supabase 실시간 동기화
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const SB_URL = 'https://osqwftlmnuukqnserhej.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zcXdmdGxtbnV1a3Fuc2VyaGVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0Mzg1ODQsImV4cCI6MjA5MzAxNDU4NH0.0EEF92C1u13C_dUhrGhvhQqMSjJ9yc_yyQNIi2VREFQ';
+let sbClient = null;
+let sbChannel = null;
+let isSyncing = false; // 내 업데이트로 인한 수신 무시용
+
+function getSB() {
+  if (!sbClient) {
+    sbClient = supabase.createClient(SB_URL, SB_KEY);
+  }
+  return sbClient;
+}
+
+// 모든 데이터를 Supabase에 저장
+async function sbPush(silent = false) {
+  try {
+    const sb = getSB();
+    const data = getAllData();
+    // key='main' 행에 전체 데이터 upsert
+    const { error } = await sb
+      .from('moneylog')
+      .upsert({ id: 1, key: 'main', value: JSON.stringify(data) }, { onConflict: 'id' });
+    if (error) throw error;
+    if (!silent) {
+      const now = new Date().toLocaleString('ko-KR');
+      localStorage.setItem('sb_last_push', now);
+      updateSyncStatus();
+      showToast('✅ 저장 완료 ' + now);
+    }
+  } catch(e) {
+    if (!silent) showToast('❌ 저장 실패: ' + e.message);
+    console.error('sbPush error:', e);
+  }
+}
+
+// Supabase에서 데이터 불러오기
+async function sbPull(silent = false) {
+  try {
+    const sb = getSB();
+    const { data, error } = await sb
+      .from('moneylog')
+      .select('value')
+      .eq('id', 1)
+      .maybeSingle(); // single() 대신 — row 없어도 에러 안 남
+    if (error) throw error;
+    if (!data || !data.value) {
+      // 아직 저장된 데이터 없음 — 첫 사용자가 Push 먼저 해야 함
+      if (!silent) showToast('아직 저장된 데이터 없음. 지금 저장하기를 눌러주세요.');
+      return;
+    }
+    const parsed = JSON.parse(data.value);
+    applyAllData(parsed);
+    const now = new Date().toLocaleString('ko-KR');
+    localStorage.setItem('sb_last_pull', now);
+    updateSyncStatus();
+    if (!silent) showToast('✅ 최신 데이터 수신 완료!', 2500);
+    renderAll();
+    if (curPage === 'setting') { loadSnapshotForm(); loadBudgetForm(); }
+  } catch(e) {
+    if (!silent) showToast('❌ 불러오기 실패: ' + e.message);
+    console.error('sbPull error:', e);
+  }
+}
+
+// 실시간 구독 시작
+function sbSubscribe() {
+  const sb = getSB();
+  if (sbChannel) sb.removeChannel(sbChannel);
+
+  sbChannel = sb
+    .channel('moneylog-realtime')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'moneylog',
+      filter: 'id=eq.1'
+    }, (payload) => {
+      if (isSyncing) return; // 내가 업데이트한 건 무시
+      // 상대방이 업데이트 → 자동 Pull
+      console.log('실시간 업데이트 감지!');
+      sbPull(true).then(() => {
+        showToast('🔄 실시간 업데이트됨', 2000);
+      });
+    })
+    .subscribe((status) => {
+      const el = $('sb-status');
+      if (status === 'SUBSCRIBED') {
+        if (el) el.innerHTML = '<span style="color:var(--green);">● 실시간 연결됨</span>';
+        console.log('Supabase 실시간 연결됨');
+      } else if (status === 'CHANNEL_ERROR') {
+        if (el) el.innerHTML = '<span style="color:var(--red);">● 연결 오류</span>';
+      } else {
+        if (el) el.innerHTML = '<span style="color:var(--yellow);">● 연결 중...</span>';
+      }
+    });
+}
+
+// 자동 저장 (setState 호출 시 3초 후)
+let sbAutoTimer = null;
+function scheduleSbPush() {
+  clearTimeout(sbAutoTimer);
+  sbAutoTimer = setTimeout(() => {
+    isSyncing = true;
+    sbPush(true).finally(() => {
+      setTimeout(() => { isSyncing = false; }, 2000);
+    });
+  }, 3000); // 3초 — 빠른 자동저장
+}
+
+function updateSyncStatus() {
+  const lp = $('sb-last-push');
+  const lp2 = $('sb-last-pull');
+  if (lp) lp.textContent = localStorage.getItem('sb_last_push') ? '마지막 저장: ' + localStorage.getItem('sb_last_push') : '';
+  if (lp2) lp2.textContent = localStorage.getItem('sb_last_pull') ? '마지막 수신: ' + localStorage.getItem('sb_last_pull') : '';
+}
+
+// 초기 연결
+async function initSupabase() {
+  // 실시간 구독 시작
+  sbSubscribe();
+  // 앱 시작 시 최신 데이터 Pull (조용히)
+  await sbPull(true);
+  updateSyncStatus();
+}
+
 // ━━ CSV ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function exportCSV() {
   const mon=currentMonth(), txs=(getState()[mon]||{transactions:[]}).transactions;
@@ -3292,6 +3400,7 @@ function init() {
   initGoals();
   initTopBtn();
   renderGistSettings();
+  initSupabase();
   // 날짜 초기화
   const today=new Date();
   const pad=n=>String(n).padStart(2,'0');
