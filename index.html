@@ -48,7 +48,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .shell{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:480px;margin:0 auto;background:var(--bg);overflow:hidden;}
 
 /* ── TOPBAR */
-.topbar{background:var(--white);padding:0 20px;height:48px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--sh0);}
+.topbar{background:rgba(255,255,255,.85);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);padding:0 16px;height:52px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;}
 .logo{font-size:17px;font-weight:900;letter-spacing:-.7px;color:var(--text);}
 .logo b{color:var(--blue);}
 .month-sel-wrap{display:flex;align-items:center;gap:5px;background:var(--bg);border:1.5px solid var(--border);border-radius:99px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .15s;}
@@ -64,11 +64,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .nb.on .ni{transform:scale(1.12);}
 
 /* ── SCROLL */
-.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 16px 110px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch;}
+.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 16px 110px;display:flex;flex-direction:column;gap:0;-webkit-overflow-scrolling:touch;}
 
 /* ── PAGE */
 .pg{display:none;flex-direction:column;gap:12px;}
-.pg.on{display:flex;flex-direction:column;gap:12px;}
+.pg.on{display:flex;flex-direction:column;gap:12px;padding-top:14px;padding-bottom:20px;}
 
 /* ── CARD */
 .card{background:var(--white);border-radius:var(--r);box-shadow:var(--sh1);border:1px solid var(--border);overflow:hidden;}
@@ -218,7 +218,7 @@ textarea.fi{resize:vertical;line-height:1.6;min-height:68px;}
 @media(min-width:496px){
   .top-btn{right:calc(50% - 240px + 16px);}
 }
-.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 18px;border-radius:14px;font-size:13px;font-weight:600;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:calc(100vw - 32px);}
+.toast{position:fixed;top:auto;bottom:80px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 18px;border-radius:14px;font-size:13px;font-weight:600;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;display:inline-flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);width:auto;max-width:calc(100vw - 32px);white-space:nowrap;}
 .toast.on{opacity:1;pointer-events:all;}
 .tundo{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;}
 /* ── SECTION HEAD */
@@ -290,6 +290,125 @@ svg.chart{display:block;width:100%;}
 /* ── OVERBUDGET BANNER */
 .ob-list{display:flex;flex-direction:column;gap:6px;}
 .ob-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--red-light);border:1px solid #fecaca;border-radius:var(--rsm);}
+
+/* ── 거래 입력 FAB */
+.rec-fab{display:flex;align-items:center;gap:8px;width:100%;padding:15px 20px;background:linear-gradient(135deg,var(--blue) 0%,#1d4ed8 100%);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(37,99,235,.32),0 1px 3px rgba(37,99,235,.4);font-family:'Noto Sans KR',sans-serif;justify-content:center;transition:all .15s;-webkit-tap-highlight-color:transparent;letter-spacing:-.2px;}
+.rec-fab:active{transform:scale(.98);opacity:.9;}
+.rec-fab-icon{font-size:22px;line-height:1;}
+
+/* ── 고정지출 아이템 */
+.fi-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--rsm);margin-bottom:6px;transition:opacity .2s;}
+.fi-item.off{opacity:.38;}
+.fi-item-check{width:20px;height:20px;flex-shrink:0;accent-color:var(--blue);cursor:pointer;}
+.fi-item-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center;}
+.fi-item-body{flex:1;min-width:0;}
+.fi-item-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fi-item-meta{font-size:11px;color:var(--faint);margin-top:1px;}
+.fi-item-right{text-align:right;flex-shrink:0;}
+.fi-item-amt{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;}
+.fi-toggle{background:none;border:none;font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;line-height:1;-webkit-tap-highlight-color:transparent;}
+
+/* ── 내역 날짜 그룹 */
+.tx-date-group{margin-bottom:4px;}
+.tx-date-header{display:flex;justify-content:space-between;align-items:center;padding:10px 0 6px;border-bottom:1px solid var(--border);}
+.tx-date-label{font-size:12px;font-weight:700;color:var(--sub);}
+.tx-date-sum{font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums;}
+
+/* ── 실시간 인디케이터 */
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse-dot 2s infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* ── 정렬 탭 */
+.sort-tabs{display:flex;gap:4px;}
+.sort-tab{padding:5px 10px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--sub);font-family:'Noto Sans KR',sans-serif;}
+.sort-tab.on{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+/* ── 아코디언 */
+.acc-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:16px 18px;background:var(--white);border-radius:14px;border:1px solid var(--border);min-height:56px;}
+.acc-header.open{border-radius:14px 14px 0 0;border-bottom:none;}
+.acc-body{background:var(--white);border:1px solid var(--border);border-top:none;border-radius:0 0 14px 14px;overflow:hidden;}
+.acc-body-inner{padding:12px 14px 14px;}
+.acc-arrow{font-size:12px;color:var(--faint);transition:transform .2s;}
+.acc-arrow.open{transform:rotate(180deg);}
+
+/* 토스 스타일 컴포넌트 */
+.toss-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:99px;font-size:11px;font-weight:700;background:var(--bg);color:var(--sub);border:1px solid var(--border);}
+.toss-chip.green{background:var(--green-light);color:var(--green);border-color:#a7f3d0;}
+.toss-chip.blue{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid);}
+
+/* 행 hover 효과 */
+.txi{transition:background .15s;}
+.txi:hover{background:var(--bg);}
+.fi-item{transition:background .15s;}
+.fi-item:hover{background:var(--bg);}
+.aitem{transition:background .15s;}
+.aitem:hover{background:var(--bg);}
+
+/* 버튼 누름 효과 */
+.btn:active{transform:scale(.98);opacity:.95;}
+button:active{-webkit-tap-highlight-color:transparent;}
+
+/* 아코디언 hover */
+.acc-header{transition:background .15s;}
+.acc-header:hover{background:var(--bg);}
+.acc-header:active{background:var(--border);}
+
+/* 배지 폰트 통일 */
+.bdg{font-family:'Noto Sans KR',sans-serif;letter-spacing:-.2px;}
+
+/* sechead 더 깔끔하게 */
+.sechead h3{font-weight:800;letter-spacing:-.5px;}
+
+/* hero 더 강조 */
+.hero{background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);position:relative;overflow:hidden;}
+.hero::before{content:"";position:absolute;top:-30%;right:-20%;width:60%;height:160%;background:radial-gradient(circle,rgba(96,165,250,.15) 0%,transparent 60%);pointer-events:none;}
+
+/* 입력 필드 포커스 시 더 강조 */
+.fi:focus{border-color:var(--blue);background:var(--white);box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+.fsel:focus{border-color:var(--blue);background:var(--white);box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+
+/* 빈 상태 더 친근하게 */
+.empty{padding:32px 16px;text-align:center;}
+.empty .ei{font-size:36px;margin-bottom:8px;opacity:.6;}
+.empty p{color:var(--faint);font-size:13px;}
+
+
+
+/* iOS 스타일 토글 스위치 */
+.ios-toggle{position:relative;display:inline-block;width:44px;height:26px;flex-shrink:0;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.ios-toggle input{opacity:0;width:0;height:0;position:absolute;}
+.ios-toggle-slider{position:absolute;inset:0;background:#cbd5e1;border-radius:99px;transition:background .25s;}
+.ios-toggle-slider::before{content:"";position:absolute;width:22px;height:22px;left:2px;top:2px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 4px rgba(0,0,0,.15);}
+.ios-toggle input:checked + .ios-toggle-slider{background:var(--blue);}
+.ios-toggle input:checked + .ios-toggle-slider::before{transform:translateX(18px);}
+.ios-toggle input:disabled + .ios-toggle-slider{opacity:.5;cursor:not-allowed;}
+
+/* fi-item flex 정렬 재정의 */
+.fi-item{display:flex;align-items:center;padding:14px 14px;background:var(--white);border:1px solid var(--border);border-radius:var(--rsm);margin-bottom:6px;transition:opacity .25s,background .15s;}
+.fi-item.off{opacity:.45;}
+.fi-item.off .fi-item-name{color:var(--faint);}
+.fi-item:active{background:var(--bg);}
+
+/* 더 미세한 마이크로 인터랙션 */
+.tb{transition:all .15s;}
+.tb:active{transform:scale(.96);}
+.fi-item-icon{font-size:20px;}
+.fi-item-name{font-size:14px;font-weight:700;letter-spacing:-.3px;}
+.fi-item-meta{font-size:11px;color:var(--faint);margin-top:2px;}
+.fi-item-amt{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.3px;}
+
+/* txi 정렬 */
+.txi{transition:background .15s;border-radius:8px;}
+.txi:active{background:var(--bg);}
+
+
+
+/* 선택 모드 활성화시 부드러운 진입 */
+#tx-select-toolbar{animation:slideDown .2s ease-out;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+
+/* 빈 상태 더 따뜻하게 */
+.empty p{font-size:13px;line-height:1.6;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -305,7 +424,15 @@ svg.chart{display:block;width:100%;}
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="logo">머니로그<b>.</b></div>
-  <div class="month-sel-wrap">📅 <select id="gMonth" onchange="onMonthChange()"></select></div>
+  <div style="display:flex;align-items:center;gap:6px;">
+    <!-- 상태 칩 (단순 표시, 클릭 안됨) -->
+    <div id="topbar-sync" title="자동 실시간 동기화 중. 입력 시 3초 후 자동 저장됩니다." style="display:flex;align-items:center;gap:4px;background:var(--green-light);border:1px solid #a7f3d0;border-radius:99px;padding:4px 9px;font-size:11px;font-weight:700;color:var(--green);font-family:'Noto Sans KR',sans-serif;height:26px;cursor:default;">
+      <span class="sync-dot"></span><span id="topbar-sync-label">자동저장</span>
+    </div>
+    <!-- 즉시 동기화 버튼 (선택) -->
+    <button onclick="manualSync()" title="지금 즉시 동기화" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:var(--white);color:var(--sub);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;padding:0;">⟳</button>
+    <div class="month-sel-wrap">📅 <select id="gMonth" onchange="onMonthChange()"></select></div>
+  </div>
 </div>
 
 <!-- SCROLL -->
@@ -336,82 +463,129 @@ svg.chart{display:block;width:100%;}
     <div class="sbox"><div class="sl">저축률</div><div class="sv cbl" id="h-rate">0%</div><div class="ss">수입 대비</div></div>
   </div>
   <!-- 다음달 카드값 -->
-  <div class="card"><div class="cp">
-    <div class="ctitle">다음달 카드값 예측</div>
-    <div class="rl"><span class="rk">이번달 쓴 카드값 🔒</span><span class="rv crd" id="h-card">—</span></div>
-    <div class="rl"><span class="rk">카드값 출금 + 월급 입금 후</span><span class="rv cbl" id="h-aftersalary">—</span></div>
-    <div class="rl"><span class="rk">카드값 출금 직후 잔액</span><span class="rv" id="h-aftercard">—</span></div>
-    <div id="h-card-alert" style="margin-top:8px;"></div>
-  </div></div>
+  <div id="h-acc-card">
+    <div class="acc-header" id="h-acc-card-hd" onclick="toggleAcc('h-acc-card')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">💳</span>
+        <span style="font-size:14px;font-weight:700;">다음달 카드값 예측</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="rv crd" id="h-card-summary" style="font-size:13px;">—</span>
+        <span class="acc-arrow" id="h-acc-card-arr">▼</span>
+      </div>
+    </div>
+    <div class="acc-body" id="h-acc-card-body" style="display:none;">
+      <div class="acc-body-inner">
+        <div class="rl"><span class="rk">이번달 쓴 카드값 🔒</span><span class="rv crd" id="h-card">—</span></div>
+        <div class="rl"><span class="rk">카드값 출금 직후 잔액</span><span class="rv" id="h-aftercard">—</span></div>
+        <div class="rl"><span class="rk">카드값 출금 + 월급 입금 후</span><span class="rv cbl" id="h-aftersalary">—</span></div>
+        <div id="h-card-alert" style="margin-top:8px;"></div>
+      </div>
+    </div>
+  </div>
   <!-- 최근 거래 -->
   <div>
     <div class="sechead"><h3>최근 거래</h3><a onclick="goPage('record')">전체 보기</a></div>
     <div class="card"><div class="cp" id="h-recent-tx"><div class="empty"><div class="ei">📭</div><p>기록 탭에서 거래를 입력하세요</p></div></div></div>
   </div>
   <!-- 순자산 -->
-  <div class="card"><div class="cp">
-    <div class="ctitle">순자산 구성</div>
-    <div class="rl"><span class="rk">💵 현금 <span class="bdg bdg-bl" style="font-size:9px;">유동</span></span><span class="rv cbl" id="h-net-cash">—</span></div>
-    <div class="rl"><span class="rk">🏦 저축 <span class="bdg bdg-gr" style="font-size:9px;">비유동</span></span><span class="rv cgr" id="h-net-save">—</span></div>
-    <div class="rl"><span class="rk">📈 투자 <span class="bdg bdg-pr" style="font-size:9px;">반유동</span></span><span class="rv cpr" id="h-net-invest">—</span></div>
-    <div class="rl"><span class="rk">🏚️ 변동 대출 <span style="font-size:10px;color:var(--faint);">(순자산 차감)</span></span><span class="rv crd" id="h-net-loan">—</span></div>
-    <div class="rltotal"><span class="rk">총 순자산</span><span class="rv" id="h-net-total">—</span></div>
-  </div></div>
+  <div id="h-acc-net">
+    <div class="acc-header" id="h-acc-net-hd" onclick="toggleAcc('h-acc-net')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">🏆</span>
+        <span style="font-size:14px;font-weight:700;">순자산 구성</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="rv" id="h-net-summary" style="font-size:14px;font-weight:800;">—</span>
+        <span class="acc-arrow" id="h-acc-net-arr">▼</span>
+      </div>
+    </div>
+    <div class="acc-body" id="h-acc-net-body" style="display:none;">
+      <div class="acc-body-inner">
+        <div class="rl"><span class="rk">💵 현금 <span class="bdg bdg-bl" style="font-size:9px;">유동</span></span><span class="rv cbl" id="h-net-cash">—</span></div>
+        <div class="rl"><span class="rk">🏦 저축 <span class="bdg bdg-gr" style="font-size:9px;">비유동</span></span><span class="rv cgr" id="h-net-save">—</span></div>
+        <div class="rl"><span class="rk">📈 투자 <span class="bdg bdg-pr" style="font-size:9px;">반유동</span></span><span class="rv cpr" id="h-net-invest">—</span></div>
+        <div class="rl"><span class="rk">🏚️ 변동 대출 <span style="font-size:10px;color:var(--faint);">(차감)</span></span><span class="rv crd" id="h-net-loan">—</span></div>
+        <div class="rltotal"><span class="rk">총 순자산</span><span class="rv" id="h-net-total">—</span></div>
+      </div>
+    </div>
+  </div>
 </div><!-- /홈 -->
 
 <!-- ══════════ 기록 ══════════ -->
 <div class="pg" id="pg-record">
-  <!-- 빠른 입력 -->
-  <div class="sechead" style="margin-bottom:4px;"><h3>거래 입력</h3><span style="font-size:12px;color:var(--faint);" id="rec-mon-label"></span></div>
-  <div class="card"><div class="cp" style="padding:16px;">
-    <!-- 유형 -->
-    <div class="typebtn-row" id="rec-types" style="margin-bottom:14px;grid-template-columns:repeat(4,1fr);grid-template-rows:auto auto;">
-      <div class="tb on" onclick="setRecType('income',this)">💰 수입</div>
-      <div class="tb" onclick="setRecType('fixed',this)">🏠 고정</div>
-      <div class="tb" onclick="setRecType('variable',this)">🛒 변동</div>
-      <div class="tb" onclick="setRecType('saving',this)">🏦 저축</div>
-      <div class="tb" onclick="setRecType('invest',this)">📈 투자</div>
-      <div class="tb" onclick="setRecType('card',this)">💳 카드</div>
-      <div class="tb" onclick="setRecType('transfer',this)">🔄 이체</div>
-    </div>
-    <!-- 날짜 + 금액 -->
-    <div class="fg2" style="margin-bottom:0;">
-      <div class="fg" style="margin-bottom:10px;"><label>날짜</label><input class="fi" type="date" id="r-date"></div>
-      <div class="fg" style="margin-bottom:10px;"><label>금액 (원)</label><input class="fi" id="r-amt" placeholder="0" inputmode="numeric" oninput="fmtInput(this)"></div>
-    </div>
-    <div class="fg" style="margin-bottom:10px;"><label>카테고리</label><select class="fsel fi" id="r-cat"></select></div>
-    <div class="fg" style="margin-bottom:10px;"><label>메모 <span style="font-weight:400;color:var(--faint);">(선택)</span></label><input class="fi" id="r-memo" placeholder="예: 프랭크버거 남위례역점"></div>
-    <div class="fg" style="margin-bottom:14px;"><label>결제 수단</label><select class="fsel fi" id="r-method"></select></div>
-    <button class="btn btn-blue" onclick="submitTx()">➕ 거래 추가하기</button>
-  </div></div>
 
-  <!-- 이미지 자동 입력 -->
-  <div>
-    <div class="sechead" style="margin-bottom:4px;"><h3>📸 AI 자동 입력</h3><span class="bdg bdg-bl">Claude AI</span></div>
-    <div class="card"><div class="cp" style="padding:16px;">
-      <p style="font-size:12px;color:var(--sub);margin-bottom:12px;line-height:1.6;">통장·카드 화면을 캡처해서 올리면 <b>AI가 거래 내역을 자동 추출</b>합니다.<br>추가 후 내역에서 카테고리를 수정할 수 있습니다.</p>
-      <div class="uarea" onclick="document.getElementById('img-input').click()" style="padding:18px;">
-        <div style="font-size:28px;margin-bottom:6px;">📱</div>
-        <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:3px;">이미지 업로드</div>
-        <div style="font-size:11px;color:var(--faint);">통장 화면 캡처를 올려주세요</div>
+  <!-- ① 거래 추가 FAB -->
+  <button class="rec-fab" onclick="openTxDrawer()">
+    <span class="rec-fab-icon">＋</span>거래 추가
+  </button>
+
+  <!-- AI 자동 입력 (접기/펼치기) -->
+  <div id="ai-acc">
+    <div class="acc-header" id="ai-acc-hd" onclick="toggleAcc('ai')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">📸</span>
+        <span style="font-size:14px;font-weight:700;">AI 자동 입력</span>
+        <span class="bdg bdg-bl" style="font-size:10px;">Claude AI</span>
       </div>
-      <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
-      <div id="img-result" class="img-result" style="padding:0;background:none;"></div>
-    </div></div>
+      <span class="acc-arrow" id="ai-acc-arr">▼</span>
+    </div>
+    <div class="acc-body" id="ai-acc-body" style="display:none;">
+      <div class="acc-body-inner">
+        <p style="font-size:12px;color:var(--sub);margin-bottom:10px;">통장·카드 화면 캡처 → AI가 거래 자동 추출</p>
+        <div class="uarea" onclick="document.getElementById('img-input').click()" style="padding:14px;">
+          <div style="font-size:24px;margin-bottom:4px;">📱</div>
+          <div style="font-size:13px;font-weight:600;color:var(--blue);">이미지 업로드</div>
+        </div>
+        <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
+        <div id="img-result" style="margin-top:8px;"></div>
+      </div>
+    </div>
   </div>
 
-  <!-- 정기 거래 -->
-  <div>
-    <div class="sechead"><h3>🔁 정기 거래</h3><a onclick="applyRecurring()">이번달 적용</a></div>
-    <p style="font-size:12px;color:var(--sub);margin-bottom:10px;">매달 반복 거래를 등록하면 버튼 하나로 일괄 입력됩니다.</p>
-    <div id="rec-list"></div>
-    <button onclick="openRecAdd()" style="width:100%;padding:12px;border:1.5px dashed var(--border);border-radius:var(--rsm);background:transparent;color:var(--blue);font-size:13px;font-weight:700;cursor:pointer;margin-top:2px;">+ 정기 거래 추가</button>
-    <div id="apply-result" style="margin-top:8px;font-size:12px;display:none;"></div>
+  <!-- ② 고정 지출 (아코디언) -->
+  <div id="fixed-acc">
+    <div class="acc-header" id="fixed-acc-hd" onclick="toggleAcc('fixed')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">📌</span>
+        <span style="font-size:14px;font-weight:700;">고정 지출</span>
+        <span class="bdg bdg-gy" id="fixed-acc-badge">0건</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:var(--blue);font-weight:700;" id="fixed-acc-btn-apply" onclick="event.stopPropagation();applyRecurring()">이번달 적용</span>
+        <span class="acc-arrow" id="fixed-acc-arr">▼</span>
+      </div>
+    </div>
+    <div class="acc-body" id="fixed-acc-body" style="display:none;">
+      <div class="acc-body-inner">
+        <!-- 툴바 -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--sub);">
+              <button onclick="fixedToggleAll(true)" style="background:var(--blue-light);color:var(--blue);border:1.5px solid var(--blue-mid);border-radius:99px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">전체 활성</button>
+              <button onclick="fixedToggleAll(false)" style="background:var(--white);color:var(--sub);border:1.5px solid var(--border);border-radius:99px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">전체 중지</button>
+            </div>
+          </div>
+          <div class="sort-tabs">
+            <div class="sort-tab on" onclick="fixedSort('day-asc',this)">출금일 ↑</div>
+            <div class="sort-tab" onclick="fixedSort('day-desc',this)">출금일 ↓</div>
+            <div class="sort-tab" onclick="fixedSort('amt-desc',this)">금액순</div>
+          </div>
+        </div>
+        <div id="rec-list"></div>
+        <div id="apply-result" style="margin-top:6px;font-size:12px;display:none;"></div>
+        <button onclick="openRecAdd()" style="width:100%;padding:11px;border:1.5px dashed var(--border);border-radius:var(--rsm);background:transparent;color:var(--blue);font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;">+ 항목 추가</button>
+      </div>
+    </div>
   </div>
 
-  <!-- 이달 내역 -->
+  <!-- ③ 이달 내역 -->
   <div>
-    <div class="sechead"><h3>이달 내역</h3>
+    <div class="sechead">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <h3>이달 내역</h3>
+        <span id="rec-mon-label" style="font-size:12px;color:var(--faint);"></span>
+      </div>
       <div style="display:flex;gap:6px;align-items:center;">
         <select class="fsel" id="rec-filter" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;">
           <option value="">전체</option>
@@ -423,11 +597,26 @@ svg.chart{display:block;width:100%;}
           <option value="card">카드</option>
           <option value="transfer">이체</option>
         </select>
-        <a onclick="exportCSV()">CSV</a>
+        <button id="tx-select-toggle" onclick="toggleTxSelectMode()" style="border:1.5px solid var(--border);background:var(--white);color:var(--sub);font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">선택</button>
+        <a onclick="exportCSV()" style="font-size:12px;color:var(--blue);font-weight:600;cursor:pointer;">CSV</a>
+      </div>
+    </div>
+    <!-- 선택 모드 툴바 (선택 시만 표시) -->
+    <div id="tx-select-toolbar" style="display:none;background:var(--blue-light);border:1.5px solid var(--blue-mid);border-radius:var(--rsm);padding:10px 14px;margin-bottom:8px;align-items:center;justify-content:space-between;gap:8px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;cursor:pointer;color:var(--blue);">
+          <input type="checkbox" id="tx-select-all" onchange="txSelectAll(this.checked)" style="width:16px;height:16px;accent-color:var(--blue);">전체
+        </label>
+        <span id="tx-select-count" style="font-size:12px;font-weight:700;color:var(--blue);">0개 선택</span>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="deleteSelectedTxs()" style="background:var(--red);color:#fff;border:none;border-radius:var(--rxs);padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🗑 삭제</button>
+        <button onclick="toggleTxSelectMode()" style="background:var(--white);color:var(--sub);border:1.5px solid var(--border);border-radius:var(--rxs);padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">취소</button>
       </div>
     </div>
     <div class="card"><div class="cp" id="rec-tx-list"><div class="empty"><div class="ei">📋</div><p>거래 내역이 없습니다</p></div></div></div>
   </div>
+
 </div><!-- /기록 -->
 
 <!-- ══════════ 분석 ══════════ -->
@@ -621,44 +810,76 @@ svg.chart{display:block;width:100%;}
     <div id="as-ratio"></div>
   </div></div>
   <!-- 현금 -->
-  <div class="card"><div class="cp">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <div class="ctitle" style="margin:0;">💵 현금 (통장 잔액)</div>
-      <span class="bdg bdg-bl" id="as-cash-badge">—</span>
+  <div id="as-acc-cash">
+    <div class="acc-header" id="as-acc-cash-hd" onclick="toggleAcc('as-acc-cash')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">💵</span>
+        <span style="font-size:14px;font-weight:700;">현금 (통장)</span>
+        <span class="bdg bdg-bl" id="as-cash-badge">—</span>
+      </div>
+      <span class="acc-arrow" id="as-acc-cash-arr">▼</span>
     </div>
-    <div id="as-cash-list"></div>
-    <div class="rltotal"><span class="rk">가용 현금 합계</span><span class="rv cbl" id="as-cash-total">—</span></div>
-  </div></div>
+    <div class="acc-body" id="as-acc-cash-body" style="display:none;">
+      <div class="acc-body-inner">
+        <div id="as-cash-list"></div>
+        <div class="rltotal"><span class="rk">가용 현금 합계</span><span class="rv cbl" id="as-cash-total">—</span></div>
+      </div>
+    </div>
+  </div>
   <!-- 대출 -->
-  <div class="card"><div class="cp">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <div class="ctitle" style="margin:0;">🏚️ 대출</div>
-      <span class="bdg bdg-rd" id="as-loan-badge">—</span>
+  <div id="as-acc-loan">
+    <div class="acc-header" id="as-acc-loan-hd" onclick="toggleAcc('as-acc-loan')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">🏚️</span>
+        <span style="font-size:14px;font-weight:700;">대출</span>
+        <span class="bdg bdg-rd" id="as-loan-badge">—</span>
+      </div>
+      <span class="acc-arrow" id="as-acc-loan-arr">▼</span>
     </div>
-    <div id="as-loans"></div>
-    <div style="background:var(--yellow-light);border:1px solid #fde68a;border-radius:6px;padding:8px 10px;font-size:11px;color:var(--sub);margin-top:10px;margin-bottom:4px;">
-      ℹ️ 버팀목전세(1.4억)+오피스텔(1.7억)은 이자만납부·순자산 제외
+    <div class="acc-body" id="as-acc-loan-body" style="display:none;">
+      <div class="acc-body-inner">
+        <div id="as-loans"></div>
+        <div style="background:var(--yellow-light);border:1px solid #fde68a;border-radius:6px;padding:8px 10px;font-size:11px;color:var(--sub);margin-top:10px;margin-bottom:4px;">
+          ℹ️ 버팀목전세(1.4억)+오피스텔(1.7억)은 이자만납부·순자산 제외
+        </div>
+        <div class="rltotal"><span class="rk">변동 대출 합계</span><span class="rv crd" id="as-loan-total">—</span></div>
+      </div>
     </div>
-    <div class="rltotal"><span class="rk">변동 대출 합계</span><span class="rv crd" id="as-loan-total">—</span></div>
-  </div></div>
+  </div>
   <!-- 저축 -->
-  <div class="card"><div class="cp">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <div class="ctitle" style="margin:0;">💚 저축</div>
-      <span class="bdg bdg-gr" id="as-save-badge">—</span>
+  <div id="as-acc-save">
+    <div class="acc-header" id="as-acc-save-hd" onclick="toggleAcc('as-acc-save')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">💚</span>
+        <span style="font-size:14px;font-weight:700;">저축</span>
+        <span class="bdg bdg-gr" id="as-save-badge">—</span>
+      </div>
+      <span class="acc-arrow" id="as-acc-save-arr">▼</span>
     </div>
-    <div id="as-saves"></div>
-    <div class="rltotal"><span class="rk">저축 합계</span><span class="rv cgr" id="as-save-total">—</span></div>
-  </div></div>
+    <div class="acc-body" id="as-acc-save-body" style="display:none;">
+      <div class="acc-body-inner">
+        <div id="as-saves"></div>
+        <div class="rltotal"><span class="rk">저축 합계</span><span class="rv cgr" id="as-save-total">—</span></div>
+      </div>
+    </div>
+  </div>
   <!-- 투자 -->
-  <div class="card"><div class="cp">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <div class="ctitle" style="margin:0;">📈 투자</div>
-      <span class="bdg bdg-pr" id="as-invest-badge">—</span>
+  <div id="as-acc-inv">
+    <div class="acc-header" id="as-acc-inv-hd" onclick="toggleAcc('as-acc-inv')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">📈</span>
+        <span style="font-size:14px;font-weight:700;">투자</span>
+        <span class="bdg bdg-pr" id="as-invest-badge">—</span>
+      </div>
+      <span class="acc-arrow" id="as-acc-inv-arr">▼</span>
     </div>
-    <div id="as-invests"></div>
-    <div class="rltotal"><span class="rk">투자 합계</span><span class="rv cpr" id="as-invest-total">—</span></div>
-  </div></div>
+    <div class="acc-body" id="as-acc-inv-body" style="display:none;">
+      <div class="acc-body-inner">
+        <div id="as-invests"></div>
+        <div class="rltotal"><span class="rk">투자 합계</span><span class="rv cpr" id="as-invest-total">—</span></div>
+      </div>
+    </div>
+  </div>
   <!-- 동기화 -->
   <div class="sync-card card"><div class="cp">
     <div class="ctitle" style="color:var(--blue);">📡 동기화 · 백업</div>
@@ -993,9 +1214,20 @@ svg.chart{display:block;width:100%;}
 </div>
   <div id="snap-result" style="text-align:center;font-size:13px;display:none;"></div>
 
-  <!-- 예산 설정 -->
-  <div style="margin-top:8px;"><div class="sechead"><h3>📋 예산 설정</h3><span style="font-size:11px;color:var(--faint);">입력 즉시 자동저장</span></div></div>
-  <div class="card"><div class="cp" id="budget-form-wrap">
+  <!-- 예산 설정 (아코디언) -->
+  <div id="set-acc-budget">
+    <div class="acc-header" id="set-acc-budget-hd" onclick="toggleAcc('set-acc-budget')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">📋</span>
+        <span style="font-size:14px;font-weight:700;">예산 설정</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;color:var(--faint);">자동저장</span>
+        <span class="acc-arrow" id="set-acc-budget-arr">▼</span>
+      </div>
+    </div>
+    <div class="acc-body" id="set-acc-budget-body" style="display:none;">
+      <div class="acc-body-inner" id="budget-form-wrap">
     <div style="font-size:10px;font-weight:800;color:var(--faint);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">💰 수입</div>
     <div class="fg2">
       <div class="fg"><label>도형 월급</label><input class="fi" id="b-도형월급" oninput="autoSaveBudget()"></div>
@@ -1045,11 +1277,21 @@ svg.chart{display:block;width:100%;}
       <button class="btn btn-outline" onclick="copyBudgetFromLastMonth()" style="flex:1;font-size:13px;">지난달 복사</button>
     </div>
     <div id="b-saved" style="font-size:12px;color:var(--green);text-align:center;margin-top:6px;display:none;">✓ 저장됨</div>
-  </div></div>
+      </div>
+    </div>
+  </div>
 
-  <!-- 카테고리 + 결제수단 편집 -->
-  <div><div class="sechead"><h3>⚙️ 카테고리 · 결제수단 편집</h3></div></div>
-  <div class="card"><div class="cp" id="cat-edit-wrap">
+  <!-- 카테고리 + 결제수단 편집 (아코디언) -->
+  <div id="set-acc-cat">
+    <div class="acc-header" id="set-acc-cat-hd" onclick="toggleAcc('set-acc-cat')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">⚙️</span>
+        <span style="font-size:14px;font-weight:700;">카테고리 · 결제수단</span>
+      </div>
+      <span class="acc-arrow" id="set-acc-cat-arr">▼</span>
+    </div>
+    <div class="acc-body" id="set-acc-cat-body" style="display:none;">
+      <div class="acc-body-inner" id="cat-edit-wrap">
     <p style="font-size:12px;color:var(--sub);margin-bottom:14px;">쉼표(,)로 구분. 저장 후 거래 입력에 즉시 반영됩니다.</p>
     <div id="cat-fields"></div>
     <div style="font-size:11px;font-weight:700;color:var(--faint);margin:12px 0 8px;text-transform:uppercase;">💳 결제수단</div>
@@ -1062,14 +1304,21 @@ svg.chart{display:block;width:100%;}
   </div></div>
 
 
-  <!-- ━━ Supabase 실시간 동기화 ━━ -->
-  <div class="sechead" style="margin-top:8px;"><h3>🔴 실시간 동기화</h3><span class="bdg bdg-gr">Supabase</span></div>
-  <div class="card"><div class="cp">
-    <!-- 연결 상태 -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <div id="sb-status" style="font-size:13px;font-weight:700;"><span style="color:var(--yellow);">● 연결 중...</span></div>
-      <div style="font-size:11px;color:var(--faint);">도형&예진 공용 DB</div>
+  <!-- ━━ Supabase 실시간 동기화 (아코디언) ━━ -->
+  <div id="set-acc-sync">
+    <div class="acc-header" id="set-acc-sync-hd" onclick="toggleAcc('set-acc-sync')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">🔴</span>
+        <span style="font-size:14px;font-weight:700;">실시간 동기화</span>
+        <span class="bdg bdg-gr" style="font-size:10px;">Supabase</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span id="sb-status" style="font-size:11px;font-weight:700;"><span style="color:var(--yellow);">● 연결 중</span></span>
+        <span class="acc-arrow" id="set-acc-sync-arr">▼</span>
+      </div>
     </div>
+    <div class="acc-body" id="set-acc-sync-body" style="display:none;">
+      <div class="acc-body-inner">
 
     <!-- 설명 -->
     <div class="al ok" style="margin-bottom:16px;">
@@ -1109,8 +1358,35 @@ svg.chart{display:block;width:100%;}
       <button class="btn btn-outline btn-sm" onclick="exportExcel()" style="flex:1;height:38px;font-size:12px;">📊 엑셀</button>
     </div>
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importDataJSON(event)">
-  </div></div>
+      </div>
+    </div>
+  </div>
 
+
+  <!-- ━━ 위험구역 ━━ -->
+  <div id="set-acc-danger" style="margin-top:8px;">
+    <div class="acc-header" id="set-acc-danger-hd" onclick="toggleAcc('set-acc-danger')" style="border-color:#fecaca;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">⚠️</span>
+        <span style="font-size:14px;font-weight:700;color:var(--red);">위험구역</span>
+      </div>
+      <span class="acc-arrow" id="set-acc-danger-arr" style="color:var(--red);">▼</span>
+    </div>
+    <div class="acc-body" id="set-acc-danger-body" style="display:none;border-color:#fecaca;">
+      <div class="acc-body-inner">
+        <p style="font-size:12px;color:var(--sub);line-height:1.7;margin-bottom:14px;">
+          처음부터 새로 시작하려면 모든 데이터를 초기화하세요.<br>
+          <b style="color:var(--red);">⚠️ 거래내역, 잔액, 예산, 고정지출 모두 삭제됩니다.</b><br>
+          클라우드에 동기화된 데이터도 함께 삭제됩니다.
+        </p>
+        <div class="btnrow" style="margin-bottom:8px;">
+          <button onclick="resetAllData()" style="flex:1;background:var(--white);color:var(--red);border:1.5px solid var(--red);height:44px;border-radius:var(--rsm);font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🗑️ 모든 데이터 초기화</button>
+          <button onclick="exportDataJSON()" style="flex:1;background:var(--white);color:var(--sub);border:1.5px solid var(--border);height:44px;border-radius:var(--rsm);font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">먼저 백업하기</button>
+        </div>
+        <p style="font-size:11px;color:var(--faint);text-align:center;margin-top:8px;">초기화 전에 먼저 백업을 받아두세요.</p>
+      </div>
+    </div>
+  </div>
 </div><!-- /설정 -->
 
 </div><!-- /scroll -->
@@ -1426,6 +1702,9 @@ function renderHome() {
     chips2.innerHTML='<div class="hchip">💳 카드자물쇠 '+fmtW(c.카드자물쇠)+'</div>'
       +'<div class="hchip '+(delta>=0?'ok':'warn')+'">'+sign+fmtW(Math.abs(delta))+' 전달比</div>';
   }
+  // 아코디언 헤더 요약값
+  const cs=$('h-card-summary'); if(cs){ cs.textContent='-'+fmtW(c.카드자물쇠); cs.className='rv crd'; cs.style.fontSize='13px'; }
+  const ns=$('h-net-summary'); if(ns){ ns.textContent=fmtW(c.순자산); ns.className='rv '+(c.순자산>=0?'cbl':'crd'); ns.style.fontSize='14px'; ns.style.fontWeight='800'; }
   // 예산 초과 알림
   renderOverBudgetAlert(c);
 }
@@ -1491,6 +1770,242 @@ function submitTx() {
   showToast((memo||cat)+' '+fmtW(amt)+' 추가됨 ✓');
   renderAll(); renderRecordPage();
 }
+
+// ━━ 기록탭 JS ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// 아코디언 토글
+function toggleAcc(key) {
+  // ID 패턴: 키가 '-acc-'를 이미 포함하면 그대로, 아니면 '-acc-' 추가
+  const hasAccInKey = key.includes('-acc-') || key.startsWith('as-acc-') || key.startsWith('h-acc-');
+  const bodyId = hasAccInKey ? key+'-body' : key+'-acc-body';
+  const arrId  = hasAccInKey ? key+'-arr'  : key+'-acc-arr';
+  const hdId   = hasAccInKey ? key+'-hd'   : key+'-acc-hd';
+  const body = $(bodyId);
+  const arr = $(arrId);
+  const hd = $(hdId);
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (arr) arr.classList.toggle('open', !isOpen);
+  if (hd) hd.classList.toggle('open', !isOpen);
+}
+
+// 거래 입력 드로어 열기
+function openTxDrawer() {
+  $('dtitle').textContent = '거래 추가';
+  const types = ['income','fixed','variable','saving','invest','card','transfer'];
+  const today = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const todayStr = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
+  window._recType = 'variable';
+
+  $('dbody').innerHTML =
+    // 유형 버튼
+    '<div class="typebtn-row" id="drw-types" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px;">'
+    + types.map((t,i) => '<div class="tb'+(t==='variable'?' on':'')+'" onclick="setDrwType(\'' + t + '\',this)">'+TI[t]+' '+TL[t]+'</div>').join('')
+    + '</div>'
+    // 금액 (크게)
+    + '<div class="fg" style="margin-bottom:10px;">'
+    + '<label>금액 (원)</label>'
+    + '<input class="fi" id="drw-amt" placeholder="0" inputmode="numeric" oninput="fmtInput(this)" style="font-size:20px;font-weight:700;text-align:right;" autofocus>'
+    + '</div>'
+    // 날짜
+    + '<div class="fg2"><div class="fg"><label>날짜</label><input class="fi" type="date" id="drw-date" value="'+todayStr+'"></div>'
+    // 카테고리 (이름 겸용)
+    + '<div class="fg"><label>카테고리</label><select class="fsel fi" id="drw-cat"></select></div></div>'
+    // 메모
+    + '<div class="fg"><label>메모 <span style="color:var(--faint);font-weight:400;">(선택)</span></label><input class="fi" id="drw-memo" placeholder="예: 스타벅스 강남역"></div>'
+    // 결제수단
+    + '<div class="fg" style="margin-bottom:16px;"><label>결제 수단</label>'
+    + '<select class="fsel fi" id="drw-method">'+getPayMethods().map(m=>'<option>'+m+'</option>').join('')+'</select></div>'
+    + '<button class="btn btn-blue" onclick="submitTxDrawer()">추가하기</button>';
+
+  updateDrwCats();
+  openDrawer();
+  // 금액 필드 자동 포커스
+  setTimeout(() => { const a=$('drw-amt'); if(a) a.focus(); }, 300);
+}
+
+function setDrwType(type, el) {
+  window._recType = type;
+  document.querySelectorAll('#drw-types .tb').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  updateDrwCats();
+}
+function updateDrwCats() {
+  const s = $('drw-cat'); if(!s) return;
+  s.innerHTML = (getCatMap()[window._recType||'variable']||[]).map(c=>'<option>'+c+'</option>').join('');
+}
+function submitTxDrawer() {
+  const date = $('drw-date') ? $('drw-date').value : '';
+  const amt = parseNum($('drw-amt') ? $('drw-amt').value : '');
+  const cat = $('drw-cat') ? $('drw-cat').value : '';
+  const memo = $('drw-memo') ? $('drw-memo').value.trim() : '';
+  const method = $('drw-method') ? $('drw-method').value : '';
+  if (!date) { showToast('날짜를 입력해주세요'); return; }
+  if (!amt) { showToast('금액을 입력해주세요'); return; }
+  const mon = date.slice(0,7), state=getState(), md=ensureMonth(state,mon);
+  md.transactions.push({id:Date.now(), date, type:window._recType||'variable', cat, amt, memo, method});
+  setState(state);
+  closeDrawer();
+  showToast((memo||cat)+' '+fmtW(amt)+' 추가됨 ✓');
+  renderAll(); renderRecordPage();
+}
+
+// 고정 지출 정렬
+let fixedSortKey = 'day-asc';
+function fixedSort(key, el) {
+  fixedSortKey = key;
+  document.querySelectorAll('.sort-tab').forEach(t=>t.classList.remove('on'));
+  if(el) el.classList.add('on');
+  renderRecurringList();
+}
+
+// 전체 선택/해제
+function fixedToggleAll(checked) {
+  const list = getRecurring();
+  list.forEach(r => { r.active = checked; });
+  saveRecurring(list);
+  renderRecurringList();
+  showToast(checked ? '✅ 전체 활성화' : '전체 중지');
+}
+
+// 고정 지출 개별 편집 드로어
+function openRecEdit(id) {
+  const list = getRecurring();
+  const r = list.find(r => r.id === id); if (!r) return;
+  $('dtitle').textContent = '고정 지출 수정';
+  const types = ['income','fixed','variable','saving','invest','card','transfer'];
+  window._editRecId = id;
+  window._curRT = r.type;
+
+  $('dbody').innerHTML =
+    '<div class="typebtn-row" id="rt-types" style="grid-template-columns:repeat(4,1fr);">'
+    + types.map(t=>'<div class="tb'+(t===r.type?' on':'')+'" onclick="setRT(\'' + t + '\',this)">'+TI[t]+' '+TL[t]+'</div>').join('')
+    + '</div>'
+    // 카테고리 = 이름 (하나로 통합)
+    + '<div class="fg"><label>카테고리 / 이름</label><select class="fsel fi" id="rta-cat" onchange="syncRecName()"></select></div>'
+    + '<div class="fg2">'
+    + '<div class="fg"><label>금액</label><input class="fi" id="rta-amt" value="'+fmt(r.amt)+'" inputmode="numeric"></div>'
+    + '<div class="fg"><label>출금일 (매달)</label><input class="fi" id="rta-day" value="'+r.day+'" inputmode="numeric" placeholder="1"></div>'
+    + '</div>'
+    + '<div class="fg"><label>결제 수단</label><select class="fsel fi" id="rta-method">'+getPayMethods().map(m=>'<option'+(m===r.method?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
+    + '<div class="btnrow"><button class="btn btn-blue" onclick="submitRecEdit()">수정 완료</button>'
+    + '<button onclick="deleteRecFromEdit('+id+')" style="flex:0 0 auto;height:44px;padding:0 16px;border:1.5px solid #fecaca;background:var(--red-light);color:var(--red);border-radius:var(--rsm);font-size:13px;font-weight:700;cursor:pointer;">삭제</button></div>';
+
+  // 카테고리 채우기 + 현재값 선택
+  const s=$('rta-cat');
+  if(s) {
+    s.innerHTML=(getCatMap()[r.type]||[]).map(cat=>'<option'+(cat===r.name||cat===r.cat?' selected':'')+'>'+cat+'</option>').join('');
+  }
+  openDrawer();
+}
+
+function syncRecName() {
+  // 카테고리 선택하면 이름도 동기화 (별도 이름 필드 없음)
+}
+
+function submitRecEdit() {
+  const id = window._editRecId;
+  const list = getRecurring();
+  const r = list.find(r => r.id === id); if (!r) return;
+  const cat = $('rta-cat') ? $('rta-cat').value : r.cat;
+  const amt = parseNum($('rta-amt') ? $('rta-amt').value : String(r.amt));
+  const day = parseInt($('rta-day') ? $('rta-day').value || '1' : '1');
+  const method = $('rta-method') ? $('rta-method').value : r.method;
+  Object.assign(r, { name: cat, cat, type: window._curRT||r.type, amt, day, method });
+  saveRecurring(list);
+  closeDrawer();
+  renderRecurringList();
+  showToast('✅ 수정 완료');
+}
+
+// 고정 지출 리스트 렌더 (완전 재설계)
+function renderRecurringList() {
+  let list = getRecurring();
+  const wrap = $('rec-list'); if (!wrap) return;
+
+  // 배지 업데이트
+  const badge = $('fixed-acc-badge');
+  if (badge) badge.textContent = list.filter(r=>r.active).length + '/' + list.length + '건';
+
+  if (!list.length) {
+    wrap.innerHTML = '<div class="empty" style="padding:16px;"><p>+ 항목 추가 버튼으로 등록하세요</p></div>';
+    return;
+  }
+
+  // 정렬
+  list = [...list];
+  if (fixedSortKey === 'day-asc') list.sort((a,b)=>a.day-b.day);
+  else if (fixedSortKey === 'day-desc') list.sort((a,b)=>b.day-a.day);
+  else if (fixedSortKey === 'amt-desc') list.sort((a,b)=>b.amt-a.amt);
+
+  // 전체선택 체크박스 상태
+  const allChk = $('fixed-all-chk');
+  if (allChk) {
+    const activeCount = list.filter(r=>r.active).length;
+    allChk.checked = activeCount === list.length;
+    allChk.indeterminate = activeCount > 0 && activeCount < list.length;
+  }
+
+  wrap.innerHTML = list.map(r => {
+    const sign = r.type==='income'?'+':'-';
+    const ac = r.type==='income'?'cgr':'crd';
+    return '<div class="fi-item'+(r.active?'':' off')+'" id="fi-'+r.id+'">'
+      // 좌측: 아이콘 + 이름 (클릭 시 편집)
+      + '<div onclick="openRecEdit('+r.id+')" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;">'
+      + '<div class="fi-item-icon">'+TI[r.type]+'</div>'
+      + '<div class="fi-item-body">'
+      + '<div class="fi-item-name">'+r.cat+'</div>'
+      + '<div class="fi-item-meta">매달 '+r.day+'일 · '+r.method+'</div>'
+      + '</div>'
+      + '<div class="fi-item-right">'
+      + '<div class="fi-item-amt '+ac+'">'+sign+fmtW(r.amt)+'</div>'
+      + '</div>'
+      + '</div>'
+      // 우측: iOS 토글 스위치
+      + '<label class="ios-toggle" style="margin-left:10px;" onclick="event.stopPropagation();">'
+      + '<input type="checkbox" '+(r.active?'checked':'')+' onchange="toggleRecChk('+r.id+',this.checked)">'
+      + '<span class="ios-toggle-slider"></span>'
+      + '</label>'
+      + '</div>';
+  }).join('');
+}
+
+// 체크박스로 토글 (활성/비활성)
+function toggleRecChk(id, checked) {
+  const list = getRecurring();
+  const r = list.find(r=>r.id===id); if(!r) return;
+  r.active = checked;
+  saveRecurring(list);
+  const el=$('fi-'+id);
+  if(el) el.classList.toggle('off', !checked);
+  const badge=$('fixed-acc-badge');
+  if(badge) badge.textContent=list.filter(r=>r.active).length+'/'+list.length+'건';
+}
+
+// 고정 지출 추가 드로어
+function openRecAdd() {
+  $('dtitle').textContent = '고정 지출 추가';
+  const types = ['income','fixed','variable','saving','invest','card','transfer'];
+  window._curRT = 'fixed';
+  window._editRecId = null;
+  $('dbody').innerHTML =
+    '<div class="typebtn-row" id="rt-types" style="grid-template-columns:repeat(4,1fr);">'
+    + types.map(t=>'<div class="tb'+(t==='fixed'?' on':'')+'" onclick="setRT(\'' + t + '\',this)">'+TI[t]+' '+TL[t]+'</div>').join('')
+    + '</div>'
+    + '<div class="fg"><label>카테고리 / 이름</label><select class="fsel fi" id="rta-cat"></select></div>'
+    + '<div class="fg2">'
+    + '<div class="fg"><label>금액</label><input class="fi" id="rta-amt" inputmode="numeric" placeholder="0"></div>'
+    + '<div class="fg"><label>출금일 (매달)</label><input class="fi" id="rta-day" inputmode="numeric" placeholder="1"></div>'
+    + '</div>'
+    + '<div class="fg"><label>결제 수단</label><select class="fsel fi" id="rta-method">'+getPayMethods().map(m=>'<option>'+m+'</option>').join('')+'</select></div>'
+    + '<button class="btn btn-blue" onclick="submitRec()">추가하기</button>';
+  updateRTCats();
+  openDrawer();
+}
+
+// 날짜별 그룹 거래 내역 렌더
 function renderRecordPage() {
   const mon=currentMonth(), label=$('rec-mon-label');
   if(label) label.textContent=mon.replace('-','년 ')+'월';
@@ -1519,29 +2034,132 @@ function renderRecordPage() {
 }
 
 // ━━ TX ROW ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ━━ 거래내역 선택/일괄삭제 모드 ━━
+window._txSelectMode = false;
+window._txSelected = new Set();
+
+function toggleTxSelectMode() {
+  window._txSelectMode = !window._txSelectMode;
+  window._txSelected.clear();
+  const tb = $('tx-select-toolbar');
+  const btn = $('tx-select-toggle');
+  if (window._txSelectMode) {
+    if(tb) tb.style.display='flex';
+    if(btn) { btn.style.background='var(--blue)'; btn.style.color='#fff'; btn.style.borderColor='var(--blue)'; btn.textContent='선택중'; }
+  } else {
+    if(tb) tb.style.display='none';
+    if(btn) { btn.style.background='var(--white)'; btn.style.color='var(--sub)'; btn.style.borderColor='var(--border)'; btn.textContent='선택'; }
+    const allChk=$('tx-select-all'); if(allChk) allChk.checked=false;
+  }
+  renderRecordPage();
+}
+
+function txSelectToggle(id) {
+  const numId = typeof id === 'number' ? id : parseInt(id);
+  if (window._txSelected.has(numId)) window._txSelected.delete(numId);
+  else window._txSelected.add(numId);
+  const cnt=$('tx-select-count'); if(cnt) cnt.textContent=window._txSelected.size+'개 선택';
+  document.querySelectorAll('.tx-sel-chk').forEach(chk=>{
+    const id2=parseInt(chk.dataset.txId);
+    chk.checked=window._txSelected.has(id2);
+  });
+  // 행 시각 강조
+  document.querySelectorAll('.txi[data-tx-id]').forEach(row=>{
+    const rid=parseInt(row.dataset.txId);
+    if(window._txSelected.has(rid)){ row.style.background='var(--blue-light)'; }
+    else { row.style.background=''; }
+  });
+}
+
+function txSelectAll(checked) {
+  const mon=currentMonth(), state=getState(), md=state[mon]||{transactions:[]};
+  const typeF=$('rec-filter')?$('rec-filter').value:'';
+  const txs=md.transactions.filter(t=>!typeF||t.type===typeF);
+  if (checked) txs.forEach(t=>window._txSelected.add(t.id));
+  else window._txSelected.clear();
+  const cnt=$('tx-select-count'); if(cnt) cnt.textContent=window._txSelected.size+'개 선택';
+  document.querySelectorAll('.tx-sel-chk').forEach(chk=>{ chk.checked=checked; });
+}
+
+function deleteSelectedTxs() {
+  if (window._txSelected.size === 0) { showToast('선택된 항목이 없습니다'); return; }
+  const cnt = window._txSelected.size;
+  // confirm 대신 즉시 삭제 + undo 토스트 (토스 패턴)
+  const mon=currentMonth(), state=getState(), md=state[mon]||{transactions:[]};
+  const deletedTxs = md.transactions.filter(t => window._txSelected.has(t.id) || window._txSelected.has(parseInt(t.id)));
+  if (deletedTxs.length === 0) { showToast('삭제할 거래를 찾지 못했습니다'); return; }
+  // 삭제 실행
+  md.transactions = md.transactions.filter(t => !window._txSelected.has(t.id) && !window._txSelected.has(parseInt(t.id)));
+  setState(state);
+  // 되돌리기 데이터 저장
+  window._lastBulkDeleted = { mon, txs: deletedTxs };
+  window._txSelected.clear();
+  // 되돌리기 가능 토스트
+  showBulkDeleteUndo(deletedTxs.length);
+  toggleTxSelectMode();
+  renderAll();
+}
+
+function showBulkDeleteUndo(n) {
+  const t = $('toast');
+  const tmsg = $('tmsg');
+  const tundo = $('tundo');
+  if (!t || !tmsg) { showToast('✅ ' + n + '건 삭제됨'); return; }
+  tmsg.textContent = '✅ ' + n + '건 삭제됨';
+  if (tundo) {
+    tundo.style.display = 'inline-block';
+    tundo.onclick = undoBulkDelete;
+  }
+  t.classList.add('on');
+  clearTimeout(window._bulkUndoTimer);
+  window._bulkUndoTimer = setTimeout(() => {
+    t.classList.remove('on');
+    if (tundo) tundo.style.display = 'none';
+  }, 5000);
+}
+function undoBulkDelete() {
+  if (!window._lastBulkDeleted) return;
+  const { mon, txs } = window._lastBulkDeleted;
+  const state = getState(), md = ensureMonth(state, mon);
+  md.transactions.push(...txs);
+  md.transactions.sort((a,b)=>b.date.localeCompare(a.date));
+  setState(state);
+  window._lastBulkDeleted = null;
+  const t = $('toast');
+  const tundo = $('tundo');
+  if (t) t.classList.remove('on');
+  if (tundo) tundo.style.display = 'none';
+  showToast('↩ 되돌렸습니다');
+  renderAll();
+}
+
 function txRow(t,mon,showDel) {
-  const sign=t.type==='income'?'+':t.type==='transfer'?'⇄':'-';
   const ac=t.type==='income'?'cgr':t.type==='transfer'?'csb':'crd';
-  const actions=showDel
-    ?'<div style="display:flex;align-items:center;gap:2px;margin-left:4px;">'
-      +'<button onclick="openEditTx(\''+mon+'\','+t.id+')" style="border:none;background:none;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:14px;cursor:pointer;border-radius:6px;flex-shrink:0;" title="수정">✏️</button>'
-      +'<button class="txdel" onclick="deleteTx(\''+mon+'\','+t.id+')" title="삭제">×</button>'
-      +'</div>'
-    :'';
-  return '<div class="txi">'
+  // 선택 모드: 체크박스 표시, 행 클릭 = 선택 토글. 일반 모드: 행 클릭 = 편집
+  const inSel = window._txSelectMode === true;
+  const clickHandler = showDel
+    ? (inSel
+        ? 'onclick="txSelectToggle('+t.id+')" style="cursor:pointer;"'
+        : 'onclick="openEditTx(\''+mon+'\','+t.id+')" style="cursor:pointer;"')
+    : '';
+  const checkbox = (showDel && inSel)
+    ? '<input type="checkbox" class="tx-sel-chk" data-tx-id="'+t.id+'" onclick="event.stopPropagation()" onchange="txSelectToggle('+t.id+')" style="width:18px;height:18px;flex-shrink:0;accent-color:var(--blue);margin-right:10px;cursor:pointer;">'
+    : '';
+  const arrow = '';
+  return '<div class="txi" '+clickHandler+'>'
+    +checkbox
     +'<div class="txdot" style="background:'+TC[t.type]+'18;">'+TI[t.type]+'</div>'
     +'<div class="txbody">'
     +'<div class="txname">'+(t.memo||t.cat)+'</div>'
     +'<div class="txmeta">'
-    +'<span>'+t.date+'</span>'
-    +'<span style="color:var(--border2)">·</span>'
     +'<span class="bdg '+TB[t.type]+'">'+TL[t.type]+'</span>'
     +'<span style="color:var(--border2)">·</span>'
     +'<span>'+t.cat+'</span>'
     +'</div></div>'
     +'<div style="display:flex;align-items:center;flex-shrink:0;">'
     +'<div class="txamt '+ac+'">'+(t.type==='income'?'+':t.type==='transfer'?'':'-')+fmtW(t.amt)+'</div>'
-    +actions
+    +arrow
     +'</div></div>';
 }
 
@@ -1981,61 +2599,117 @@ function initRecurring() {
     {id:1009,name:'학자금대출',type:'fixed',cat:'학자금대출',amt:35280,day:11,method:'자동이체',active:true},
   ]);
 }
-function renderRecurringList() {
-  const list=getRecurring(), wrap=$('rec-list'); if(!wrap) return;
-  if(!list.length){ wrap.innerHTML='<div class="empty"><p>등록된 정기 거래가 없습니다</p></div>'; return; }
-  wrap.innerHTML=list.map(r=>{
-    const sign=r.type==='income'?'+':'-', ac=r.type==='income'?'cgr':'crd';
-    return '<div class="ritem'+(r.active?'':' off')+'">'
-      +'<div class="ricon">'+TI[r.type]+'</div>'
-      +'<div class="rbody"><div class="rname">'+r.name+'</div><div class="rmeta">매달 '+r.day+'일 · '+r.method+'</div></div>'
-      +'<div class="rright"><div class="ramt '+ac+'">'+sign+fmtW(r.amt)+'</div>'
-      +'<div class="rbtns">'
-      +(r.active
-        ?'<button class="rbtn rbtn-stop" onclick="toggleRec('+r.id+')">중지</button>'
-        :'<button class="rbtn rbtn-start" onclick="toggleRec('+r.id+')">활성화</button>')
-      +'<button class="rbtn rbtn-del" onclick="deleteRec('+r.id+')">삭제</button>'
-      +'</div></div></div>';
-  }).join('');
-}
+// (renderRecurringList, openRecAdd, submitRec, setRT, updateRTCats — 기록탭 새 함수에서 정의)
+
+// 누락 함수 보충
 function toggleRec(id) {
   const list=getRecurring(), r=list.find(r=>r.id===id); if(!r) return;
   r.active=!r.active; saveRecurring(list); renderRecurringList();
   showToast(r.active?'✓ 활성화됨':'중지됨');
 }
 function deleteRec(id) {
+  if(!confirm('이 고정 지출을 삭제할까요?')) return;
   saveRecurring(getRecurring().filter(r=>r.id!==id));
   renderRecurringList(); showToast('삭제됨');
 }
-function openRecAdd() {
-  $('dtitle').textContent='정기 거래 추가';
-  const types=['income','fixed','variable','saving','invest','card','transfer'];
-  let curRT='variable';
-  $('dbody').innerHTML='<div class="typebtn-row" id="rt-types">'
-    +types.map((t,i)=>'<div class="tb'+(i===2?' on':'')+'" onclick="setRT(\''+t+'\',this)">'+TI[t]+' '+TL[t]+'</div>').join('')
-    +'</div>'
-    +'<div class="fg"><label>이름</label><input class="fi" id="rta-name" placeholder="월세"></div>'
-    +'<div class="fg2"><div class="fg"><label>금액</label><input class="fi" id="rta-amt" inputmode="numeric"></div>'
-    +'<div class="fg"><label>매달 몇 일</label><input class="fi" id="rta-day" placeholder="1" inputmode="numeric"></div></div>'
-    +'<div class="fg"><label>카테고리</label><select class="fsel fi" id="rta-cat"></select></div>'
-    +'<div class="fg"><label>결제 수단</label><select class="fsel fi" id="rta-method">'+getPayMethods().map(m=>'<option>'+m+'</option>').join('')+'</select></div>'
-    +'<button class="btn btn-blue" onclick="submitRec()">추가하기</button>';
-  window._curRT=curRT; updateRTCats();
-  openDrawer();
+function setRT(type, el) {
+  window._curRT = type;
+  document.querySelectorAll('#rt-types .tb').forEach(b=>b.classList.remove('on'));
+  if(el) el.classList.add('on');
+  updateRTCats();
 }
-function setRT(type,el) { window._curRT=type; document.querySelectorAll('#rt-types .tb').forEach(b=>b.classList.remove('on')); el.classList.add('on'); updateRTCats(); }
-function updateRTCats() { const s=$('rta-cat'); if(!s) return; s.innerHTML=(getCatMap()[window._curRT||'variable']||[]).map(c=>'<option>'+c+'</option>').join(''); }
+function updateRTCats() {
+  const s=$('rta-cat'); if(!s) return;
+  s.innerHTML=(getCatMap()[window._curRT||'fixed']||[]).map(c=>'<option>'+c+'</option>').join('');
+}
 function submitRec() {
-  const name=($('rta-name')?$('rta-name').value.trim():'');
+  const cat=$('rta-cat')?$('rta-cat').value:'';
   const amt=parseNum($('rta-amt')?$('rta-amt').value:'');
   const day=parseInt($('rta-day')?$('rta-day').value||'1':'1');
-  const cat=$('rta-cat')?$('rta-cat').value:'';
   const method=$('rta-method')?$('rta-method').value:'';
-  if(!name){showToast('이름 입력');return;} if(!amt){showToast('금액 입력');return;}
+  if(!cat){showToast('카테고리를 선택하세요');return;}
+  if(!amt){showToast('금액을 입력하세요');return;}
   const list=getRecurring();
-  list.push({id:Date.now(),name,type:window._curRT||'variable',cat,amt,day,method,active:true});
+  list.push({id:Date.now(),name:cat,type:window._curRT||'fixed',cat,amt,day,method,active:true});
   saveRecurring(list); closeDrawer(); renderRecurringList(); showToast('✅ 추가됨');
 }
+
+
+function deleteRecFromEdit(id) {
+  const list = getRecurring();
+  const target = list.find(r => r.id === id);
+  if (!target) { showToast('항목을 찾을 수 없습니다'); return; }
+  // 삭제 + 백업
+  window._lastDeletedRec = target;
+  saveRecurring(list.filter(r => r.id !== id));
+  closeDrawer();
+  renderRecurringList();
+  showRecDeleteUndo(target.cat || target.name);
+}
+
+function showRecDeleteUndo(name) {
+  const t = $('toast');
+  if (!t) { showToast('삭제됨'); return; }
+  const tmsg = $('tmsg');
+  const tundo = $('tundo');
+  if (tmsg) tmsg.textContent = '✅ "' + name + '" 삭제됨';
+  if (tundo) {
+    tundo.style.display = 'inline-block';
+    tundo.onclick = undoRecDelete;
+  }
+  t.classList.add('on');
+  clearTimeout(window._recUndoTimer);
+  window._recUndoTimer = setTimeout(() => {
+    t.classList.remove('on');
+    if (tundo) tundo.style.display = 'none';
+  }, 5000);
+}
+
+function undoRecDelete() {
+  if (!window._lastDeletedRec) return;
+  const list = getRecurring();
+  list.push(window._lastDeletedRec);
+  saveRecurring(list);
+  window._lastDeletedRec = null;
+  const t = $('toast');
+  if (t) t.classList.remove('on');
+  showToast('↩ 되돌렸습니다');
+  renderRecurringList();
+}
+
+
+// 모든 데이터 초기화
+async function resetAllData() {
+  // 2단계 확인
+  if (!confirm('정말 모든 데이터를 초기화할까요?\n\n거래내역, 잔액, 예산, 고정지출이 모두 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.')) return;
+  if (!confirm('한 번 더 확인합니다.\n\n클라우드 데이터도 함께 초기화됩니다.\n\n계속하시겠습니까?')) return;
+  
+  try {
+    // 로컬 초기화
+    const keys = ['ml_v4', 'ml_recurring', 'ml_goals', 'ml_plan', 'ml_cats', 'ml_methods', 'ml_onboarding_done', 'sb_last_push', 'sb_last_pull', 'ml_last_push', 'ml_last_pull'];
+    keys.forEach(k => localStorage.removeItem(k));
+    // 매월 알림/자동적용 키들 (월별)
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith('ml_rem_') || k.startsWith('ml_autoban_')) localStorage.removeItem(k);
+    });
+    
+    // Supabase 초기화
+    if (typeof getSB === 'function') {
+      try {
+        const sb = getSB();
+        await sb.from('moneylog').delete().eq('id', 1);
+      } catch(e) {
+        console.warn('Supabase 초기화 실패:', e);
+      }
+    }
+    
+    showToast('✅ 초기화 완료. 새로고침합니다...');
+    setTimeout(() => location.reload(), 1500);
+  } catch(e) {
+    showToast('❌ 초기화 실패: ' + e.message);
+  }
+}
+
 function applyRecurring() {
   const mon=currentMonth(), [y,m]=mon.split('-').map(Number);
   const list=getRecurring().filter(r=>r.active);
@@ -3300,6 +3974,27 @@ function updateSyncStatus() {
 }
 
 // 초기 연결
+
+// 수동 동기화 (새로고침 ⟳ 버튼)
+async function manualSync() {
+  const lbl = $('topbar-sync-label');
+  const oldText = lbl ? lbl.textContent : '';
+  if(lbl) lbl.textContent = '동기화 중';
+  try {
+    isSyncing = true;
+    await sbPush(true);
+    setTimeout(()=>{ isSyncing = false; }, 1000);
+    await sbPull(true);
+    if(lbl) lbl.textContent = '완료 ✓';
+    setTimeout(()=>{ if(lbl) lbl.textContent = '자동저장'; }, 1500);
+    showToast('🔄 동기화 완료');
+  } catch(e) {
+    if(lbl) lbl.textContent = '오류';
+    setTimeout(()=>{ if(lbl) lbl.textContent = '자동저장'; }, 1500);
+    showToast('❌ 동기화 실패');
+  }
+}
+
 async function initSupabase() {
   // 실시간 구독 시작
   sbSubscribe();
@@ -3401,6 +4096,9 @@ function init() {
   initTopBtn();
   renderGistSettings();
   initSupabase();
+  // 고정지출 아코디언 기본 열기
+  const fixedBody=$('fixed-acc-body');
+  if(fixedBody){ fixedBody.style.display='block'; const arr=$('fixed-acc-arr'); if(arr) arr.classList.add('open'); const hd=$('fixed-acc-hd'); if(hd) hd.classList.add('open'); }
   // 날짜 초기화
   const today=new Date();
   const pad=n=>String(n).padStart(2,'0');
