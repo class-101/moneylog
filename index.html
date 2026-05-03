@@ -154,15 +154,17 @@ body.snap-save-active .scroll{padding-bottom:210px;}
 .ppct.over{background:var(--red-light);color:var(--red);}
 .ptrack{height:6px;background:var(--border);border-radius:99px;overflow:hidden;}
 .pfill{height:100%;border-radius:99px;transition:width .5s;}
-/* ── TX ITEM */
-.txi{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border2);}
+/* ── TX ITEM (위계 강화: 메모>금액>날짜>카테고리) */
+.txi{display:flex;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid var(--border2);}
 .txi:last-child{border-bottom:none;}
-.txdot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
-.txbody{flex:1;min-width:0;}
-.txname{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
-.txmeta{font-size:11px;color:var(--faint);margin-top:3px;display:flex;align-items:center;gap:5px;}
+.txdot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.txbody{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+.txname{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);letter-spacing:-0.2px;}
+.txmeta{font-size:12px;color:var(--faint);display:flex;align-items:center;gap:6px;}
+.txmeta-date{color:var(--sub);font-weight:600;}
+.txmeta-dot{color:var(--border2);}
 .txright{text-align:right;flex-shrink:0;}
-.txamt{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;}
+.txamt{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-0.3px;}
 .txdel{color:var(--faint);cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:0;transition:opacity .15s;border:none;background:none;flex-shrink:0;border-radius:50%;}
 .txi:hover .txdel{opacity:.5;}
 .txdel:hover{opacity:1!important;background:var(--red-light);color:var(--red);}
@@ -2681,7 +2683,6 @@ function undoBulkDelete() {
 
 function txRow(t,mon,showDel) {
   const ac=t.type==='income'?'cgr':t.type==='transfer'?'csb':'crd';
-  // 선택 모드: 체크박스 표시, 행 클릭 = 선택 토글. 일반 모드: 행 클릭 = 편집
   const inSel = window._txSelectMode === true;
   const clickHandler = showDel
     ? (inSel
@@ -2691,25 +2692,25 @@ function txRow(t,mon,showDel) {
   const checkbox = (showDel && inSel)
     ? '<input type="checkbox" class="tx-sel-chk" data-tx-id="'+t.id+'" onclick="event.stopPropagation()" onchange="txSelectToggle('+t.id+')" style="width:18px;height:18px;flex-shrink:0;accent-color:var(--blue);margin-right:10px;cursor:pointer;">'
     : '';
-  const arrow = '';
-  // 날짜 표시 (MM.DD 형식)
+  // 날짜 (MM.DD)
   const dParts = (t.date||'').split('-');
   const dateStr = dParts.length === 3 ? (parseInt(dParts[1],10)+'.'+parseInt(dParts[2],10)) : '';
+  // 메타: 날짜 · 카테고리 (배지 제거 — 좌측 아이콘 색상이 type 표현)
+  const metaItems = [];
+  if (dateStr) metaItems.push('<span class="txmeta-date">'+dateStr+'</span>');
+  if (t.cat) metaItems.push('<span>'+t.cat+'</span>');
+  const metaHtml = metaItems.join('<span class="txmeta-dot">·</span>');
+  // 부호
+  const signStr = t.type==='income'?'+':t.type==='transfer'?'':'-';
   return '<div class="txi" '+clickHandler+'>'
     +checkbox
-    +'<div class="txdot" style="background:'+TC[t.type]+'18;">'+TI[t.type]+'</div>'
+    +'<div class="txdot" style="background:'+TC[t.type]+'18;color:'+TC[t.type]+';">'+TI[t.type]+'</div>'
     +'<div class="txbody">'
-    +'<div class="txname">'+(t.memo||t.cat)+'</div>'
-    +'<div class="txmeta">'
-    +(dateStr?'<span style="color:var(--sub);font-weight:600;">'+dateStr+'</span><span style="color:var(--border2)">·</span>':'')
-    +'<span class="bdg '+TB[t.type]+'">'+TL[t.type]+'</span>'
-    +'<span style="color:var(--border2)">·</span>'
-    +'<span>'+t.cat+'</span>'
-    +'</div></div>'
-    +'<div style="display:flex;align-items:center;flex-shrink:0;">'
-    +'<div class="txamt '+ac+'">'+(t.type==='income'?'+':t.type==='transfer'?'':'-')+fmtW(t.amt)+'</div>'
-    +arrow
-    +'</div></div>';
+    +'<div class="txname">'+(t.memo||t.cat||'거래')+'</div>'
+    +(metaHtml?'<div class="txmeta">'+metaHtml+'</div>':'')
+    +'</div>'
+    +'<div class="txright"><div class="txamt '+ac+'">'+signStr+fmtW(t.amt)+'</div></div>'
+    +'</div>';
 }
 
 // ─── 거래 수정 드로어
@@ -3562,26 +3563,51 @@ function parseTransactionsFromOCR(text, todayStr) {
   const txs = [];
   // 금액 패턴 (전역): 1,000원 / -1,000 / +50,000원 / 1000원 등
   const amtRe = /([+\-−])?\s*([\d]{1,3}(?:[,\s][\d]{3})+|\d{3,})\s*원?/g;
-  // 단독 잔액 줄 패턴: "533,498원" 또는 "533,498" 만 있는 줄 (부호 없음)
-  const balanceOnlyLine = /^[\d,\s]+원?$/;
+  // 단독 잔액 줄 패턴: 부호 없는 숫자만 있는 줄 (OCR 노이즈 허용 — 원/윈/읜/공백/점/콤마)
+  // 예: "533,498원", "533,498", "533,498 원", "533,498윈", "533,498읜"
+  const balanceOnlyLine = /^\s*[\d][\d,\s.]*\s*[원윈읜]?\s*$/;
   // 날짜 패턴
   const dateRe = /(?:(\d{2,4})[.\-\/년]\s*)?(\d{1,2})[.\-\/월]\s*(\d{1,2})\s*(?:일)?/;
-  // 시간 패턴 (HH:MM 만 있는 줄 → 헤더성)
+  // 시간 패턴
   const timeOnlyLine = /^\d{1,2}:\d{2}(:\d{2})?$/;
   // 무의미한 메모
   const meaninglessSingles = /^(카드|결제|승인|체크|할부|이체|입금|출금|모를|미상|기타)$/;
 
-  // 1차 패스: 부호 없는 단독 숫자 줄(잔액)을 마킹
+  // 1차 패스: 마킹
   const isBalanceOnly = lines.map(l => balanceOnlyLine.test(l));
-  // 시간만 있는 줄도 스킵 마킹
   const isTimeOnly = lines.map(l => timeOnlyLine.test(l));
+
+  // 2차 패스: 거래액으로 인식된 줄 다음에 오는 단독 숫자 줄은 잔액으로 추가 마킹
+  // (OCR이 금액-잔액을 별 줄로 분리한 경우)
+  // 미리 각 줄이 부호 있는 금액을 포함하는지 검사
+  const hasSignedAmt = lines.map(l => /[+\-−]\s*\d/.test(l));
+  for (let i = 0; i < lines.length; i++) {
+    if (hasSignedAmt[i]) {
+      // 다음 단독 숫자 줄 (시간/잔액 라인 제외하며 탐색)
+      let j = i + 1;
+      while (j < lines.length && (isTimeOnly[j])) j++;
+      if (j < lines.length && isBalanceOnly[j]) {
+        isBalanceOnly[j] = true; // 이미 마킹됐지만 명시
+      }
+    }
+  }
+
+  // 3차 패스: 큰 부호 없는 단독 숫자 줄은 잔액으로 강제 마킹
+  // (휴대폰 잔액은 보통 1만원 이상)
+  for (let i = 0; i < lines.length; i++) {
+    if (isBalanceOnly[i]) continue;
+    const trimmed = lines[i].replace(/[원윈읜\s.]/g, '');
+    if (/^\d[\d,]*$/.test(trimmed) && !/[+\-−]/.test(lines[i])) {
+      const num = parseInt(trimmed.replace(/,/g, ''), 10);
+      if (num >= 10000) isBalanceOnly[i] = true;
+    }
+  }
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (!line) continue;
-    if (isBalanceOnly[i]) continue; // 단독 잔액 줄 스킵
-    if (isTimeOnly[i]) continue;    // 시간만 있는 줄 스킵
-    // 헤더성 라인 스킵
+    if (isBalanceOnly[i]) continue;
+    if (isTimeOnly[i]) continue;
     if (/^(잔액|합계|총|적립|이자|총합|보유)/.test(line)) continue;
     if (/^(통장|계좌|상품|거래내역|날짜|적요)/.test(line)) continue;
 
@@ -3599,10 +3625,7 @@ function parseTransactionsFromOCR(text, todayStr) {
     }
     if (allMatches.length === 0) continue;
 
-    // 거래액 선정 규칙 (잔액 분리):
-    // - 부호 있는 매치가 있으면 → 첫 번째 부호 있는 매치를 거래액으로
-    // - 부호 없으면 → 모든 숫자 중 가장 작은 값 (잔액은 보통 큼)
-    //   단 1개만 있으면 그게 거래액
+    // 거래액 선정
     let chosen;
     const signed = allMatches.filter(x => x.sign === '+' || x.sign === '-' || x.sign === '−');
     if (signed.length > 0) {
@@ -3610,7 +3633,7 @@ function parseTransactionsFromOCR(text, todayStr) {
     } else if (allMatches.length === 1) {
       chosen = allMatches[0];
     } else {
-      // 부호 없는 다중 금액: 가장 작은 값 (잔액 제외)
+      // 부호 없는 다중 금액: 가장 작은 값
       let minVal = Infinity, minMatch = null;
       for (const a of allMatches) {
         const v = parseInt(a.numStr, 10);
@@ -3631,11 +3654,8 @@ function parseTransactionsFromOCR(text, todayStr) {
     else if (/입금|적립|이체입금|급여|월급|보너스|환급|환불|이자|캐시백/.test(line)) type = 'income';
     else if (/출금|결제|지출|이체출금|체크|승인|할부/.test(line)) type = 'expense';
 
-    // 메모: 라인에서 chosen 위치 이전 + 모든 숫자 매치 영역 제거
-    let memo = line.substring(0, chosen.index);
-    // 메모 뒤쪽도 다른 금액이 있으면 그 사이 텍스트 추가 (단 잔액 영역은 무시)
-    // 단순히 앞쪽만 메모로 사용
-    memo = memo.trim();
+    // 메모 추출
+    let memo = line.substring(0, chosen.index).trim();
     if (!memo) {
       // 직전 줄을 메모로 (잔액/시간 라인은 스킵)
       let j = i - 1;
@@ -3648,7 +3668,7 @@ function parseTransactionsFromOCR(text, todayStr) {
       }
     }
 
-    // ── 강화된 메모 정제 ────────────────────────────────
+    // ── 메모 정제 ────────────────────────────────
     memo = memo
       .replace(/\s*\|.*$/, '')
       .replace(/[\\\/]{2,}/g, ' ')
@@ -3665,9 +3685,12 @@ function parseTransactionsFromOCR(text, todayStr) {
       .replace(/\s{2,}/g, ' ')
       .trim();
 
+    // 메모가 무의미하거나 빈 거래는 버림 (잔액 노이즈 차단)
     if (!memo || memo.length < 2 || meaninglessSingles.test(memo)) {
-      memo = '거래';
+      continue; // ← 이전엔 '거래'로 fallback했으나, 잔액 노이즈일 가능성 높아 폐기
     }
+
+    // 한글 단어 우선 추출
     const koreanWords = (memo.match(/[가-힣]+/g) || []);
     const englishBrandRe = /^[A-Za-z][A-Za-z0-9\-\s]+$/;
     if (koreanWords.length > 0) {
@@ -3675,11 +3698,11 @@ function parseTransactionsFromOCR(text, todayStr) {
     } else if (englishBrandRe.test(memo) && memo.length >= 2 && memo.length <= 20) {
       memo = memo.slice(0, 30);
     } else {
-      memo = '거래';
+      continue; // 노이즈 폐기
     }
     if (memo.length > 30) memo = memo.slice(0, 30);
 
-    // 날짜 추출 (현재 줄 + 직전 줄 모두 살펴봄, 시간/잔액 라인 건너뛰기)
+    // 날짜 추출
     let date = todayStr;
     let dm = line.match(dateRe);
     if (!dm) {
