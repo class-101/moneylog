@@ -1321,6 +1321,8 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div style="font-size:12px;font-weight:700;color:var(--text);"><span class="invest-drag-handle" style="display:none;cursor:grab;color:var(--faint);margin-right:6px;font-size:14px;">☰</span>🏆 토스 CMA <span style="font-size:10px;color:var(--faint);font-weight:500;">(원화 + 달러)</span></div>
           <span class="bdg bdg-yl" style="font-size:10px;">저축형</span>
         </div>
+        <!-- 환율 표시 -->
+        <div id="fx-badge-woldkup" class="fx-badge-shared" style="font-size:11px;font-weight:600;background:var(--blue-light);padding:6px 10px;border-radius:var(--rxs);margin-bottom:10px;text-align:center;">💱 환율 조회 중...</div>
         <!-- 보유분 입력 (원화 + 달러 → 통합 환산) -->
         <div style="background:#fafbff;border:1px dashed var(--border);border-radius:var(--rxs);padding:10px;margin-bottom:10px;">
           <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:8px;">보유분 입력 → 평가액 자동 계산</div>
@@ -1366,7 +1368,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <span class="bdg bdg-rd" style="font-size:10px;">공격형</span>
         </div>
         <!-- 환율 표시 -->
-        <div id="fx-badge" style="font-size:11px;font-weight:600;background:var(--blue-light);padding:6px 10px;border-radius:var(--rxs);margin-bottom:10px;text-align:center;">💱 환율 조회 중...</div>
+        <div id="fx-badge" class="fx-badge-shared" style="font-size:11px;font-weight:600;background:var(--blue-light);padding:6px 10px;border-radius:var(--rxs);margin-bottom:10px;text-align:center;">💱 환율 조회 중...</div>
         <!-- 보유분 입력 (원화 + 달러 → 통합 환산) -->
         <div style="background:#fafbff;border:1px dashed var(--border);border-radius:var(--rxs);padding:10px;margin-bottom:10px;">
           <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:8px;">💰 보유분 입력 → 평가액 자동 계산</div>
@@ -1584,7 +1586,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <button class="btn btn-outline" onclick="resetCats()">초기화</button>
     </div>
     <div id="cat-saved" style="font-size:12px;color:var(--green);margin-top:6px;display:none;">저장됐어요</div>
-  </div></div>
+  </div></div></div>
 
 
   <!-- ━━ 실시간 동기화 (아코디언) ━━ -->
@@ -1601,11 +1603,6 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     </div>
     <div class="acc-body" id="set-acc-sync-body" style="display:none;">
       <div class="acc-body-inner">
-
-    <!-- 설명 -->
-    <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:14px;margin-bottom:14px;">
-      <div style="font-size:13px;font-weight:700;color:#065f46;">실시간 동기화 완료</div>
-    </div>
 
     <!-- 수동 버튼 (긴급용) -->
     <div class="btnrow" style="margin-bottom:10px;">
@@ -5035,20 +5032,24 @@ async function fetchUsdKrw(forceRefresh = false) {
   return null;
 }
 
-// CMA 영역 — 달러 → 원화 자동 환산
+// 환율 배지 갱신 (CMA/토스CMA 공용)
 async function refreshFxRate() {
   const fx = await fetchUsdKrw();
-  const badge = $('fx-badge');
-  if (!badge) return;
+  const badges = document.querySelectorAll('.fx-badge-shared');
+  if (!badges || badges.length === 0) return;
+  let html, color;
   if (fx && fx.rate) {
     const dt = fx.date ? new Date(fx.date).toLocaleDateString('ko-KR') : new Date(fx.at).toLocaleDateString('ko-KR');
-    badge.innerHTML = '💱 USD/KRW <b>'+fx.rate.toFixed(2)+'원</b> <span style="opacity:.6;">('+dt+')</span>';
-    badge.style.color = 'var(--blue)';
+    html = '💱 USD/KRW <b>'+fx.rate.toFixed(2)+'원</b> <span style="opacity:.6;">('+dt+')</span>';
+    color = 'var(--blue)';
   } else {
-    badge.innerHTML = '⚠️ 환율 조회 실패 — 원화 직접 입력';
-    badge.style.color = 'var(--red)';
+    html = '환율 조회 실패 — 원화 직접 입력';
+    color = 'var(--red)';
   }
-  recalcCMAtotal();
+  badges.forEach(b => { b.innerHTML = html; b.style.color = color; });
+  // 환산 미리보기도 모두 갱신
+  if (typeof recalcCMAtotal === 'function') recalcCMAtotal();
+  if (typeof recalcWoldkupTotal === 'function') recalcWoldkupTotal();
 }
 
 // CMA 영역 — 원화 + (달러 × 환율) → 평가액 자동 계산
