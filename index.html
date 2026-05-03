@@ -805,7 +805,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         <button onclick="toggleTxSelectMode()" style="background:var(--white);color:var(--sub);border:1.5px solid var(--border);border-radius:var(--rxs);padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">취소</button>
       </div>
     </div>
-    <div class="card"><div class="cp" id="rec-tx-list"><div class="empty"><div class="ei">📋</div><p>거래 내역이 없습니다</p></div></div></div>
+    <div class="card"><div class="cp" id="rec-tx-list"><div class="empty"><p style="color:var(--faint);font-size:13px;padding:24px 0;text-align:center;">아직 거래 내역이 없어요</p></div></div></div>
   </div>
 
 </div><!-- /기록 -->
@@ -873,7 +873,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <div id="an-save-plan"></div>
     </div></div>
     <div class="card"><div class="cp">
-      <div class="ctitle">💡 남은 돈 제안</div>
+      <div class="ctitle">남은 돈 제안</div>
       <div id="an-suggestion"></div>
     </div></div>
   </div>
@@ -1154,7 +1154,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div class="fg"><label>예진 마통 잔액</label><input class="fi" id="sn-예진마통" placeholder="0" oninput="onSnapInput()"></div>
           <div class="fg"><label>예진 마통 금리 (%)</label><input class="fi" id="sn-예진마통금리" placeholder="0" inputmode="decimal"></div>
         </div>
-        <div style="font-size:11px;color:var(--faint);margin-top:2px;">💡 월 이자 = 잔액 × 금리 ÷ 12 (자동 계산)</div>
+        <div style="font-size:11px;color:var(--faint);margin-top:2px;">월 이자 = 잔액 × 금리 ÷ 12 (자동 계산)</div>
       </div>
 
       <!-- 청약대출 -->
@@ -1187,7 +1187,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div class="fg"><label>대출기관</label><input class="fi" id="sn-학자금기관" placeholder="한국장학재단"></div>
           <div class="fg"><label>상환 시작일</label><input class="fi" id="sn-학자금시작일" type="date"></div>
         </div>
-        <div style="font-size:11px;color:var(--faint);margin-top:2px;">💡 매달 11일 자동이체</div>
+        <div style="font-size:11px;color:var(--faint);margin-top:2px;">매달 11일 자동이체</div>
       </div>
 
       <!-- 마통 추가 필드 보완 -->
@@ -1246,7 +1246,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div class="fg"><label>예진 잔액</label><input class="fi" id="sn-예진청약" placeholder="4,315,000" oninput="onSnapInput()"></div>
           <div class="fg"><label>예진 납입 횟수</label><input class="fi" id="sn-예진청약횟수" placeholder="60" inputmode="numeric"></div>
         </div>
-        <div style="font-size:11px;color:var(--faint);">💡 1순위 조건: 24회 이상. 통장에서 납입 횟수를 직접 확인하세요.</div>
+        <div style="font-size:11px;color:var(--faint);">1순위 조건: 24회 이상. 통장에서 납입 횟수를 직접 확인하세요.</div>
       </div>
 
       <!-- 청년도약계좌 -->
@@ -1262,7 +1262,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div class="fg"><label>도형 만기일</label><input class="fi" id="sn-도형청도계만기" type="date"></div>
           <div class="fg"><label>예진 만기일</label><input class="fi" id="sn-예진청도계만기" type="date"></div>
         </div>
-        <div style="font-size:11px;color:var(--faint);">💡 만기 5년. 중도해지 시 정부기여금 미지급. 절대 유지 권장.</div>
+        <div style="font-size:11px;color:var(--faint);">만기 5년. 중도해지 시 정부기여금 미지급. 절대 유지 권장.</div>
       </div>
 
       <!-- 가족모임 -->
@@ -1277,7 +1277,6 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;">저축 합계</div>
         <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">청약 (도형+예진)</span><span id="ssave-chungak" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
         <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">청년도약계좌 (도형+예진)</span><span id="ssave-chung" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">ISA (도형+예진)</span><span id="ssave-isa" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0 2px;border-top:1.5px solid #a7f3d0;margin-top:4px;">
           <span style="font-size:14px;font-weight:800;">저축 합계</span>
           <span id="ssave-total" style="font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--green);">—</span>
@@ -1308,7 +1307,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div class="fg"><label>도형 만기일</label><input class="fi" id="sn-도형ISA만기" type="date"></div>
           <div class="fg"><label>예진 만기일</label><input class="fi" id="sn-예진ISA만기" type="date"></div>
         </div>
-        <div style="font-size:11px;color:var(--faint);">💡 연 2,000만 / 총 1억 한도. 만기 후 연금계좌 이전 시 추가 세액공제.</div>
+        <div style="font-size:11px;color:var(--faint);">연 2,000만 / 총 1억 한도. 만기 후 연금계좌 이전 시 추가 세액공제.</div>
       </div>
 
       <!-- 월드컵 (저축형 투자) -->
@@ -1369,7 +1368,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div class="fg"><label>현재 평가액 (원) <span style="font-size:10px;color:var(--faint);">자동/수동</span></label><input class="fi" id="sn-CMA" placeholder="17,005,856" oninput="calcInvestReturn('CMA');onSnapInput()"></div>
         </div>
         <div id="CMA-return" style="font-size:12px;color:var(--faint);margin-top:4px;"></div>
-        <div style="font-size:10px;color:var(--faint);margin-top:6px;">💡 원화/달러 입력 시 평가액(원) = 원화 합계 + (달러 합계 × 환율)로 자동 계산. 평가액 직접 수정도 가능.</div>
+        <div style="font-size:10px;color:var(--faint);margin-top:6px;">원화/달러 입력 시 평가액(원) = 원화 합계 + (달러 합계 × 환율)로 자동 계산. 평가액 직접 수정도 가능.</div>
       </div>
 
       <!-- 회사 주식 -->
@@ -1392,12 +1391,13 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">퇴직연금(IRP)</span><span id="sinvest-re" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
         <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">CMA·기타주식</span><span id="sinvest-cm" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
         <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">회사주식 (Abbott+MDT)</span><span id="sinvest-sk" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">ISA (도형+예진)</span><span id="sinvest-isa" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0 2px;border-top:1.5px solid #ddd6fe;margin-top:4px;">
           <span style="font-size:14px;font-weight:800;">투자 합계 (평가)</span>
           <span id="sinvest-total" style="font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--purple);">—</span>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px;">
-          <span style="color:var(--sub);">총 수익/손실</span>
+          <span style="color:var(--sub);">총 수익/손실 (ISA 제외)</span>
           <span id="sinvest-gain" style="font-weight:700;font-variant-numeric:tabular-nums;"></span>
         </div>
       </div>
@@ -1514,10 +1514,10 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <div class="fg"><label>CMA 주식</label><input class="fi" id="b-CMA주식" oninput="autoSaveBudget()"></div>
     </div>
     <div class="btnrow" style="margin-top:14px;">
-      <button class="btn btn-blue" onclick="manualSaveBudget()" style="flex:2;">💾 저장하기</button>
+      <button class="btn btn-blue" onclick="manualSaveBudget()" style="flex:2;">저장하기</button>
       <button class="btn btn-outline" onclick="copyBudgetFromLastMonth()" style="flex:1;font-size:13px;">지난달 복사</button>
     </div>
-    <div id="b-saved" style="font-size:12px;color:var(--green);text-align:center;margin-top:6px;display:none;">✓ 저장됨</div>
+    <div id="b-saved" style="font-size:12px;color:var(--green);text-align:center;margin-top:6px;display:none;">저장됐어요</div>
       </div>
     </div>
   </div>
@@ -1541,7 +1541,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <button class="btn btn-blue" onclick="saveCatEdit()">저장하기</button>
       <button class="btn btn-outline" onclick="resetCats()">초기화</button>
     </div>
-    <div id="cat-saved" style="font-size:12px;color:var(--green);margin-top:6px;display:none;">✓ 저장됨</div>
+    <div id="cat-saved" style="font-size:12px;color:var(--green);margin-top:6px;display:none;">저장됐어요</div>
   </div></div>
 
 
@@ -1562,8 +1562,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
 
     <!-- 설명 -->
     <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:14px;margin-bottom:14px;">
-      <div style="font-size:13px;font-weight:700;color:#065f46;margin-bottom:6px;">두 분의 폰이 항상 같은 데이터를 봅니다</div>
-      <div style="font-size:12px;color:#047857;line-height:1.6;">한 분이 입력하면 잠시 후 다른 분의 폰에 자동으로 반영돼요.</div>
+      <div style="font-size:13px;font-weight:700;color:#065f46;">실시간 동기화 완료</div>
     </div>
 
     <!-- 수동 버튼 (긴급용) -->
@@ -1590,10 +1589,9 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
 
 
   <!-- ━━ 위험구역 ━━ -->
-  <div id="set-acc-danger" style="margin-top:8px;">
+  <div id="set-acc-danger">
     <div class="acc-header" id="set-acc-danger-hd" onclick="toggleAcc('set-acc-danger')" style="border-color:#fecaca;">
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:16px;">⚠️</span>
         <span style="font-size:14px;font-weight:700;color:var(--red);">위험구역</span>
       </div>
       <span class="acc-arrow" id="set-acc-danger-arr" style="color:var(--red);">▼</span>
@@ -1617,7 +1615,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
 
 <!-- 설정 페이지 잔액 저장 fixed 버튼 (페이지가 setting일 때만 표시) -->
 <div id="snap-save-fixed-wrap">
-  <button class="btn btn-blue" onclick="saveSnapshot()" style="margin:0;">💾 이번 달 잔액 저장</button>
+  <button class="btn btn-blue" onclick="saveSnapshot()" style="margin:0;">이번 달 잔액 저장</button>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1999,20 +1997,19 @@ function onSnapInput() {
   const doChungak=fi('sn-도형청약'), yeChungak=fi('sn-예진청약');
   const doChung=fi('sn-도형청도계'), yeChung=fi('sn-예진청도계');
   const doISA=fi('sn-도형ISA평가'), yeISA=fi('sn-예진ISA평가');
-  const saveTotal = doChungak+yeChungak+doChung+yeChung+doISA+yeISA;
+  const saveTotal = doChungak+yeChungak+doChung+yeChung;
   const sp2=$('snap-save-preview');
   if(sp2&&saveTotal>0){
     sp2.style.display='block';
     const ste=$('ssave-total'); if(ste){ste.textContent=fmtW(saveTotal);}
     const sc2=$('ssave-chungak'); if(sc2) sc2.textContent=fmtW(doChungak+yeChungak);
     const sc3=$('ssave-chung'); if(sc3) sc3.textContent=fmtW(doChung+yeChung);
-    const sc4=$('ssave-isa'); if(sc4) sc4.textContent=fmtW(doISA+yeISA);
   } else if(sp2) sp2.style.display='none';
 
-  // ── 투자 합계
+  // ── 투자 합계 (ISA 포함)
   const woldkup=fi('sn-월드컵평가'), retire=fi('sn-퇴직연금평가');
   const cma=fi('sn-CMA'), abbott=fi('sn-Abbott'), medtronic=fi('sn-Medtronic');
-  const investTotal = woldkup+retire+cma+abbott+medtronic;
+  const investTotal = woldkup+retire+cma+abbott+medtronic+doISA+yeISA;
   const ip=$('snap-invest-preview');
   if(ip&&investTotal>0){
     ip.style.display='block';
@@ -2021,9 +2018,10 @@ function onSnapInput() {
     const ir=$('sinvest-re'); if(ir) ir.textContent=fmtW(retire);
     const ic=$('sinvest-cm'); if(ic) ic.textContent=fmtW(cma);
     const is2=$('sinvest-sk'); if(is2) is2.textContent=fmtW(abbott+medtronic);
+    const ii=$('sinvest-isa'); if(ii) ii.textContent=fmtW(doISA+yeISA);
     const wCost=fi('sn-월드컵납입'), rCost=fi('sn-퇴직연금납입'), cCost=fi('sn-CMA납입');
     const totalCost=wCost+rCost+cCost+fi('sn-Abbott납입')+fi('sn-Medtronic납입');
-    const totalGain=investTotal-totalCost;
+    const totalGain=(woldkup+retire+cma+abbott+medtronic)-totalCost;
     const ig=$('sinvest-gain'); if(ig&&totalCost>0){
       ig.textContent=(totalGain>=0?'▲ +':'▼ ')+fmtW(Math.abs(totalGain))+' ('+(totalGain>=0?'+':'')+((totalGain/totalCost)*100).toFixed(1)+'%)';
       ig.style.color=totalGain>=0?'var(--green)':'var(--red)';
@@ -2481,7 +2479,7 @@ function renderRecordPage() {
         +'</div>';
       wrap.innerHTML = summary + txs.map(t=>txRow(t,mon,true)).join('');
     } else {
-      wrap.innerHTML = '<div class="empty"><div class="ei">📋</div><p>거래 내역이 없습니다</p></div>';
+      wrap.innerHTML = '<div class="empty"><p style="color:var(--faint);font-size:13px;padding:24px 0;text-align:center;">아직 거래 내역이 없어요</p></div>';
     }
   }
 }
@@ -2558,8 +2556,8 @@ function showBulkDeleteUndo(n) {
   const t = $('toast');
   const tmsg = $('tmsg');
   const tundo = $('tundo');
-  if (!t || !tmsg) { showToast('✅ ' + n + '건 삭제됨'); return; }
-  tmsg.textContent = '✅ ' + n + '건 삭제됨';
+  if (!t || !tmsg) { showToast('' + n + '건 삭제됨'); return; }
+  tmsg.textContent = n+'건 삭제됐어요';
   if (tundo) {
     tundo.style.display = 'inline-block';
     tundo.onclick = undoBulkDelete;
@@ -2903,7 +2901,7 @@ function renderAnalysis() {
         +'<span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:'+(s.type==='income'?'var(--green)':'var(--text)')+';">'
         +(s.type==='income'?'+':'-')+fmtW(total)+'</span></div>'+rows+'</div>';
     }).filter(Boolean).join('');
-    catsEl.innerHTML=html||'<div class="empty"><div class="ei">📋</div><p>거래 내역이 없습니다</p></div>';
+    catsEl.innerHTML=html||'<div class="empty"><p style="color:var(--faint);font-size:13px;padding:24px 0;text-align:center;">아직 거래 내역이 없어요</p></div>';
   }
 }
 
@@ -3064,15 +3062,21 @@ function renderAssetPage() {
       const gainStr=r!==null?((g>=0?'▲ +':'▼ ')+fmtW(Math.abs(g))+'('+r+'%)'):'';
       return ai(name,gainStr,val,val>0?cls:'cft',badge||'');
     };
+    // ISA는 납입원금 = 월간*12*경과월수 추정 어려우므로, 단순히 평가액만 표시
+    const mkISARow=(name,valKey,monthlyKey)=>{
+      const val=sn[valKey]||0;
+      const monthly=sn[monthlyKey]||0;
+      const sub = monthly>0 ? '월 '+fmt(monthly)+'원 납입' : '';
+      return ai(name, sub, val, val>0?'cpr':'cft', '');
+    };
     inv.innerHTML=[
       mkInvRow('토스 월드컵','월드컵납입','월드컵평가','cpr',''),
       mkInvRow('퇴직연금(IRP)','퇴직연금납입','퇴직연금평가','cpr',''),
       mkInvRow('CMA·기타주식','CMA납입','CMA','cpr',''),
       mkInvRow('Abbott 주식','Abbott납입','Abbott','cpr',''),
       mkInvRow('Medtronic 주식','Medtronic납입','Medtronic','cpr',''),
-      // ISA 추가 (월간 납입 표시 + 도형/예진 배지)
-      ai('도형 ISA','월 '+fmt(sn.도형ISA월간||0)+'원 (연 '+fmt((sn.도형ISA월간||0)*12)+')'+(sn.도형ISA만기?' · 만기 '+sn.도형ISA만기:''),sn.도형ISA평가||0,(sn.도형ISA평가||0)>0?'cpr':'cft','<span class="bdg bdg-bl">도형</span>'),
-      ai('예진 ISA','월 '+fmt(sn.예진ISA월간||0)+'원 (연 '+fmt((sn.예진ISA월간||0)*12)+')'+(sn.예진ISA만기?' · 만기 '+sn.예진ISA만기:''),sn.예진ISA평가||0,(sn.예진ISA평가||0)>0?'cpr':'cft','<span class="bdg bdg-gr">예진</span>'),
+      mkISARow('도형 ISA','도형ISA평가','도형ISA월간'),
+      mkISARow('예진 ISA','예진ISA평가','예진ISA월간'),
     ].join('');
   }
   set('as-invest-total',fmtW(c.투자)); set('as-invest-badge',fmtW(c.투자));
@@ -3228,10 +3232,10 @@ async function resetAllData() {
       }
     }
     
-    showToast('✅ 초기화 완료. 새로고침합니다...');
+    showToast('초기화 완료. 새로고침합니다...');
     setTimeout(() => location.reload(), 1500);
   } catch(e) {
-    showToast('❌ 초기화 실패: ' + e.message);
+    showToast('초기화 실패: ' + e.message);
   }
 }
 
@@ -3252,7 +3256,7 @@ function applyRecurring() {
   });
   setState(state);
   const res=$('apply-result');
-  if(res){ res.style.display='block'; res.innerHTML='<span style="color:'+(added>0?'var(--green)':'var(--faint)')+';">'+(added>0?'✅ '+added+'건 추가됨':'이미 모두 입력됨')+'</span>'; }
+  if(res){ res.style.display='block'; res.innerHTML='<span style="color:'+(added>0?'var(--green)':'var(--faint)')+';">'+(added>0?added+'건 추가됐어요':'이미 모두 입력됐어요')+'</span>'; }
   showToast(added>0?added+'건 적용됨 ✓':'이미 모두 입력됨');
   renderAll(); renderRecordPage();
 }
@@ -3325,6 +3329,9 @@ function parseTransactionsFromOCR(text, todayStr) {
   const amtRe = /([+\-−])?\s*([\d]{1,3}(?:[,\s][\d]{3})+|\d{3,})\s*원?/g;
   // 날짜 패턴: 2026.05.03 / 05.03 / 5월 3일 / 2026-05-03 / 26.5.3
   const dateRe = /(?:(\d{2,4})[.\-\/년]\s*)?(\d{1,2})[.\-\/월]\s*(\d{1,2})\s*(?:일)?/;
+  // 무의미한 메모 (단독으로 등장 시 거래 메모로 부적합)
+  // 명시적 키워드만 매칭 (한글 임의 2자는 매칭 안 되도록)
+  const meaninglessSingles = /^(카드|결제|승인|체크|할부|이체|입금|출금|모를|미상|기타)$/;
   // 줄 단위로 거래 후보 추출
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -3343,8 +3350,8 @@ function parseTransactionsFromOCR(text, todayStr) {
     const sign = lastMatch[1];
     const numStr = lastMatch[2].replace(/[,\s]/g, '');
     const amt = parseInt(numStr, 10);
-    if (!amt || amt < 100 || amt > 999999999) continue; // 100원 미만 or 9억 초과 제외
-    // 부호 판정: -, − 또는 '출금'/'결제'/'지출' 키워드 → expense, +/'입금'/'적립' → income
+    if (!amt || amt < 100 || amt > 999999999) continue;
+    // 부호 판정
     let type = 'expense';
     if (sign === '+') type = 'income';
     else if (sign === '-' || sign === '−') type = 'expense';
@@ -3356,23 +3363,57 @@ function parseTransactionsFromOCR(text, todayStr) {
       // 같은 줄에 메모가 없으면 직전 줄을 메모로 시도
       if (i > 0) {
         const prev = lines[i-1];
-        // 직전 줄도 금액만 있으면 무시
-        if (!/^[+\-−]?\s*[\d,\s]+원?\s*$/.test(prev)) {
-          memo = prev;
-        }
+        if (!/^[+\-−]?\s*[\d,\s]+원?\s*$/.test(prev)) memo = prev;
       }
     }
-    // 메모 정제: 카드명/시간 제거
+    // ── 강화된 메모 정제 ────────────────────────────────
     memo = memo
-      .replace(/\d{1,2}:\d{2}(:\d{2})?/g, '') // 시간
-      .replace(/\([^)]*카드[^)]*\)/g, '')      // (KB국민카드)
-      .replace(/\(?(?:신|체크)\)?\s*[A-Z가-힣]+\s*[Mm]y\s*[A-Za-z]*[:.]*[A-Za-z]*/g, '') // (신)KB국민 My WE:SH
-      .replace(/[A-Z]{2,}\s*\d{4}/g, '')      // KB 1234
-      .replace(/\d{4,}\s*-?\s*\*+\s*-?\s*\d+/g, '') // 카드번호 *마스킹
+      // 1. 파이프(|) 이후 텍스트 제거 (보통 카드/계좌 정보)
+      .replace(/\s*\|.*$/, '')
+      // 2. 백슬래시/슬래시 마스킹 (\\//, ////, /\/, \/\\)
+      .replace(/[\\\/]{2,}/g, ' ')
+      // 3. 시간 패턴 (12:34, 12:34:56)
+      .replace(/\d{1,2}:\d{2}(:\d{2})?/g, '')
+      // 4. 카드 괄호: (KB국민카드), (신한카드), (My WE:SH), (마이 위시), (ADKB...) 등
+      .replace(/\([^)]*(?:카드|My|WE:|WE :|위시|ADKB|KB|신한|국민|우리|하나|농협)[^)]*\)/gi, '')
+      // 5. 일반 (...) 괄호 안 내용이 영문+숫자+특수문자 혼합이면 제거
+      .replace(/\([^)]*[A-Z][^)]*[=:!?][^)]*\)/g, '')
+      // 6. 카드 결제수단 패턴: (신)KB국민 My WE:SH 등
+      .replace(/\(?(?:신|체크)\)?\s*[A-Z가-힣]+\s*[Mm]y\s*[A-Za-z]*[:.]*[A-Za-z]*/g, '')
+      // 7. 영문 대문자 4자 이상 연속 + 숫자 (KB 1234, ADKB=2)
+      .replace(/[A-Z]{2,}\s*[=:]?\s*\d+/g, '')
+      .replace(/[A-Z]{4,}/g, '')
+      // 8. 카드번호 마스킹 (1234-****-1234)
+      .replace(/\d{4,}\s*-?\s*\*+\s*-?\s*\d+/g, '')
+      // 9. WE:SH(O}이 같은 깨진 OCR 잔여물: 영문+특수문자(:!?[]{}=) 혼합 토큰
+      .replace(/[A-Za-z]+[:!?\[\]\{\}=]+[A-Za-z0-9]*/g, '')
+      // 10. 단독 특수문자 토큰 (Se, /, \, 등)
+      .replace(/(?:^|\s)[\\\/!@#$%^&*=]+(?=\s|$)/g, ' ')
+      // 11. 영문 2자 이하 단독 토큰 (Se, We 등)
+      .replace(/(?:^|\s)[A-Za-z]{1,2}(?=\s|$)/g, ' ')
+      // 12. 다중 공백 정리
       .replace(/\s{2,}/g, ' ')
       .trim();
-    if (!memo || memo.length < 2) memo = '거래';
-    if (memo.length > 60) memo = memo.slice(0, 60);
+
+    // 메모가 무의미한 단독 단어면 '거래'로 대체
+    if (!memo || memo.length < 2 || meaninglessSingles.test(memo)) {
+      memo = '거래';
+    }
+    // 메모가 한글 단어를 포함하면 그것을 우선 사용 (영문/숫자 노이즈 제거)
+    // 단, 한글이 전혀 없는 영문 가맹점명(GS25, CU, 7-Eleven 등)은 그대로 보존
+    const koreanWords = (memo.match(/[가-힣]+/g) || []);
+    const englishBrandRe = /^[A-Za-z][A-Za-z0-9\-\s]+$/;
+    if (koreanWords.length > 0) {
+      // 한글 단어가 있으면 한글만 모아서 메모로
+      memo = koreanWords.join(' ').slice(0, 30);
+    } else if (englishBrandRe.test(memo) && memo.length >= 2 && memo.length <= 20) {
+      // 한글 없는 짧은 영문 브랜드명은 그대로 (GS25, CU 등)
+      memo = memo.slice(0, 30);
+    } else {
+      memo = '거래';
+    }
+    if (memo.length > 30) memo = memo.slice(0, 30);
+
     // 날짜 추출
     let date = todayStr;
     const dm = line.match(dateRe) || (i>0 ? lines[i-1].match(dateRe) : null);
@@ -3538,7 +3579,7 @@ function applyImageTxs(txList) {
   });
   setState(state);
   imgResultClose();
-  showToast('✅ '+cnt+'건 추가됨. 내역에서 카테고리 조정 가능');
+  showToast(''+cnt+'건 추가됨. 내역에서 카테고리 조정 가능');
   renderAll(); renderRecordPage();
 }
 
@@ -3616,7 +3657,7 @@ function importDataJSON(evt) {
 function copyShareCode() {
   const mon=currentMonth(), data=getState()[mon]||{};
   const code=btoa(encodeURIComponent(JSON.stringify(data)));
-  navigator.clipboard.writeText(code).then(()=>showToast('📋 코드 복사됨. 카톡으로 전달하세요.',3500)).catch(()=>{ const ta=document.createElement('textarea'); ta.value=code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('📋 코드 복사됨!'); });
+  navigator.clipboard.writeText(code).then(()=>showToast('코드 복사됨. 카톡으로 전달하세요.',3500)).catch(()=>{ const ta=document.createElement('textarea'); ta.value=code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('코드 복사됨!'); });
 }
 function pasteShareCode() {
   const code=prompt('받은 코드를 붙여넣으세요:'); if(!code) return;
@@ -3626,8 +3667,8 @@ function pasteShareCode() {
     const incoming=md.transactions||[], existIds=new Set(existing.map(t=>t.id));
     const merged=existing.concat(incoming.filter(t=>!existIds.has(t.id))).sort((a,b)=>a.date.localeCompare(b.date));
     state[mon]=Object.assign({},state[mon]||{},md,{transactions:merged});
-    setState(state); showToast('✅ '+incoming.filter(t=>!existIds.has(t.id)).length+'건 병합됨',3000); renderAll();
-  } catch{ showToast('❌ 잘못된 코드'); }
+    setState(state); showToast(''+incoming.filter(t=>!existIds.has(t.id)).length+'건 병합됨',3000); renderAll();
+  } catch{ showToast('잘못된 코드'); }
 }
 
 
@@ -4343,7 +4384,7 @@ function applyAllData(data) {
 // Gist에 올리기 (Push)
 async function gistPush() {
   const {token, gistId} = getGistConfig();
-  if (!token) { showToast('⚠️ 설정탭에서 GitHub 토큰을 먼저 입력하세요'); return; }
+  if (!token) { showToast('설정탭에서 GitHub 토큰을 먼저 입력하세요'); return; }
 
   const payload = JSON.stringify(getAllData(), null, 2);
   const body = { files: { [GIST_FILE_NAME]: { content: payload } } };
@@ -4383,7 +4424,7 @@ async function gistPush() {
     const lp = $('gist-last-push'); if (lp) lp.textContent = '마지막 저장: ' + savedAt;
     showToast('백업 완료 · ' + savedAt);
   } catch(e) {
-    showToast('❌ 저장 실패: ' + e.message + ' (토큰/ID 확인)');
+    showToast('저장 실패: ' + e.message + ' (토큰/ID 확인)');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '클라우드에 백업'; }
   }
@@ -4392,7 +4433,7 @@ async function gistPush() {
 // Gist에서 가져오기 (Pull)
 async function gistPull() {
   const {token, gistId} = getGistConfig();
-  if (!token || !gistId) { showToast('⚠️ 설정탭에서 토큰과 Gist ID를 먼저 입력하세요'); return; }
+  if (!token || !gistId) { showToast('설정탭에서 토큰과 Gist ID를 먼저 입력하세요'); return; }
 
   const btn = $('gist-pull-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ 불러오는 중...'; }
@@ -4442,7 +4483,7 @@ async function gistPull() {
     const pulledAt = new Date().toLocaleString('ko-KR');
     localStorage.setItem('ml_last_pull', pulledAt);
     const lp2 = $('gist-last-pull'); if (lp2) lp2.textContent = '마지막 수신: ' + pulledAt;
-    showToast('✅ 데이터 불러오기 완료! 거래 ' + (parsed.state ? Object.values(parsed.state).reduce((a,m)=>a+(m.transactions||[]).length,0) : 0) + '건', 3000);
+    showToast('데이터 불러오기 완료! 거래 ' + (parsed.state ? Object.values(parsed.state).reduce((a,m)=>a+(m.transactions||[]).length,0) : 0) + '건', 3000);
     renderAll();
     if (curPage === 'setting') { loadSnapshotForm(); loadBudgetForm(); }
   } catch(e) {
