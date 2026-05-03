@@ -722,6 +722,9 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     </div>
     <div class="acc-body" id="ai-acc-body" style="display:none;">
       <div class="acc-body-inner">
+        <div id="ocr-env-notice" style="display:none;background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:#92400e;line-height:1.5;">
+          <b>미리보기 환경에서는 자동 인식이 동작하지 않아요.</b><br>HTML 파일을 다운로드해 폰 브라우저에서 열면 정상 동작해요.
+        </div>
         <p style="font-size:13px;color:var(--sub);margin-bottom:12px;line-height:1.5;">통장·카드 결제 화면을 캡처하면 거래 내역을 자동으로 추출해 드립니다.</p>
         <div class="uarea" onclick="document.getElementById('img-input').click()" style="padding:18px 14px;">
           <div style="font-size:28px;margin-bottom:6px;">📱</div>
@@ -3363,6 +3366,32 @@ function applyRecurring() {
 }
 
 // ━━ IMAGE UPLOAD (Tesseract.js OCR — 무료, 클라이언트 사이드, API키 불필요) ━━━━━━━━━
+
+// OCR 환경 호환성 사전 점검 (Worker + Blob URL 생성 가능 여부)
+// claudeusercontent.com 같은 샌드박스 도메인에서는 Blob URL Worker 차단됨
+async function _checkOcrSandbox() {
+  if (typeof Worker === 'undefined' || typeof Blob === 'undefined' || typeof URL === 'undefined' || !URL.createObjectURL) {
+    return { ok: false, reason: 'Worker/Blob 미지원 브라우저' };
+  }
+  try {
+    const blob = new Blob(['self.onmessage=function(e){self.postMessage("ok")}'], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    const w = new Worker(url);
+    // 워커 생성 자체가 throw하면 catch로 감
+    await new Promise((resolve, reject) => {
+      const t = setTimeout(() => reject(new Error('worker no response')), 1500);
+      w.onmessage = () => { clearTimeout(t); resolve(); };
+      w.onerror = (e) => { clearTimeout(t); reject(e); };
+      w.postMessage('ping');
+    });
+    w.terminate();
+    URL.revokeObjectURL(url);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, reason: (e && e.message) || 'Blob URL Worker 차단됨' };
+  }
+}
+
 async function handleImageUpload(evt) {
   const file = evt.target.files[0]; if (!file) return;
   const res = $('img-result'); if (!res) return;
@@ -3379,6 +3408,31 @@ async function handleImageUpload(evt) {
       + '<div style="font-size:12px;color:#92400e;line-height:1.5;">현재 '+(file.size/1024/1024).toFixed(1)+'MB. 8MB 이하로 줄여 주세요.</div></div>';
     return;
   }
+
+  // 0차: 환경 호환성 사전 점검
+  res.innerHTML = '<div style="padding:14px;text-align:center;background:#f8fafc;border-radius:12px;color:var(--sub);font-size:12px;">환경을 확인하고 있어요</div>';
+  const envCheck = await _checkOcrSandbox();
+  if (!envCheck.ok) {
+    // 샌드박스 환경 — Worker 차단됨
+    const isClaudeSandbox = location.hostname.includes('claudeusercontent') || location.hostname.includes('claude.ai');
+    res.innerHTML = '<div style="padding:16px;background:#fef3c7;border-radius:12px;">'
+      + '<div style="font-size:14px;font-weight:700;color:#92400e;margin-bottom:6px;">현재 환경에서는 자동 인식이 동작하지 않아요</div>'
+      + '<div style="font-size:12px;color:#92400e;line-height:1.6;margin-bottom:10px;">'
+      +   (isClaudeSandbox
+            ? 'Claude 미리보기 환경에서는 보안 정책으로 OCR 워커를 만들 수 없어요. 이 HTML 파일을 다운로드해서 폰/PC 브라우저에서 직접 열거나, 자체 서버에 올리면 자동 인식이 동작해요.'
+            : '이 브라우저에서는 백그라운드 작업(Web Worker) 생성이 차단됐어요. Chrome/Safari 최신 버전에서 다시 시도해 주세요.')
+      + '</div>'
+      + '<div style="font-size:11px;color:#92400e;background:rgba(255,255,255,.5);padding:8px 10px;border-radius:6px;line-height:1.5;">'
+      +   '<b>임시 방법:</b> 거래 추가(＋) 버튼으로 직접 입력하거나, 캡처 텍스트를 스크린샷이 아닌 메시지로 붙여넣어 주세요.'
+      + '</div>'
+      + '<details style="margin-top:8px;font-size:10px;color:#78350f;">'
+      +   '<summary style="cursor:pointer;font-weight:600;">기술적 원인</summary>'
+      +   '<div style="margin-top:4px;padding:6px;background:rgba(255,255,255,.6);border-radius:4px;">'+envCheck.reason+'</div>'
+      + '</details>'
+      + '</div>';
+    return;
+  }
+
   // 진행 UI
   res.innerHTML = '<div style="padding:18px 14px;text-align:center;background:#f8fafc;border-radius:12px;">'
     + '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;" id="ocr-title">거래 내역을 분석하고 있어요</div>'
@@ -3444,6 +3498,19 @@ async function handleImageUpload(evt) {
   if (!result) {
     // 실제 에러 정보 + 재시도 버튼 노출
     const errMsg = lastError ? (lastError.message || String(lastError)) : '알 수 없는 오류';
+    // Worker/Blob 차단 에러면 환경 안내로 redirect
+    if (/Worker|blob-request|cannot be accessed/i.test(errMsg)) {
+      const isClaudeSandbox = location.hostname.includes('claudeusercontent') || location.hostname.includes('claude.ai');
+      res.innerHTML = '<div style="padding:16px;background:#fef3c7;border-radius:12px;">'
+        + '<div style="font-size:14px;font-weight:700;color:#92400e;margin-bottom:6px;">현재 환경에서는 자동 인식이 동작하지 않아요</div>'
+        + '<div style="font-size:12px;color:#92400e;line-height:1.6;">'
+        +   (isClaudeSandbox
+              ? 'Claude 미리보기는 보안 정책으로 OCR을 차단해요. HTML 파일을 다운로드해서 폰 브라우저에서 열면 정상 동작해요.'
+              : '브라우저가 Web Worker를 차단했어요. Chrome/Safari 최신 버전을 사용해 주세요.')
+        + '</div>'
+        + '</div>';
+      return;
+    }
     res.innerHTML = '<div style="padding:16px;background:#fee2e2;border-radius:12px;">'
       + '<div style="font-size:14px;font-weight:700;color:#991b1b;margin-bottom:6px;">분석에 실패했어요</div>'
       + '<div style="font-size:12px;color:#991b1b;line-height:1.6;margin-bottom:10px;">'
@@ -3486,7 +3553,6 @@ function retryOcr() {
     showToast('이미지를 다시 선택해 주세요');
     return;
   }
-  // file input에 직접 이벤트 simulate은 어려우므로 file을 직접 전달
   handleImageUpload({ target: { files: [file] } });
 }
 
@@ -5476,6 +5542,21 @@ function init() {
   setInterval(refreshFxRate, 30 * 60 * 1000);
   // 📅 flatpickr 적용 (예쁜 캘린더)
   watchDateInputs();
+  // 📷 OCR 환경 사전 감지 — 차단 환경이면 안내 박스 표시
+  setTimeout(async () => {
+    const notice = $('ocr-env-notice');
+    if (!notice) return;
+    const isClaudeSandbox = location.hostname.includes('claudeusercontent') || location.hostname.includes('claude.ai');
+    if (isClaudeSandbox) {
+      notice.style.display = 'block';
+      return;
+    }
+    // 그 외 환경에서도 실제로 Worker 생성 가능한지 점검
+    try {
+      const env = await _checkOcrSandbox();
+      if (!env.ok) notice.style.display = 'block';
+    } catch(_) {}
+  }, 500);
 }
 document.addEventListener('DOMContentLoaded', init);
 </script>
