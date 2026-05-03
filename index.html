@@ -57,21 +57,21 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 
 /* ── BOTTOM NAV */
 .bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--white);border-top:1.5px solid var(--border);display:flex;z-index:60;box-shadow:0 -4px 20px rgba(0,0,0,.07);padding-bottom:env(safe-area-inset-bottom,0px);}
-.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0;min-height:50px;cursor:pointer;transition:all .15s;border:none;background:none;font-family:'Noto Sans KR',sans-serif;-webkit-tap-highlight-color:transparent;}
-.nb .ni{font-size:20px;line-height:1.2;transition:transform .15s;}
-.nb .nl{font-size:10px;font-weight:600;color:var(--faint);transition:color .15s;}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:11px 0 9px;min-height:62px;cursor:pointer;transition:all .15s;border:none;background:none;font-family:'Noto Sans KR',sans-serif;-webkit-tap-highlight-color:transparent;}
+.nb .ni{font-size:23px;line-height:1.1;transition:transform .15s;}
+.nb .nl{font-size:11px;font-weight:600;color:var(--faint);transition:color .15s;letter-spacing:-.2px;}
 .nb.on .nl{color:var(--blue);}
 .nb.on .ni{transform:scale(1.12);}
 
 /* ── SNAP SAVE FIXED FOOTER (설정 페이지 - 잔액 저장 버튼) */
-/* 하단 네비(.bnav, z-index 60) 바로 위에 위치하도록 z-index 55, bnav 높이만큼 bottom 오프셋 */
-#snap-save-fixed-wrap{display:none;position:fixed;bottom:62px;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--white);padding:10px 16px;z-index:55;border-top:1px solid var(--border);box-shadow:0 -8px 24px rgba(0,0,0,.12);}
+/* 하단 네비 바로 위에 간격 없이 붙도록 — bnav 높이(약 62px + safe-area)에 맞춰 calc로 계산 */
+#snap-save-fixed-wrap{display:none;position:fixed;bottom:calc(62px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--white);padding:10px 16px;z-index:55;border-top:1px solid var(--border);box-shadow:0 -8px 24px rgba(0,0,0,.12);}
 #snap-save-fixed-wrap.show{display:block;}
-/* 활성화 시 페이지 하단 패딩 증가 (저장 버튼 + 네비가 가리지 않도록) */
-body.snap-save-active .scroll{padding-bottom:170px;}
+/* 활성화 시 페이지 하단 패딩 증가 */
+body.snap-save-active .scroll{padding-bottom:180px;}
 
 /* ── SCROLL */
-.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 16px 110px;display:flex;flex-direction:column;gap:0;-webkit-overflow-scrolling:touch;}
+.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 16px 120px;display:flex;flex-direction:column;gap:0;-webkit-overflow-scrolling:touch;}
 
 /* ── PAGE */
 .pg{display:none;flex-direction:column;gap:12px;}
@@ -439,7 +439,62 @@ button:active{-webkit-tap-highlight-color:transparent;}
 
 /* 빈 상태 더 따뜻하게 */
 .empty p{font-size:13px;line-height:1.6;}
+
+/* ── FLATPICKR 커스텀 (앱 디자인 톤에 맞춤) */
+.flatpickr-input{display:none !important;}
+.flatpickr-calendar{
+  font-family:'Noto Sans KR',sans-serif !important;
+  border-radius:14px !important;
+  box-shadow:0 12px 32px rgba(0,0,0,.16) !important;
+  border:1px solid var(--border) !important;
+}
+.flatpickr-calendar.arrowTop:before{border-bottom-color:var(--border) !important;}
+.flatpickr-calendar.arrowTop:after{border-bottom-color:var(--white) !important;}
+.flatpickr-months{padding:8px 4px 4px;}
+.flatpickr-month{color:var(--text) !important;}
+.flatpickr-current-month{font-size:16px !important;font-weight:700 !important;padding:8px 0 !important;}
+.flatpickr-current-month .flatpickr-monthDropdown-months{font-weight:700 !important;font-family:'Noto Sans KR',sans-serif !important;color:var(--text) !important;}
+.flatpickr-current-month input.cur-year{font-weight:700 !important;font-family:'Noto Sans KR',sans-serif !important;color:var(--text) !important;}
+.flatpickr-prev-month, .flatpickr-next-month{fill:var(--blue) !important;color:var(--blue) !important;padding:9px !important;}
+.flatpickr-prev-month:hover, .flatpickr-next-month:hover{background:var(--blue-light) !important;border-radius:8px !important;}
+.flatpickr-weekdays{padding:0 4px;}
+span.flatpickr-weekday{font-size:11px !important;font-weight:700 !important;color:var(--faint) !important;background:transparent !important;}
+.flatpickr-day{
+  border-radius:8px !important;
+  font-weight:600 !important;
+  color:var(--text) !important;
+  font-family:'Noto Sans KR',sans-serif !important;
+  margin:1px;
+  max-width:38px !important;height:38px !important;line-height:36px !important;
+}
+.flatpickr-day:hover{background:var(--blue-light) !important;border-color:var(--blue-light) !important;color:var(--blue) !important;}
+.flatpickr-day.today{border-color:var(--blue) !important;color:var(--blue) !important;font-weight:800 !important;}
+.flatpickr-day.today:hover{background:var(--blue) !important;color:#fff !important;}
+.flatpickr-day.selected, .flatpickr-day.selected:hover{
+  background:var(--blue) !important;border-color:var(--blue) !important;color:#fff !important;
+  font-weight:700 !important;box-shadow:0 2px 8px rgba(37,99,235,.3) !important;
+}
+.flatpickr-day.flatpickr-disabled, .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay{color:var(--faint) !important;font-weight:400 !important;opacity:.5;}
+.flatpickr-innerContainer{padding:0 4px 4px;}
+/* alt input(보이는 input)이 .fi 스타일 그대로 받도록 */
+input.flatpickr-alt-input{
+  width:100%;background:var(--bg);border:1.5px solid var(--border);
+  border-radius:var(--rsm);padding:10px 13px;font-size:14px;
+  font-family:'Noto Sans KR',sans-serif;color:var(--text);outline:none;
+  -webkit-appearance:none;
+  min-height:44px;font-weight:600;
+  padding-right:38px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  cursor:pointer;
+}
+input.flatpickr-alt-input:focus{border-color:var(--blue);background-color:var(--white);box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;}
 </style>
+<!-- flatpickr (예쁜 캘린더 picker) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ko.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <!-- TOP BUTTON -->
@@ -1561,15 +1616,47 @@ function autoCommaFormat(e) {
 }
 document.addEventListener('input', autoCommaFormat, true);
 
-// ━━ DATE INPUT — 클릭 시 picker 명시 호출 (브라우저 호환성 강화) ━━
-document.addEventListener('click', (e) => {
-  const t = e.target;
-  if (t && t.tagName === 'INPUT' && t.type === 'date') {
-    if (typeof t.showPicker === 'function') {
-      try { t.showPicker(); } catch(_) {}
+// ━━ FLATPICKR (예쁜 캘린더) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// type="date" input을 flatpickr로 자동 변환
+function attachFlatpickr() {
+  if (typeof flatpickr === 'undefined') return;
+  document.querySelectorAll('input[type="date"]:not([data-fp-attached])').forEach(inp => {
+    inp.setAttribute('data-fp-attached', '1');
+    try {
+      const placeholder = inp.placeholder || '날짜 선택';
+      flatpickr(inp, {
+        locale: 'ko',
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'Y년 n월 j일',
+        altInputClass: 'flatpickr-alt-input',
+        allowInput: false,
+        disableMobile: true, // 모바일에서도 native가 아닌 flatpickr 사용
+        onReady: function(_, __, fp) {
+          if (fp.altInput) fp.altInput.placeholder = placeholder;
+        }
+      });
+    } catch(e) {
+      console.warn('[flatpickr] 적용 실패:', inp.id, e);
     }
-  }
-}, true);
+  });
+}
+
+// MutationObserver로 동적으로 추가되는 date input도 자동 적용
+function watchDateInputs() {
+  if (typeof flatpickr === 'undefined') return;
+  attachFlatpickr();
+  const observer = new MutationObserver((mutations) => {
+    let needAttach = false;
+    mutations.forEach(m => {
+      m.addedNodes.forEach(n => {
+        if (n.nodeType === 1 && (n.tagName === 'INPUT' || n.querySelectorAll)) needAttach = true;
+      });
+    });
+    if (needAttach) attachFlatpickr();
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+}
 
 // ━━ DIRTY FLAG SYSTEM (강화된 동시 편집 보호) ━━━━━━━━━━━━━━━━━━━━
 // 사용자가 한 번이라도 input에 입력하면 data-dirty 부착 + 마지막 입력 시각 기록
@@ -3054,11 +3141,14 @@ function showImageResults(txList) {
     +txList.map((t,i)=>{
       const isInc=t.type==='income';
       const amtColor=isInc?'var(--green)':'var(--red)';
+      const auto=autoCategorize(t.memo, isInc);
+      const catBadge='<span style="display:inline-block;background:var(--blue-light);color:var(--blue);font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-top:3px;">'+auto.cat+'</span>';
       return '<label id="img-row-'+i+'" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border-radius:var(--rsm);margin-bottom:5px;cursor:pointer;transition:background .1s;">'
         +'<input type="checkbox" id="img-chk-'+i+'" checked style="width:18px;height:18px;flex-shrink:0;accent-color:var(--blue);" onchange="imgUpdateCount('+txList.length+')">'
         +'<div style="flex:1;min-width:0;">'
         +'<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(t.memo||'거래')+'</div>'
         +'<div style="font-size:11px;color:var(--faint);margin-top:2px;">'+(t.date||today)+'</div>'
+        +catBadge
         +'</div>'
         +'<div style="font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:'+amtColor+';flex-shrink:0;">'+(isInc?'+':'-')+fmtW(t.amt)+'</div>'
         +'</label>';
@@ -3107,24 +3197,78 @@ function imgResultClose() {
   const inp=$('img-input'); if(inp) inp.value='';
 }
 
+// 가맹점/메모 키워드 → 카테고리 자동 매핑
+function autoCategorize(memo, isInc) {
+  const m = (memo||'').toLowerCase();
+  if (isInc) {
+    if (/월급|급여|salary|payroll/.test(m)) {
+      if (/도형|dohyung|kim/.test(m)) return {type:'income', cat:'도형 월급'};
+      if (/예진|yejin|yoon/.test(m)) return {type:'income', cat:'예진 월급'};
+      return {type:'income', cat:'도형 월급'};
+    }
+    if (/인센|상여|보너스|bonus/.test(m)) return {type:'income', cat:'인센티브/상여'};
+    if (/이자|배당/.test(m)) return {type:'income', cat:'부수입'};
+    return {type:'income', cat:'기타 수입'};
+  }
+  // 지출 카테고리
+  // 1. 고정지출
+  if (/관리비|아파트관리|아파트 관리/.test(m)) return {type:'fixed', cat:'관리비'};
+  if (/월세|임대료/.test(m)) return {type:'fixed', cat:'월세'};
+  if (/skt|kt |lg u\+|유플러스|sktelecom|skt 통신|통신비/.test(m)) return {type:'fixed', cat:'통신'};
+  if (/sk브로드밴드|kt인터넷|lg헬로|인터넷|wifi/.test(m)) return {type:'fixed', cat:'인터넷'};
+  if (/하이패스|한국도로공사|도로공사|경수고속|고속도로/.test(m)) return {type:'fixed', cat:'교통'};
+  if (/티머니|tmoney|버스|지하철|코레일|ktx|srt|기차|택시|카카오t|카카오택시|우티|tada/.test(m)) return {type:'fixed', cat:'교통'};
+  if (/주유|gs칼텍스|sk에너지|s-oil|현대오일|gs셀프|hd오일|hyundai oilbank/.test(m)) return {type:'fixed', cat:'교통'};
+  if (/헬스장|피트니스|요가|필라테스|크로스핏|gym|fitness|운동/.test(m)) return {type:'fixed', cat:'도형 운동'};
+  if (/보험/.test(m)) return {type:'fixed', cat:'보험료'};
+  if (/정수기/.test(m)) return {type:'fixed', cat:'정수기'};
+  // 2. 변동지출 - 식자재/외식
+  if (/이마트|홈플러스|롯데마트|코스트코|costco|마켓컬리|kurly|쿠팡프레시|오아시스|이마트몰|에브리데이|emart|hmart|hanaro|농협하나로/.test(m)) return {type:'variable', cat:'식자재'};
+  if (/스타벅스|starbucks|투썸|이디야|커피|cafe|카페|매머드|메가커피|컴포즈|polybus|요거프레소|공차|gongcha/.test(m)) return {type:'variable', cat:'간식/음료'};
+  if (/배달의민족|쿠팡이츠|요기요|배민|배달|delivery/.test(m)) return {type:'variable', cat:'배달'};
+  if (/맥도날드|버거킹|롯데리아|kfc|서브웨이|subway|프랭크버거|쉐이크쉑|shakeshack|모스버거/.test(m)) return {type:'variable', cat:'외식비'};
+  if (/식당|레스토랑|restaurant|고반|고깃집|곱창|삼겹|횟집|초밥|초밥집|일식|중식|한식|양식|닭갈비|곰탕|국밥|돈까스|돈가스|족발|보쌈|치킨|chicken|피자|pizza|떡볶이|분식|마라탕|훠궈|쌀국수|파스타|이자카야|우동|라멘|스시|sushi|굽네|bbq|네네치킨|noodle|kitchen|bar|grill/.test(m)) return {type:'variable', cat:'외식비'};
+  if (/김밥|편의점|gs25|cu |씨유|세븐일레븐|7-eleven|emart24|미니스톱|이마트24/.test(m)) return {type:'variable', cat:'외식비'};
+  // 3. 변동지출 - 쇼핑/생활
+  if (/다이소|daiso|아트박스|10x10|텐바이텐|모다아울렛/.test(m)) return {type:'variable', cat:'생활소모품'};
+  if (/이케아|ikea|한샘|hanssem|리바트|livart|일룸|iloom|모던하우스|침구|매트리스|가구/.test(m)) return {type:'variable', cat:'생활소모품'};
+  if (/쿠팡|coupang|11번가|g마켓|gmarket|옥션|auction|위메프|티몬|wadiz|네이버쇼핑/.test(m)) return {type:'variable', cat:'꾸밈비/쇼핑'};
+  if (/유니클로|uniqlo|h&m|zara|무신사|musinsa|w컨셉|wconcept|29cm|brandi|에이블리/.test(m)) return {type:'variable', cat:'꾸밈비/쇼핑'};
+  if (/올리브영|oliveyoung|시코르|chicor|랄라블라|아리따움|이니스프리|innisfree|미샤|네이처리퍼블릭|화장품/.test(m)) return {type:'variable', cat:'꾸밈비/미용'};
+  if (/미용실|헤어|hair|네일|nail|왁싱|에스테|esthe|마사지|스파|spa|피부과/.test(m)) return {type:'variable', cat:'꾸밈비/미용'};
+  // 4. 변동지출 - 문화/취미
+  if (/cgv|메가박스|롯데시네마|영화|movie|cinema/.test(m)) return {type:'variable', cat:'문화생활'};
+  if (/네이버시리즈|카카오페이지|리디|밀리의서재|millie|왓챠|netflix|넷플릭스|tving|티빙|디즈니플러스|disney|wavve|웨이브|coupang play|쿠팡플레이|youtube premium|spotify|melon|멜론|지니|genie|bugs|벅스|flo|플로|애플뮤직|apple music/.test(m)) return {type:'variable', cat:'문화생활'};
+  if (/서점|교보문고|kyobo|yes24|예스24|알라딘|aladin|interpark|인터파크/.test(m)) return {type:'variable', cat:'취미'};
+  // 5. 변동지출 - 유니
+  if (/동물병원|반려동물|펫|pet|유니|벨레다|애견|애완|고양이|강아지/.test(m)) return {type:'variable', cat:'유니'};
+  // 6. 변동지출 - 여행
+  if (/호텔|hotel|에어비앤비|airbnb|숙박|리조트|resort|항공|asiana|korean air|ke|jejuair|t'way|tway|aircanada|미아 리조트/.test(m)) return {type:'variable', cat:'여행'};
+  // 7. 카드 결제 (카드사 청구)
+  if (/카드대금|카드 대금|신한카드|현대카드|kb국민카드|kb국민 my we:sh|국민카드|국민 my we:sh|롯데카드|삼성카드|하나카드|우리카드|nh카드|bc카드|시티카드/.test(m)) return {type:'card', cat:'카드지출(도형)'};
+  // 기본값
+  return {type:'variable', cat:'기타 변동'};
+}
+
 function applyImageTxs(txList) {
   const mon=currentMonth(), state=getState(), md=ensureMonth(state,mon);
   let cnt=0;
   txList.forEach((t,i)=>{
     const chk=$('img-chk-'+i); if(!chk||!chk.checked) return;
     const isInc=t.type==='income';
+    const auto = autoCategorize(t.memo, isInc);
     md.transactions.push({
       id:Date.now()+i,
       date:t.date||mon+'-'+String(new Date().getDate()).padStart(2,'0'),
-      type:isInc?'income':'variable',
-      cat:isInc?'기타 수입':'기타 변동',
+      type:auto.type,
+      cat:auto.cat,
       amt:t.amt, memo:t.memo||'', method:'카드'
     });
     cnt++;
   });
   setState(state);
   imgResultClose();
-  showToast('✅ '+cnt+'건 추가됨. 내역에서 카테고리를 수정하세요.');
+  showToast('✅ '+cnt+'건 추가됨. 내역에서 카테고리 조정 가능');
   renderAll(); renderRecordPage();
 }
 
@@ -3413,10 +3557,10 @@ function renderDiagnosis() {
   if (diagEmg) {
     const fixedMonthly = (c.bgt.월세||0)+(c.bgt.관리비||0)+(c.bgt.전세이자||0)+(c.bgt.식자재||0)+(c.bgt.교통||0)+(c.bgt.통신||0)+(c.bgt.인터넷||0)+(c.bgt.도형운동||0)+(c.bgt.예진운동||0);
     const target3 = fixedMonthly * 3;
-    // 비상금: CMA + 마통 여유분
-    const cmaAmt = sn.CMA || 0;
+    // 비상금: 예진 ISA (실제 비상금 대용 계좌)
+    const emgAmt = sn.예진ISA평가 || 0;
     const matonRoom = (sn.도형마통한도||50000000) - (sn.도형마통||0);
-    const emgTotal = cmaAmt; // CMA를 비상금으로 간주
+    const emgTotal = emgAmt;
     const pct = target3 > 0 ? Math.min(Math.round(emgTotal/target3*100), 100) : 0;
     const ok = emgTotal >= target3;
     const short = Math.max(target3 - emgTotal, 0);
@@ -3428,11 +3572,11 @@ function renderDiagnosis() {
       + '</div>'
       + '<div class="ptrack" style="height:8px;margin-bottom:10px;"><div class="pfill" style="width:'+pct+'%;background:'+(ok?'var(--green)':'var(--red)')+'"></div></div>'
       + mkAlert(ok?'ok':'warn', ok?'✅':'⚠️',
-          ok ? '월 고정지출의 3개월치 비상금이 확보되어 있습니다.'
-             : '비상금이 <b>'+fmtW(short)+'</b> 부족합니다. CMA 잔액 확인 및 비상금 계좌 분리 권장.')
+          ok ? '월 고정지출의 3개월치 비상금(예진 ISA)이 확보되어 있습니다.'
+             : '비상금이 <b>'+fmtW(short)+'</b> 부족합니다. 예진 ISA 추가 입금 권장.')
       + '<div class="rl" style="margin-top:10px;"><span class="rk">월 고정지출 (예산 기준)</span><span class="rv">'+fmtW(fixedMonthly)+'</span></div>'
       + '<div class="rl"><span class="rk">권장 비상금 (3개월치)</span><span class="rv">'+fmtW(target3)+'</span></div>'
-      + '<div class="rl"><span class="rk">현재 CMA (비상금 대용)</span><span class="rv '+(ok?'cgr':'crd')+'">'+fmtW(emgTotal)+'</span></div>'
+      + '<div class="rl"><span class="rk">현재 비상금 (예진 ISA)</span><span class="rv '+(ok?'cgr':'crd')+'">'+fmtW(emgTotal)+'</span></div>'
       + '<div class="rl"><span class="rk">마통 여유 한도</span><span class="rv cbl">'+fmtW(matonRoom)+'</span></div>';
   }
 
@@ -4185,6 +4329,16 @@ async function sbPull(silent = false) {
       if (!silent) showToast('아직 저장된 데이터 없음. 지금 저장하기를 눌러주세요.');
       return;
     }
+    // 🔒 dirty input의 현재 값을 미리 백업 (applyAllData 후 복원)
+    const dirtySnapshot = {};
+    document.querySelectorAll('input[data-dirty="1"]').forEach(inp => {
+      if (inp.id) {
+        dirtySnapshot[inp.id] = {
+          value: inp.value,
+          dirtyAt: inp.getAttribute('data-dirty-at')
+        };
+      }
+    });
     const parsed = JSON.parse(data.value);
     applyAllData(parsed);
     const now = new Date().toLocaleString('ko-KR');
@@ -4193,6 +4347,20 @@ async function sbPull(silent = false) {
     if (!silent) showToast('✅ 최신 데이터 수신 완료!', 2500);
     renderAll();
     if (curPage === 'setting') { loadSnapshotForm(); loadBudgetForm(); }
+    // 🔒 dirty 값 복원 (loadSnapshotForm/loadBudgetForm이 보호하지 못한 케이스 대비)
+    Object.keys(dirtySnapshot).forEach(id => {
+      const inp = document.getElementById(id);
+      if (inp && isInputDirty(inp)) {
+        // 여전히 dirty 상태이면 사용자가 입력한 값 강제 복원
+        const saved = dirtySnapshot[id];
+        if (saved && inp.value !== saved.value) {
+          inp.value = saved.value;
+          // dirty flag 재부착 (applyAllData가 attribute를 날렸을 수 있음)
+          inp.setAttribute('data-dirty', '1');
+          if (saved.dirtyAt) inp.setAttribute('data-dirty-at', saved.dirtyAt);
+        }
+      }
+    });
   } catch(e) {
     if (!silent) showToast('❌ 불러오기 실패: ' + e.message);
     console.error('sbPull error:', e);
@@ -4213,13 +4381,19 @@ function sbSubscribe() {
       filter: 'id=eq.1'
     }, (payload) => {
       if (isSyncing) return; // 내가 업데이트한 건 무시
-      // 🔒 상대방이 업데이트했지만 내가 입력 중이면 → 가벼운 알림만, 폼 reload 보류
-      if (_focusedInputId) {
-        console.log('실시간 업데이트 감지 (편집 중 → 보류)');
+      // 🔒 보류 조건: focus 중이거나 dirty input이 하나라도 있으면 보류
+      const hasDirtyInput = !!document.querySelector('input[data-dirty="1"]');
+      if (_focusedInputId || hasDirtyInput) {
+        console.log('실시간 업데이트 감지 (편집/dirty 중 → 보류)');
         showToast('🔄 상대방이 입력 중... (편집 끝나면 자동 반영)', 2000);
-        // 편집이 끝날 때까지 폴링하다가 끝나면 pull 실행
         const waitAndPull = () => {
-          if (!_focusedInputId) {
+          const stillFocused = !!_focusedInputId;
+          // dirty 중에서도 30초 보호 시간 안 지난 게 있는지 확인
+          let stillDirty = false;
+          document.querySelectorAll('input[data-dirty="1"]').forEach(inp => {
+            if (isInputDirty(inp)) stillDirty = true;
+          });
+          if (!stillFocused && !stillDirty) {
             sbPull(true).then(() => showToast('🔄 실시간 업데이트됨', 1500));
           } else {
             setTimeout(waitAndPull, 1500);
@@ -4563,6 +4737,8 @@ function init() {
   // 💱 환율 초기 로드 + 30분마다 자동 새로고침
   refreshFxRate();
   setInterval(refreshFxRate, 30 * 60 * 1000);
+  // 📅 flatpickr 적용 (예쁜 캘린더)
+  watchDateInputs();
 }
 document.addEventListener('DOMContentLoaded', init);
 </script>
