@@ -1746,7 +1746,8 @@ function fmtInput(inp) { const v=parseNum(inp.value); if(v) inp.value=fmt(v); }
 function autoCommaFormat(e) {
   const inp = e.target;
   if (!inp.classList || !inp.classList.contains('fi')) return;
-  if (inp.type === 'date' || inp.type === 'checkbox' || inp.type === 'file' || inp.tagName === 'TEXTAREA') return;
+  if (inp.type === 'date' || inp.type === 'checkbox' || inp.type === 'file') return;
+  if (inp.tagName === 'TEXTAREA' || inp.tagName === 'SELECT') return;
   // 명시적으로 콤마 제외 (nocomma 클래스)
   if (inp.classList.contains('nocomma')) return;
   // maxlength 4 이하인 짧은 숫자 입력은 콤마 X (년도/월/일 등)
