@@ -599,6 +599,8 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ko.js"></script>
+<!-- Tesseract.js: 브라우저 내 한국어 OCR (무료, API키 불필요) -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <!-- TOP BUTTON -->
@@ -709,22 +711,23 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     <span class="rec-fab-icon">＋</span>거래 추가
   </button>
 
-  <!-- AI 자동 입력 (접기/펼치기) -->
+  <!-- 이미지 OCR 자동 입력 (접기/펼치기) -->
   <div id="ai-acc">
     <div class="acc-header" id="ai-acc-hd" onclick="toggleAcc('ai')">
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:16px;">📸</span>
-        <span style="font-size:14px;font-weight:700;">AI 자동 입력</span>
-        <span class="bdg bdg-bl" style="font-size:10px;">Claude AI</span>
+        <span style="font-size:14px;font-weight:700;">이미지 자동 입력</span>
+        <span class="bdg bdg-gr" style="font-size:10px;">무료 OCR</span>
       </div>
       <span class="acc-arrow" id="ai-acc-arr">▼</span>
     </div>
     <div class="acc-body" id="ai-acc-body" style="display:none;">
       <div class="acc-body-inner">
-        <p style="font-size:12px;color:var(--sub);margin-bottom:10px;">통장·카드 화면 캡처 → AI가 거래 자동 추출</p>
+        <p style="font-size:12px;color:var(--sub);margin-bottom:10px;">통장·카드 화면 캡처 → 거래를 자동 추출 (브라우저 내 처리, 비용 0원)</p>
         <div class="uarea" onclick="document.getElementById('img-input').click()" style="padding:14px;">
           <div style="font-size:24px;margin-bottom:4px;">📱</div>
           <div style="font-size:13px;font-weight:600;color:var(--blue);">이미지 업로드</div>
+          <div style="font-size:10px;color:var(--faint);margin-top:4px;">최초 1회 한국어 OCR 모델 ~5MB 다운로드</div>
         </div>
         <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
         <div id="img-result" style="margin-top:8px;"></div>
@@ -1277,7 +1280,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
 
       <!-- ISA -->
       <div style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
-        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--text);">📊 ISA (개인종합자산관리계좌)</div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--text);">📊 ISA (개인종합자산관리계좌) <span style="font-size:10px;font-weight:600;color:var(--purple);background:#f3e8ff;padding:2px 7px;border-radius:99px;margin-left:4px;">투자 분류</span></div>
         <div class="fg2">
           <div class="fg"><label>도형 현재 평가액</label><input class="fi" id="sn-도형ISA평가" placeholder="8,898,610" oninput="onSnapInput()"></div>
           <div class="fg"><label>도형 월 납입액</label><input class="fi" id="sn-도형ISA월간" placeholder="500,000" inputmode="numeric"></div>
@@ -2129,8 +2132,8 @@ function compute(mon) {
   const 결제=sn.결제통장||0, 카드자물쇠=sn.카드자물쇠||0;
   const 생활비=sn.생활비통장||0, 고정자물쇠=sn.고정자물쇠||0, 신한=sn.도형신한||0;
   const 가용현금=결제+생활비+신한;
-  const 저축=(sn.도형청약||0)+(sn.예진청약||0)+(sn.도형청도계||0)+(sn.예진청도계||0)+(sn.도형ISA평가||0)+(sn.예진ISA평가||0);
-  const 투자=(sn.월드컵평가||0)+(sn.퇴직연금평가||0)+(sn.CMA||0)+(sn.Abbott||0)+(sn.Medtronic||0);
+  const 저축=(sn.도형청약||0)+(sn.예진청약||0)+(sn.도형청도계||0)+(sn.예진청도계||0);
+  const 투자=(sn.월드컵평가||0)+(sn.퇴직연금평가||0)+(sn.CMA||0)+(sn.Abbott||0)+(sn.Medtronic||0)+(sn.도형ISA평가||0)+(sn.예진ISA평가||0);
   const 변동대출=(sn.도형마통||0)+(sn.예진마통||0)+(sn.청약대출||0)+(sn.학자금||0);
   const 순자산=가용현금+저축+투자-변동대출;
   const catActual={};
@@ -2187,8 +2190,8 @@ function renderHome() {
   const prevMon=pm.getFullYear()+'-'+String(pm.getMonth()+1).padStart(2,'0');
   const prevSn=(getState()[prevMon]||{}).snapshot||{};
   const prevNet=(prevSn.결제통장||0)+(prevSn.생활비통장||0)+(prevSn.도형신한||0)
-    +(prevSn.도형청약||0)+(prevSn.예진청약||0)+(prevSn.도형청도계||0)+(prevSn.예진청도계||0)+(prevSn.도형ISA평가||0)+(prevSn.예진ISA평가||0)
-    +(prevSn.월드컵평가||0)+(prevSn.퇴직연금평가||0)+(prevSn.CMA||0)+(prevSn.Abbott||0)+(prevSn.Medtronic||0)
+    +(prevSn.도형청약||0)+(prevSn.예진청약||0)+(prevSn.도형청도계||0)+(prevSn.예진청도계||0)
+    +(prevSn.월드컵평가||0)+(prevSn.퇴직연금평가||0)+(prevSn.CMA||0)+(prevSn.Abbott||0)+(prevSn.Medtronic||0)+(prevSn.도형ISA평가||0)+(prevSn.예진ISA평가||0)
     -(prevSn.도형마통||0)-(prevSn.예진마통||0)-(prevSn.청약대출||0)-(prevSn.학자금||0);
   const delta=c.순자산-prevNet;
   const chips2=$('h-chips');
@@ -2833,8 +2836,8 @@ function renderTrendChart() {
   const data=months.map(mon=>{
     const sn=(state[mon]||{}).snapshot||{};
     const 가용=(sn.결제통장||0)+(sn.생활비통장||0)+(sn.도형신한||0);
-    const 저축=(sn.도형청약||0)+(sn.예진청약||0)+(sn.도형청도계||0)+(sn.예진청도계||0)+(sn.도형ISA평가||0)+(sn.예진ISA평가||0);
-    const 투자=(sn.월드컵평가||0)+(sn.퇴직연금평가||0)+(sn.CMA||0)+(sn.Abbott||0)+(sn.Medtronic||0);
+    const 저축=(sn.도형청약||0)+(sn.예진청약||0)+(sn.도형청도계||0)+(sn.예진청도계||0);
+    const 투자=(sn.월드컵평가||0)+(sn.퇴직연금평가||0)+(sn.CMA||0)+(sn.Abbott||0)+(sn.Medtronic||0)+(sn.도형ISA평가||0)+(sn.예진ISA평가||0);
     const 대출=(sn.도형마통||0)+(sn.예진마통||0)+(sn.청약대출||0)+(sn.학자금||0);
     const 순자산=가용+저축+투자-대출;
     const txs=(state[mon]||{}).transactions||[];
@@ -3094,26 +3097,27 @@ function renderAssetPage() {
     ai('예진 청약통장','납입 '+(sn.예진청약횟수||'?')+'회'+(sn.예진청약횟수>=24?' · ✓1순위':''),sn.예진청약||0,'cgr','<span class="bdg bdg-gr">예진</span>'),
     ai('도형 청도계','월 '+fmt(sn.도형청도계납입||300000)+'원'+(sn.도형청도계만기?' · 만기 '+sn.도형청도계만기:''),sn.도형청도계||0,'cgr','<span class="bdg bdg-bl">도형</span>'),
     ai('예진 청도계','월 '+fmt(sn.예진청도계납입||700000)+'원'+(sn.예진청도계만기?' · 만기 '+sn.예진청도계만기:''),sn.예진청도계||0,'cgr','<span class="bdg bdg-gr">예진</span>'),
-    ai('도형 ISA','월 '+fmt(sn.도형ISA월간||0)+'원 (연 '+fmt((sn.도형ISA월간||0)*12)+')'+(sn.도형ISA만기?' · 만기 '+sn.도형ISA만기:''),sn.도형ISA평가||0,'cgr','<span class="bdg bdg-bl">도형</span>'),
-    ai('예진 ISA','월 '+fmt(sn.예진ISA월간||0)+'원 (연 '+fmt((sn.예진ISA월간||0)*12)+')'+(sn.예진ISA만기?' · 만기 '+sn.예진ISA만기:''),sn.예진ISA평가||0,'cgr','<span class="bdg bdg-gr">예진</span>'),
     ai('도형 가족모임','월 저축액',sn.도형가족모임||0,'cft','<span class="bdg bdg-gy">자산제외</span>'),
     ai('예진 가족모임','월 저축액',sn.예진가족모임||0,'cft','<span class="bdg bdg-gy">자산제외</span>'),
   ].join('');
   set('as-save-total',fmtW(c.저축)); set('as-save-badge',fmtW(c.저축));
   const inv=$('as-invests');
   if(inv) {
-    const mkInvRow=(name,costKey,valKey,cls)=>{
+    const mkInvRow=(name,costKey,valKey,cls,badge)=>{
       const cost=sn[costKey]||0, val=sn[valKey]||0;
       const g=val-cost, r=cost>0?(g/cost*100).toFixed(1):null;
-      const gainStr=r!==null?(' · '+(g>=0?'▲ +':'▼ ')+fmtW(Math.abs(g))+'('+r+'%)'):'';
-      return ai(name,gainStr.slice(3)||'',val,val>0?cls:'cft','');
+      const gainStr=r!==null?((g>=0?'▲ +':'▼ ')+fmtW(Math.abs(g))+'('+r+'%)'):'';
+      return ai(name,gainStr,val,val>0?cls:'cft',badge||'');
     };
     inv.innerHTML=[
-      mkInvRow('토스 월드컵','월드컵납입','월드컵평가','cpr'),
-      mkInvRow('퇴직연금(IRP)','퇴직연금납입','퇴직연금평가','cpr'),
-      mkInvRow('CMA·기타주식','CMA납입','CMA','cpr'),
-      mkInvRow('Abbott 주식','Abbott납입','Abbott','cpr'),
-      mkInvRow('Medtronic 주식','Medtronic납입','Medtronic','cpr'),
+      mkInvRow('토스 월드컵','월드컵납입','월드컵평가','cpr',''),
+      mkInvRow('퇴직연금(IRP)','퇴직연금납입','퇴직연금평가','cpr',''),
+      mkInvRow('CMA·기타주식','CMA납입','CMA','cpr',''),
+      mkInvRow('Abbott 주식','Abbott납입','Abbott','cpr',''),
+      mkInvRow('Medtronic 주식','Medtronic납입','Medtronic','cpr',''),
+      // ISA 추가 (월간 납입 표시 + 도형/예진 배지)
+      ai('도형 ISA','월 '+fmt(sn.도형ISA월간||0)+'원 (연 '+fmt((sn.도형ISA월간||0)*12)+')'+(sn.도형ISA만기?' · 만기 '+sn.도형ISA만기:''),sn.도형ISA평가||0,(sn.도형ISA평가||0)>0?'cpr':'cft','<span class="bdg bdg-bl">도형</span>'),
+      ai('예진 ISA','월 '+fmt(sn.예진ISA월간||0)+'원 (연 '+fmt((sn.예진ISA월간||0)*12)+')'+(sn.예진ISA만기?' · 만기 '+sn.예진ISA만기:''),sn.예진ISA평가||0,(sn.예진ISA평가||0)>0?'cpr':'cft','<span class="bdg bdg-gr">예진</span>'),
     ].join('');
   }
   set('as-invest-total',fmtW(c.투자)); set('as-invest-badge',fmtW(c.투자));
@@ -3298,191 +3302,131 @@ function applyRecurring() {
   renderAll(); renderRecordPage();
 }
 
-// ━━ IMAGE UPLOAD (Claude API) ━━━━━━━━━
+// ━━ IMAGE UPLOAD (Tesseract.js OCR — 무료, 클라이언트 사이드, API키 불필요) ━━━━━━━━━
 async function handleImageUpload(evt) {
-  const file=evt.target.files[0]; if(!file) return;
-  const res=$('img-result'); if(!res) return;
-  res.style.display='block';
-  res.innerHTML='<div style="text-align:center;padding:12px;color:var(--sub);">⏳ AI 분석 중...</div>';
-  // 파일 크기 체크 (5MB 초과 시 안내)
-  if (file.size > 5 * 1024 * 1024) {
-    res.innerHTML='<div class="al warn"><div class="ali">⚠️</div><div>이미지 파일이 너무 큽니다 ('+(file.size/1024/1024).toFixed(1)+'MB).<br>5MB 이하로 압축해 주세요.</div></div>';
+  const file = evt.target.files[0]; if (!file) return;
+  const res = $('img-result'); if (!res) return;
+  res.style.display = 'block';
+  if (typeof Tesseract === 'undefined') {
+    res.innerHTML = '<div class="al warn"><div class="ali">⚠️</div><div>OCR 라이브러리 로딩 실패. 네트워크 확인 후 새로고침해 주세요.</div></div>';
     return;
   }
-  const b64=await new Promise((ok,err)=>{
-    const r=new FileReader(); r.onload=()=>ok(r.result.split(',')[1]); r.onerror=err; r.readAsDataURL(file);
-  });
-  const todayStr=getMonthKey()+'-'+String(new Date().getDate()).padStart(2,'0');
-  const userApiKey = localStorage.getItem('ml_anthropic_key') || '';
-  let rawText = ''; // 디버깅용 응답 텍스트 보존
-  let httpStatus = 0;
+  if (file.size > 8 * 1024 * 1024) {
+    res.innerHTML = '<div class="al warn"><div class="ali">⚠️</div><div>이미지 파일이 너무 큽니다 ('+(file.size/1024/1024).toFixed(1)+'MB). 8MB 이하로 압축해 주세요.</div></div>';
+    return;
+  }
+  res.innerHTML = '<div style="padding:12px;text-align:center;"><div style="color:var(--sub);font-size:13px;margin-bottom:6px;">⏳ 이미지 인식 중...</div><div id="ocr-progress" style="font-size:11px;color:var(--faint);">한국어 OCR 모델 로딩 중 (최초 1회 ~5MB)</div><div class="ptrack" style="margin-top:8px;height:5px;"><div class="pfill" id="ocr-bar" style="width:0%;background:var(--blue);transition:width .3s;"></div></div></div>';
   try {
-    const headers = {'Content-Type':'application/json'};
-    if (userApiKey) {
-      headers['x-api-key'] = userApiKey;
-      headers['anthropic-version'] = '2023-06-01';
-      headers['anthropic-dangerous-direct-browser-access'] = 'true';
-    }
-    const reqBody = {
-      model:'claude-sonnet-4-20250514',
-      max_tokens:1500,
-      messages:[{role:'user',content:[
-        {type:'image',source:{type:'base64',media_type:file.type,data:b64}},
-        {type:'text',text:
-          '이 화면에서 보이는 모든 거래 내역(통장 입출금, 카드 결제, 가계부 항목 등)을 추출하세요.\n\n'+
-          '⚠️ 매우 중요: 거래가 1건만 보여도 반드시 JSON **배열**로 응답하세요. 예: [{"date":"2026-05-01","memo":"다이소","amt":1000,"type":"expense"}]\n\n'+
-          '규칙:\n'+
-          '1. 단 1건이어도 배열로 감쌀 것 (절대 객체 단독 X)\n'+
-          '2. 금액(amt)은 항상 양수 정수, 콤마 제거. -1,000원 → 1000, +50,000원 → 50000\n'+
-          '3. type은 출금/지출/-는 "expense", 입금/+는 "income"\n'+
-          '4. 날짜가 안 보이면 오늘 ('+todayStr+')\n'+
-          '5. 가맹점명/메모는 화면에 보이는 그대로 (예: "다이소", "고반식당 용인보정점", "네이버시리즈")\n'+
-          '6. 카드 종류/결제수단(예: "(신)KB국민 My WE:SH...")는 memo에 포함하지 말 것\n'+
-          '7. JSON 배열 외 어떤 설명도 추가하지 말 것 (코드블록 ```도 X)\n\n'+
-          '출력 형식 정확히: [{"date":"YYYY-MM-DD","memo":"...","amt":숫자,"type":"income"|"expense"}, ...]'
+    const imgURL = URL.createObjectURL(file);
+    const todayStr = getMonthKey() + '-' + String(new Date().getDate()).padStart(2,'0');
+    const result = await Tesseract.recognize(imgURL, 'kor+eng', {
+      logger: (m) => {
+        const bar = $('ocr-bar'), prog = $('ocr-progress');
+        if (m.status && prog) {
+          const phase = m.status === 'loading tesseract core' ? '코어 로딩'
+            : m.status === 'loading language traineddata' ? '한국어 모델 로딩'
+            : m.status === 'initializing tesseract' ? '초기화'
+            : m.status === 'initializing api' ? 'API 초기화'
+            : m.status === 'recognizing text' ? '텍스트 인식 중'
+            : m.status;
+          prog.textContent = phase + ' ' + Math.round((m.progress||0)*100) + '%';
         }
-      ]}]
-    };
-    const resp = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers, body:JSON.stringify(reqBody)
-    });
-    httpStatus = resp.status;
-    rawText = await resp.text(); // 응답을 텍스트로 받아서 보존
-    if(!resp.ok) {
-      // 에러 응답에서 메시지 추출 시도
-      let errMsg = rawText;
-      try {
-        const errJson = JSON.parse(rawText);
-        if (errJson.error && errJson.error.message) errMsg = errJson.error.message;
-        else if (errJson.message) errMsg = errJson.message;
-      } catch(_) {}
-      throw new Error('HTTP '+resp.status+': '+errMsg.slice(0,200));
-    }
-    // 본문 JSON 파싱
-    let data;
-    try {
-      data = JSON.parse(rawText);
-    } catch(parseErr) {
-      throw new Error('응답이 JSON이 아님 ('+rawText.slice(0,80)+'...)');
-    }
-    // Anthropic 표준 응답: {content: [{type:'text', text:'...'}]}
-    const txt = data.content && Array.isArray(data.content)
-      ? data.content.filter(b=>b && b.type==='text').map(b=>b.text||'').join('')
-      : '';
-    if(!txt) {
-      // content가 없으면 응답 형태가 예상과 다른 것
-      const dump = JSON.stringify(data).slice(0, 200);
-      throw new Error('응답에 거래 텍스트 없음 ('+dump+')');
-    }
-    let cleaned = txt.replace(/```json|```/g,'').trim();
-    const arrMatch = cleaned.match(/\[[\s\S]*\]/);
-    const objMatch = cleaned.match(/\{[\s\S]*\}/);
-    let txList=null;
-    if(arrMatch) {
-      try { txList = JSON.parse(arrMatch[0]); } catch(_) {}
-    }
-    if(!Array.isArray(txList) && objMatch) {
-      try {
-        const obj = JSON.parse(objMatch[0]);
-        if(obj && (obj.amt != null || obj.amount != null)) txList = [obj];
-        else if(obj && Array.isArray(obj.transactions)) txList = obj.transactions;
-        else if(obj && Array.isArray(obj.items)) txList = obj.items;
-      } catch(_) {}
-    }
-    if(!Array.isArray(txList)) {
-      try {
-        const parsed = JSON.parse(cleaned);
-        txList = Array.isArray(parsed) ? parsed : [parsed];
-      } catch(_) {
-        throw new Error('JSON 파싱 실패. AI 응답 첫 80자: '+cleaned.slice(0,80));
+        if (m.progress != null && bar) bar.style.width = Math.round(m.progress*100) + '%';
       }
+    });
+    URL.revokeObjectURL(imgURL);
+    const rawText = (result && result.data && result.data.text) ? result.data.text : '';
+    if (!rawText.trim()) {
+      res.innerHTML = '<div class="al warn"><div class="ali">⚠️</div><div>텍스트를 인식하지 못했습니다. 더 선명한 이미지를 사용해 주세요.</div></div>';
+      return;
     }
-    txList = (txList||[]).filter(t=>t && (t.amt != null || t.amount != null)).map(t=>({
-      date: t.date || todayStr,
-      memo: (t.memo || t.description || t.merchant || '거래').toString(),
-      amt: Math.abs(parseInt(String(t.amt != null ? t.amt : t.amount).replace(/[^\d-]/g,''),10)) || 0,
-      type: (t.type==='income' || t.type==='입금' || t.type==='수입') ? 'income' : 'expense'
-    })).filter(t=>t.amt > 0);
-    if(txList.length===0){
-      res.innerHTML='<div class="al warn"><div class="ali">⚠️</div><div>거래 내역을 찾을 수 없습니다. 금액·날짜가 또렷한 화면을 사용해 주세요.<br><span style="font-size:11px;color:var(--faint);">AI 응답: '+(cleaned||'(빈 응답)').slice(0,100)+'</span></div></div>';
+    const txList = parseTransactionsFromOCR(rawText, todayStr);
+    if (txList.length === 0) {
+      res.innerHTML = '<div class="al warn" style="flex-direction:column;align-items:flex-start;">'
+        + '<div style="display:flex;align-items:flex-start;gap:8px;width:100%;"><div class="ali">⚠️</div><div style="flex:1;"><b>거래 내역을 찾을 수 없습니다</b><br><span style="font-size:11px;color:var(--sub);">금액(예: -8,400원, +50,000원)이 보이는 화면을 사용해 주세요.</span></div></div>'
+        + '<details style="margin-top:8px;width:100%;font-size:10px;color:var(--faint);"><summary style="cursor:pointer;">▼ 인식된 텍스트 보기</summary><pre style="margin-top:6px;padding:6px;background:#f8f9fa;border-radius:4px;font-size:10px;white-space:pre-wrap;word-break:break-all;max-height:160px;overflow:auto;">'+rawText.slice(0,800).replace(/</g,'&lt;')+'</pre></details>'
+        + '</div>';
       return;
     }
     showImageResults(txList);
-  } catch(e) {
-    console.error('[handleImageUpload]', e, 'rawText:', rawText);
-    const errMsg = (e.message||'알 수 없는 오류').toString();
-    const isFetchFail = errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError') || errMsg.includes('TypeError');
-    const isCORS = errMsg.includes('CORS') || errMsg.includes('cors');
-    const isAuth = httpStatus === 401 || httpStatus === 403 || errMsg.toLowerCase().includes('authentication') || errMsg.toLowerCase().includes('api key');
-    if (isFetchFail || isCORS) {
-      // 네트워크/CORS 실패
-      res.innerHTML =
-        '<div class="al warn" style="flex-direction:column;align-items:flex-start;">'
-        +'<div style="display:flex;align-items:flex-start;gap:8px;width:100%;">'
-        +'<div class="ali">⚠️</div>'
-        +'<div style="flex:1;"><b>이미지 자동 인식을 사용할 수 없습니다</b><br>'
-        +'<span style="font-size:12px;color:var(--sub);">브라우저에서 Anthropic API 직접 호출이 차단됩니다 (CORS).</span></div>'
-        +'</div>'
-        +'<div style="margin-top:10px;width:100%;font-size:12px;color:var(--text);line-height:1.7;">'
-        +'<b>해결 방법</b><br>'
-        +'① Anthropic API 키 입력 (브라우저 직접 호출 모드)<br>'
-        +'② 카카오톡/인스타그램 인앱 브라우저 X — 사파리/크롬으로 열기<br>'
-        +'③ 거래 추가 버튼으로 수동 입력'
-        +'</div>'
-        +'<div style="margin-top:10px;width:100%;display:flex;gap:6px;">'
-        +'<input type="password" id="user-api-key-inp" placeholder="sk-ant-..." style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;" value="'+(userApiKey||'').replace(/"/g,'&quot;')+'">'
-        +'<button onclick="saveUserApiKey()" style="padding:8px 14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">저장</button>'
-        +'</div>'
-        +'<div style="margin-top:6px;width:100%;font-size:10px;color:var(--faint);">키는 본 기기 localStorage에만 저장됩니다. <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--blue);">키 발급 →</a></div>'
-        +'</div>';
-    } else if (isAuth) {
-      // API 키 인증 실패
-      res.innerHTML =
-        '<div class="al warn" style="flex-direction:column;align-items:flex-start;">'
-        +'<div style="display:flex;align-items:flex-start;gap:8px;width:100%;">'
-        +'<div class="ali">🔑</div>'
-        +'<div style="flex:1;"><b>API 키 인증 실패</b><br>'
-        +'<span style="font-size:12px;color:var(--sub);">'+errMsg.slice(0,150)+'</span></div>'
-        +'</div>'
-        +'<div style="margin-top:10px;width:100%;display:flex;gap:6px;">'
-        +'<input type="password" id="user-api-key-inp" placeholder="sk-ant-..." style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;">'
-        +'<button onclick="saveUserApiKey()" style="padding:8px 14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">새 키 저장</button>'
-        +'</div>'
-        +'<div style="margin-top:6px;width:100%;font-size:10px;color:var(--faint);"><a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--blue);">유효한 키 발급받기 →</a></div>'
-        +'</div>';
-    } else {
-      // 기타 — 자세한 정보 노출
-      const truncatedRaw = rawText ? rawText.slice(0, 200) : '';
-      res.innerHTML =
-        '<div class="al warn" style="flex-direction:column;align-items:flex-start;">'
-        +'<div style="display:flex;align-items:flex-start;gap:8px;width:100%;">'
-        +'<div class="ali">⚠️</div>'
-        +'<div style="flex:1;"><b>이미지 분석 실패</b><br>'
-        +'<span style="font-size:11px;color:var(--faint);font-family:monospace;word-break:break-all;">'+errMsg.slice(0,150)+'</span></div>'
-        +'</div>'
-        +(truncatedRaw ? '<details style="margin-top:8px;width:100%;font-size:10px;color:var(--faint);"><summary style="cursor:pointer;">▼ 응답 본문 보기 (디버그용)</summary><pre style="margin-top:6px;padding:6px;background:#f8f9fa;border-radius:4px;font-size:9px;white-space:pre-wrap;word-break:break-all;max-height:120px;overflow:auto;">'+truncatedRaw.replace(/</g,'&lt;')+'</pre></details>' : '')
-        +'<div style="margin-top:8px;width:100%;font-size:11px;color:var(--sub);">💡 거래 추가 버튼으로 수동 입력하시거나, 다른 화면 캡처를 시도해보세요.</div>'
-        +'</div>';
-    }
+  } catch (e) {
+    console.error('[handleImageUpload OCR]', e);
+    res.innerHTML = '<div class="al warn"><div class="ali">⚠️</div><div>OCR 처리 실패<br><span style="font-size:11px;color:var(--faint);">'+(e.message||'알 수 없는 오류').slice(0,150)+'</span></div></div>';
   }
 }
 
-// 사용자 Anthropic API 키 저장 (이미지 인식용)
-function saveUserApiKey() {
-  const inp = $('user-api-key-inp');
-  if (!inp) return;
-  const key = (inp.value||'').trim();
-  if (key && !key.startsWith('sk-ant-')) {
-    showToast('⚠️ Anthropic API 키 형식이 아닙니다 (sk-ant-...)');
-    return;
+// OCR 텍스트 → 거래 배열 파싱
+function parseTransactionsFromOCR(text, todayStr) {
+  const lines = text.split(/[\r\n]+/).map(s=>s.trim()).filter(s=>s.length>0);
+  const txs = [];
+  // 금액 패턴: 1,000원 / -1,000 / +50,000원 / 1000원 등
+  const amtRe = /([+\-−])?\s*([\d]{1,3}(?:[,\s][\d]{3})+|\d{3,})\s*원?/g;
+  // 날짜 패턴: 2026.05.03 / 05.03 / 5월 3일 / 2026-05-03 / 26.5.3
+  const dateRe = /(?:(\d{2,4})[.\-\/년]\s*)?(\d{1,2})[.\-\/월]\s*(\d{1,2})\s*(?:일)?/;
+  // 줄 단위로 거래 후보 추출
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line) continue;
+    // 헤더성 라인 스킵 (잔액/합계 등)
+    if (/^(잔액|합계|총|적립|이자|총합|보유)/.test(line)) continue;
+    if (/^(통장|계좌|상품|거래내역|날짜|적요)/.test(line)) continue;
+    // 금액 추출
+    amtRe.lastIndex = 0;
+    let lastMatch = null, m;
+    while ((m = amtRe.exec(line)) !== null) {
+      // 가장 마지막 금액(보통 거래 금액이 우측에 위치)을 채택
+      lastMatch = m;
+    }
+    if (!lastMatch) continue;
+    const sign = lastMatch[1];
+    const numStr = lastMatch[2].replace(/[,\s]/g, '');
+    const amt = parseInt(numStr, 10);
+    if (!amt || amt < 100 || amt > 999999999) continue; // 100원 미만 or 9억 초과 제외
+    // 부호 판정: -, − 또는 '출금'/'결제'/'지출' 키워드 → expense, +/'입금'/'적립' → income
+    let type = 'expense';
+    if (sign === '+') type = 'income';
+    else if (sign === '-' || sign === '−') type = 'expense';
+    else if (/입금|적립|이체입금|급여|월급|보너스|환급|환불|이자/.test(line)) type = 'income';
+    else if (/출금|결제|지출|이체출금|체크|승인|할부/.test(line)) type = 'expense';
+    // 메모: 라인에서 금액 부분 제거 후 잔여 텍스트
+    let memo = line.substring(0, lastMatch.index).trim();
+    if (!memo) {
+      // 같은 줄에 메모가 없으면 직전 줄을 메모로 시도
+      if (i > 0) {
+        const prev = lines[i-1];
+        // 직전 줄도 금액만 있으면 무시
+        if (!/^[+\-−]?\s*[\d,\s]+원?\s*$/.test(prev)) {
+          memo = prev;
+        }
+      }
+    }
+    // 메모 정제: 카드명/시간 제거
+    memo = memo
+      .replace(/\d{1,2}:\d{2}(:\d{2})?/g, '') // 시간
+      .replace(/\([^)]*카드[^)]*\)/g, '')      // (KB국민카드)
+      .replace(/\(?(?:신|체크)\)?\s*[A-Z가-힣]+\s*[Mm]y\s*[A-Za-z]*[:.]*[A-Za-z]*/g, '') // (신)KB국민 My WE:SH
+      .replace(/[A-Z]{2,}\s*\d{4}/g, '')      // KB 1234
+      .replace(/\d{4,}\s*-?\s*\*+\s*-?\s*\d+/g, '') // 카드번호 *마스킹
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    if (!memo || memo.length < 2) memo = '거래';
+    if (memo.length > 60) memo = memo.slice(0, 60);
+    // 날짜 추출
+    let date = todayStr;
+    const dm = line.match(dateRe) || (i>0 ? lines[i-1].match(dateRe) : null);
+    if (dm) {
+      let yr = dm[1] ? parseInt(dm[1],10) : new Date().getFullYear();
+      if (yr < 100) yr += 2000;
+      const mo = parseInt(dm[2],10), dy = parseInt(dm[3],10);
+      if (mo >= 1 && mo <= 12 && dy >= 1 && dy <= 31) {
+        date = yr + '-' + String(mo).padStart(2,'0') + '-' + String(dy).padStart(2,'0');
+      }
+    }
+    // 중복 제거 (같은 메모+금액)
+    if (txs.some(t => t.memo === memo && t.amt === amt)) continue;
+    txs.push({ date, memo, amt, type });
   }
-  if (key) {
-    localStorage.setItem('ml_anthropic_key', key);
-    showToast('✅ API 키 저장됨. 이미지를 다시 업로드하세요.');
-  } else {
-    localStorage.removeItem('ml_anthropic_key');
-    showToast('🗑 API 키 삭제됨');
-  }
+  return txs;
 }
 // 이미지 분석 결과 편집 폼으로 표시
 // ─── 이미지 AI 분석 결과: 심플 체크박스 리스트 (편집은 내역 탭에서)
@@ -3886,8 +3830,8 @@ function exportExcel() {
     const sn = (state[mon] || {}).snapshot || {};
     if (Object.keys(sn).length === 0) return;
     const 가용 = (sn.결제통장 || 0) + (sn.생활비통장 || 0) + (sn.도형신한 || 0);
-    const 저축 = (sn.도형청약||0)+(sn.예진청약||0)+(sn.도형청도계||0)+(sn.예진청도계||0)+(sn.도형ISA평가||0)+(sn.예진ISA평가||0);
-    const 투자 = (sn.월드컵평가||0)+(sn.퇴직연금평가||0)+(sn.CMA||0)+(sn.Abbott||0)+(sn.Medtronic||0);
+    const 저축 = (sn.도형청약||0)+(sn.예진청약||0)+(sn.도형청도계||0)+(sn.예진청도계||0);
+    const 투자 = (sn.월드컵평가||0)+(sn.퇴직연금평가||0)+(sn.CMA||0)+(sn.Abbott||0)+(sn.Medtronic||0)+(sn.도형ISA평가||0)+(sn.예진ISA평가||0);
     const 대출 = (sn.도형마통||0)+(sn.예진마통||0)+(sn.청약대출||0)+(sn.학자금||2895383);
     rows.push([mon, 가용, 저축, 투자, 대출, 가용 + 저축 + 투자 - 대출, '']);
   });
@@ -4151,16 +4095,25 @@ function renderPlan() {
   const dday = $('plan-dday');
   if (dday) {
     const daysLeft = Math.max(Math.round((new Date(targetYear,0,1)-now)/(1000*60*60*24)), 0);
+    // 부족분 메시지 — 현재 월 저축 대비 추가로 필요한 금액만 강조
+    const additionalPerMonth = Math.max(neededPerMonth - monthlySave, 0);
+    let alertMsg;
+    if (onTrack) {
+      alertMsg = '현재 월 순저축 <b>'+fmtW(monthlySave)+'</b>으로 <b>'+targetYear+'년 전 목표 달성</b> 가능합니다.';
+    } else if (additionalPerMonth > 0) {
+      alertMsg = '<b>'+targetYear+'년 달성</b>을 위해 매월 추가 <b style="color:var(--red);">'+fmtW(additionalPerMonth)+'</b> 저축 필요'
+        + '<div style="font-size:11px;color:var(--faint);margin-top:6px;line-height:1.5;">현재 월 저축 '+fmtW(monthlySave)+' + 추가 '+fmtW(additionalPerMonth)+' = 총 '+fmtW(neededPerMonth)+'/월</div>'
+        + '<div style="font-size:10px;color:var(--faint);margin-top:4px;">⚠️ 단순 산술 (자산 가격 상승·투자 수익률 미반영, 보수적 추정)</div>';
+    } else {
+      alertMsg = '목표 기간 내 도달 불가. 목표가 또는 목표 시점을 조정해 보세요.';
+    }
     dday.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
       + '<div><div style="font-size:11px;color:var(--sub);margin-bottom:2px;">'+targetYear+'년까지</div>'
       + '<div style="font-size:28px;font-weight:900;color:var(--blue);">D-'+daysLeft.toLocaleString()+'</div></div>'
       + '<div style="text-align:right;"><div class="bdg '+(onTrack?'bdg-gr':'bdg-rd')+'" style="font-size:13px;padding:6px 14px;">'+(onTrack?'✅ 목표 달성 가능':'⚠️ 속도 부족')+'</div>'
       + '<div style="font-size:11px;color:var(--faint);margin-top:4px;">예상 달성: '+achieveStr+'</div></div>'
       + '</div>'
-      + mkAlert(onTrack?'ok':'warn', onTrack?'✅':'💡',
-          onTrack
-          ? '현재 월 순저축 '+fmtW(monthlySave)+'으로 <b>'+targetYear+'년 전 목표 달성</b> 가능합니다.'
-          : '목표 기간 내 달성을 위해 월 <b>'+fmtW(neededPerMonth)+'</b> 저축이 필요합니다. 현재보다 <b>'+fmtW(neededPerMonth-monthlySave)+'</b> 더 필요.');
+      + mkAlert(onTrack?'ok':'warn', onTrack?'✅':'💡', alertMsg);
   }
 
   // 자금 구성
@@ -4392,73 +4345,14 @@ async function handleAssetImageUpload(evt, assetType) {
   const file = evt.target.files[0]; if(!file) return;
   const resultId = assetType+'-img-result';
   const resEl = $(resultId); if(!resEl) return;
-  resEl.innerHTML = '<div style="text-align:center;padding:12px;color:var(--sub);font-size:13px;">⏳ AI 분석 중...</div>';
-
-  const b64 = await new Promise((ok,err)=>{
-    const r=new FileReader(); r.onload=()=>ok(r.result.split(',')[1]); r.onerror=err; r.readAsDataURL(file);
-  });
-
-  const userApiKey = localStorage.getItem('ml_anthropic_key') || '';
-  let rawText = ''; let httpStatus = 0;
-  try {
-    const headers = {'Content-Type':'application/json'};
-    if (userApiKey) {
-      headers['x-api-key'] = userApiKey;
-      headers['anthropic-version'] = '2023-06-01';
-      headers['anthropic-dangerous-direct-browser-access'] = 'true';
-    }
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers,
-      body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:1000,
-        messages:[{role:'user', content:[
-          {type:'image', source:{type:'base64', media_type:file.type, data:b64}},
-          {type:'text', text: ASSET_PROMPTS[assetType]}
-        ]}]
-      })
-    });
-    httpStatus = resp.status;
-    rawText = await resp.text();
-    if (!resp.ok) throw new Error('HTTP '+resp.status+': '+rawText.slice(0,150));
-    const data = JSON.parse(rawText);
-    const txt = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-    let parsed;
-    try { parsed = JSON.parse(txt.replace(/```json|```/g,'').trim()); } catch { throw new Error('파싱 실패: '+txt.slice(0,80)); }
-    const items = parsed.항목||[];
-    if(!items.length) { resEl.innerHTML='<div style="color:var(--faint);font-size:13px;text-align:center;padding:12px;">인식된 항목이 없습니다. 더 선명한 이미지를 올려주세요.</div>'; return; }
-
-    resEl.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;">'+items.length+'개 항목 인식됨 — 직접 입력할 항목을 선택하세요</div>'
-      + items.map((item,i)=> {
-        const key = assetType+'-ai-'+i;
-        const mainVal = assetType==='invest' ? item.평가액 : assetType==='loan' ? item.잔액 : item.잔액;
-        const sub1 = assetType==='invest' ? '납입원금: '+fmtW(item.납입원금||0) : '금리: '+(item.금리||'?')+'%';
-        const sub2 = assetType==='invest' ? '수익금: '+(item.수익금>=0?'+':'')+fmtW(item.수익금||0) : '만기: '+(item.만기일||'?');
-        return '<label id="'+key+'-row" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg);border-radius:var(--rsm);margin-bottom:5px;cursor:pointer;">'
-          +'<input type="checkbox" id="'+key+'-chk" checked style="width:17px;height:17px;flex-shrink:0;margin-top:1px;accent-color:var(--blue);">'
-          +'<div style="flex:1;">'
-          +'<div style="font-size:13px;font-weight:600;">'+(item.이름||'항목 '+(i+1))+'</div>'
-          +'<div style="font-size:11px;color:var(--sub);margin-top:2px;">'+(item.기관||'')+(item.기관?' · ':'')+sub1+' · '+sub2+'</div>'
-          +'</div>'
-          +'<div style="font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:'+(assetType==='loan'?'var(--red)':'var(--purple)')+';flex-shrink:0;">'
-          +(assetType==='loan'?'-':'')+fmtW(mainVal||0)
-          +'</div></label>';
-      }).join('')
-      +'<div class="btnrow" style="margin-top:10px;">'
-      +'<button class="btn btn-blue" onclick="window._aiItems=window._aiItems||{};window._aiItems.'+assetType+'='+JSON.stringify(items)+';applyAssetAI(\''+assetType+'\');">필드에 적용하기</button>'
-      +'<button onclick="document.getElementById(\''+assetType+'-img-result\').innerHTML=\'\'" style="flex:0 0 auto;height:44px;padding:0 14px;border:1.5px solid var(--border);border-radius:var(--rsm);background:var(--white);font-size:13px;font-weight:600;cursor:pointer;">취소</button>'
-      +'</div>';
-  } catch(e) {
-    console.error('[handleAssetImageUpload]', e, 'rawText:', rawText);
-    const errMsg = (e.message||'알 수 없는 오류').toString();
-    const isFetchFail = errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError') || errMsg.includes('TypeError');
-    if (isFetchFail) {
-      resEl.innerHTML = '<div class="al warn"><div class="ali">⚠️</div><div>API 호출 실패 (CORS).<br><span style="font-size:11px;color:var(--faint);">기록 탭 AI 자동 입력에서 API 키를 먼저 설정해주세요.</span></div></div>';
-    } else {
-      resEl.innerHTML = '<div class="al warn"><div class="ali">⚠️</div><div>분석 실패<br><span style="font-size:11px;color:var(--faint);">'+errMsg.slice(0,150)+'</span></div></div>';
-    }
-  }
+  // 자산 정보 자동 분류는 단순 OCR로는 정확도가 낮아 임시 비활성
+  resEl.innerHTML = '<div class="al info" style="flex-direction:column;align-items:flex-start;">'
+    + '<div style="display:flex;align-items:flex-start;gap:8px;width:100%;"><div class="ali">💡</div><div style="flex:1;"><b>자산 자동 인식은 준비 중입니다</b><br><span style="font-size:11px;color:var(--sub);">투자/대출 항목은 분류 정확도가 중요해 수동 입력을 권장합니다.</span></div></div>'
+    + '<div style="margin-top:8px;width:100%;font-size:12px;color:var(--text);line-height:1.6;">아래 입력 칸에 직접 입력해 주세요. 캡처 이미지를 참고하면서 입력하면 빠릅니다.</div>'
+    + '</div>';
+  // 파일 input 초기화 (다시 같은 파일 업로드 가능하도록)
+  evt.target.value = '';
 }
-
 function applyAssetAI(assetType) {
   const items = (window._aiItems && window._aiItems[assetType]) || [];
   // 체크된 항목만 적용 — 첫 번째 체크된 항목부터 해당 필드에 순서대로 매핑
