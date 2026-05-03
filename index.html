@@ -937,7 +937,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
   <div id="at-6" style="display:none;flex-direction:column;gap:12px;">
     <div class="card" style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);color:#fff;">
       <div class="cp">
-        <div style="font-size:11px;opacity:.7;letter-spacing:.4px;margin-bottom:4px;">2028 부동산 매수 목표</div>
+        <div style="font-size:11px;opacity:.7;letter-spacing:.4px;margin-bottom:4px;" id="plan-hero-label">부동산 매수 목표</div>
         <div style="font-size:28px;font-weight:900;letter-spacing:-1px;" id="plan-target-price">6.5억</div>
         <div style="font-size:12px;opacity:.65;margin-top:4px;">용인 수지/죽전 아파트 · 신생아특례/생애최초 대출 예정</div>
       </div>
@@ -948,14 +948,25 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <div class="fg2">
         <div class="fg"><label>목표 매수가 (억)</label><input class="fi" id="plan-price" placeholder="6.5" inputmode="decimal" oninput="renderPlan()"></div>
         <div class="fg"><label>대출 가능 금액 (억)</label><input class="fi" id="plan-loan" placeholder="4" inputmode="decimal" oninput="renderPlan()"></div>
-        <div class="fg"><label>목표 년도</label><input class="fi" id="plan-year" placeholder="2028" inputmode="numeric" oninput="renderPlan()"></div>
-        <div class="fg"><label>월 순저축 (만, 자동)<span id="plan-monthly-auto-badge" style="font-size:10px;color:var(--blue);margin-left:4px;cursor:pointer;" onclick="autoFillMonthlySave()">자동</span></label><input class="fi" id="plan-monthly" placeholder="185" inputmode="numeric" oninput="renderPlan()"></div>
+      </div>
+      <div class="fg" style="margin-top:8px;">
+        <label>목표 시점</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input class="fi nocomma" id="plan-year" placeholder="2028" inputmode="numeric" maxlength="4" style="flex:1;text-align:center;" oninput="renderPlan()">
+          <span style="font-size:13px;color:var(--sub);">년</span>
+          <input class="fi nocomma" id="plan-month" placeholder="1" inputmode="numeric" maxlength="2" style="flex:1;text-align:center;" oninput="renderPlan()">
+          <span style="font-size:13px;color:var(--sub);">월</span>
+        </div>
+      </div>
+      <div class="fg" style="margin-top:8px;">
+        <label>월 순저축 (만)<span id="plan-monthly-auto-badge" style="font-size:10px;color:var(--blue);margin-left:6px;cursor:pointer;text-decoration:underline;" onclick="autoFillMonthlySave()">예산 기준 자동 입력</span></label>
+        <input class="fi" id="plan-monthly" placeholder="185" inputmode="numeric" oninput="renderPlan()">
       </div>
       <div class="fg2" style="margin-top:8px;">
-        <div class="fg"><label>예상 자산 가격 인상률 (연 %)</label><input class="fi" id="plan-price-rate" placeholder="3" inputmode="decimal" oninput="renderPlan()"></div>
-        <div class="fg"><label>예상 투자 수익률 (연 %)</label><input class="fi" id="plan-invest-rate" placeholder="5" inputmode="decimal" oninput="renderPlan()"></div>
+        <div class="fg"><label>예상 자산 가격 인상률 (연 %)</label><input class="fi nocomma" id="plan-price-rate" placeholder="3" inputmode="decimal" oninput="renderPlan()"></div>
+        <div class="fg"><label>예상 투자 수익률 (연 %)</label><input class="fi nocomma" id="plan-invest-rate" placeholder="5" inputmode="decimal" oninput="renderPlan()"></div>
       </div>
-      <div style="font-size:11px;color:var(--faint);margin-top:8px;line-height:1.5;">월 순저축 옆 "자동" 클릭 시 예산 탭의 저축+투자 합으로 자동 채워져요. 가격 인상률/수익률은 0으로 두면 단순 산술 계산이에요.</div>
+      <div style="font-size:11px;color:var(--faint);margin-top:8px;line-height:1.5;">"예산 기준 자동 입력" 클릭 시 예산 탭의 저축+투자 합으로 자동 채워져요. 가격 인상률/수익률은 0으로 두면 단순 산술이에요.</div>
     </div></div>
     <!-- D-day 계산 -->
     <div class="card"><div class="cp">
@@ -1294,15 +1305,20 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     <div class="steph" onclick="toggleStep(4)">
       <div class="stepnum" id="sn4">4</div>
       <div class="steptitle">📈 투자</div>
-      <span style="font-size:12px;color:var(--faint);">▼</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="invest-reorder-btn" onclick="event.stopPropagation();toggleInvestReorder()" style="background:none;border:1px solid var(--border);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--sub);cursor:pointer;font-family:inherit;">순서 편집</button>
+        <span style="font-size:12px;color:var(--faint);">▼</span>
+      </div>
     </div>
     <div class="stepbody" id="sb4">
       <div style="font-size:11px;color:var(--sub);margin-bottom:12px;line-height:1.6;">현재 평가액을 입력하세요. 수익률은 자동으로 계산됩니다.</div>
+      <div id="invest-reorder-help" style="display:none;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:#92400e;line-height:1.5;">항목을 길게 눌러 순서를 변경하세요. 합계와 자산 페이지도 새 순서대로 표시돼요.</div>
 
+      <div id="invest-items-wrap">
       <!-- 토스 CMA -->
-      <div style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
+      <div class="invest-item" data-invest-key="월드컵" style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text);">🏆 토스 CMA <span style="font-size:10px;color:var(--faint);font-weight:500;">(원화 + 달러)</span></div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);"><span class="invest-drag-handle" style="display:none;cursor:grab;color:var(--faint);margin-right:6px;font-size:14px;">☰</span>🏆 토스 CMA <span style="font-size:10px;color:var(--faint);font-weight:500;">(원화 + 달러)</span></div>
           <span class="bdg bdg-yl" style="font-size:10px;">저축형</span>
         </div>
         <!-- 보유분 입력 (원화 + 달러 → 통합 환산) -->
@@ -1330,9 +1346,9 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       </div>
 
       <!-- 퇴직연금 -->
-      <div style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
+      <div class="invest-item" data-invest-key="퇴직연금" style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text);">🏦 퇴직연금 (IRP)</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);"><span class="invest-drag-handle" style="display:none;cursor:grab;color:var(--faint);margin-right:6px;font-size:14px;">☰</span>🏦 퇴직연금 (IRP)</div>
           <span class="bdg bdg-pr" style="font-size:10px;">연금형</span>
         </div>
         <div class="fg2">
@@ -1344,9 +1360,9 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       </div>
 
       <!-- CMA -->
-      <div style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
+      <div class="invest-item" data-invest-key="CMA" style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text);">💵 나무 CMA <span style="font-size:10px;color:var(--faint);font-weight:500;">(해외주식 + 대기 달러)</span></div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);"><span class="invest-drag-handle" style="display:none;cursor:grab;color:var(--faint);margin-right:6px;font-size:14px;">☰</span>💵 나무 CMA <span style="font-size:10px;color:var(--faint);font-weight:500;">(해외주식 + 대기 달러)</span></div>
           <span class="bdg bdg-rd" style="font-size:10px;">공격형</span>
         </div>
         <!-- 환율 표시 -->
@@ -1378,8 +1394,8 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       </div>
 
       <!-- 회사 주식 -->
-      <div style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;">
-        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--text);">📈 회사 주식</div>
+      <div class="invest-item" data-invest-key="회사주식" style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--text);"><span class="invest-drag-handle" style="display:none;cursor:grab;color:var(--faint);margin-right:6px;font-size:14px;">☰</span>📈 회사 주식</div>
         <div class="fg2">
           <div class="fg"><label>Abbott 취득가</label><input class="fi" id="sn-Abbott납입" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('Abbott')"></div>
           <div class="fg"><label>Abbott 현재가</label><input class="fi" id="sn-Abbott" placeholder="0" oninput="calcInvestReturn('Abbott');onSnapInput()"></div>
@@ -1391,8 +1407,8 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       </div>
 
       <!-- ISA (개인종합자산관리계좌) -->
-      <div style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
-        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--text);">📊 ISA (개인종합자산관리계좌)</div>
+      <div class="invest-item" data-invest-key="ISA" style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--text);"><span class="invest-drag-handle" style="display:none;cursor:grab;color:var(--faint);margin-right:6px;font-size:14px;">☰</span>📊 ISA (개인종합자산관리계좌)</div>
         <div class="fg2">
           <div class="fg"><label>도형 현재 평가액</label><input class="fi" id="sn-도형ISA평가" placeholder="8,898,610" oninput="onSnapInput()"></div>
           <div class="fg"><label>도형 월 납입액</label><input class="fi" id="sn-도형ISA월간" placeholder="500,000" inputmode="numeric"></div>
@@ -1405,16 +1421,19 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         </div>
         <div style="font-size:11px;color:var(--faint);">연 2,000만 / 총 1억 한도. 만기 후 연금계좌 이전 시 추가 세액공제.</div>
       </div>
+      </div><!-- /invest-items-wrap -->
 
 
       <!-- 투자 합계 미리보기 -->
       <div id="snap-invest-preview" style="display:none;background:var(--purple-light);border:1px solid #ddd6fe;border-radius:var(--rsm);padding:12px;margin-top:12px;">
         <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;">투자 합계</div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">토스 CMA</span><span id="sinvest-wk" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">퇴직연금(IRP)</span><span id="sinvest-re" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">나무 CMA</span><span id="sinvest-cm" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">회사주식 (Abbott+MDT)</span><span id="sinvest-sk" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">ISA (도형+예진)</span><span id="sinvest-isa" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+        <div id="sinvest-rows">
+          <div data-pkey="월드컵" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">토스 CMA</span><span id="sinvest-wk" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+          <div data-pkey="퇴직연금" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">퇴직연금(IRP)</span><span id="sinvest-re" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+          <div data-pkey="CMA" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">나무 CMA</span><span id="sinvest-cm" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+          <div data-pkey="회사주식" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">회사주식 (Abbott+MDT)</span><span id="sinvest-sk" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+          <div data-pkey="ISA" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">ISA (도형+예진)</span><span id="sinvest-isa" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+        </div>
         <div style="display:flex;justify-content:space-between;padding:8px 0 2px;border-top:1.5px solid #ddd6fe;margin-top:4px;">
           <span style="font-size:14px;font-weight:800;">투자 합계 (평가)</span>
           <span id="sinvest-total" style="font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--purple);">—</span>
@@ -1731,10 +1750,15 @@ function autoCommaFormat(e) {
   const inp = e.target;
   if (!inp.classList || !inp.classList.contains('fi')) return;
   if (inp.type === 'date' || inp.type === 'checkbox' || inp.type === 'file' || inp.tagName === 'TEXTAREA') return;
+  // 명시적으로 콤마 제외 (nocomma 클래스)
+  if (inp.classList.contains('nocomma')) return;
+  // maxlength 4 이하인 짧은 숫자 입력은 콤마 X (년도/월/일 등)
+  const ml = parseInt(inp.getAttribute('maxlength') || '0', 10);
+  if (ml > 0 && ml <= 4) return;
   // 금리/횟수/달러/텍스트 입력은 제외
   const id = inp.id || '';
   if (id.endsWith('금리') || id.endsWith('횟수') || id.endsWith('기관') || id.endsWith('상품') || id.endsWith('memo')) return;
-  if (id.endsWith('달러현금') || id.endsWith('달러주식')) return; // 💵 달러 필드는 fmtUsdInput이 별도 처리
+  if (id.endsWith('달러현금') || id.endsWith('달러주식')) return; // 달러 필드는 fmtUsdInput이 별도 처리
   if (inp.getAttribute('inputmode') === 'decimal') return;
   // placeholder가 숫자가 아니면 (예: 텍스트 입력) 제외
   const ph = inp.placeholder || '';
@@ -1744,6 +1768,11 @@ function autoCommaFormat(e) {
   if (!raw) return;
   const num = raw.replace(/[^\d]/g, '');
   if (!num) { inp.value = ''; return; }
+  // 4자리 이하 숫자는 콤마 안 붙임 (년도, 월, 일 등 안전망)
+  if (num.length <= 4) {
+    if (raw !== num) inp.value = num;
+    return;
+  }
   const formatted = parseInt(num, 10).toLocaleString('ko-KR');
   if (formatted === raw) return;
   // caret 위치 안전 계산: 커서 앞쪽 "숫자만의 길이"를 기준으로 새 위치 산출
@@ -2043,6 +2072,16 @@ function onSnapInput() {
     const ic=$('sinvest-cm'); if(ic) ic.textContent=fmtW(cma);
     const is2=$('sinvest-sk'); if(is2) is2.textContent=fmtW(abbott+medtronic);
     const ii=$('sinvest-isa'); if(ii) ii.textContent=fmtW(doISA+yeISA);
+    // 저장된 순서대로 재정렬
+    const rowsWrap = $('sinvest-rows');
+    if (rowsWrap && typeof getInvestOrder === 'function') {
+      const order = getInvestOrder();
+      const items = {};
+      rowsWrap.querySelectorAll('[data-pkey]').forEach(el => {
+        items[el.getAttribute('data-pkey')] = el;
+      });
+      order.forEach(k => { if (items[k]) rowsWrap.appendChild(items[k]); });
+    }
     const wCost=fi('sn-월드컵납입'), rCost=fi('sn-퇴직연금납입'), cCost=fi('sn-CMA납입');
     const totalCost=wCost+rCost+cCost+fi('sn-Abbott납입')+fi('sn-Medtronic납입');
     const totalGain=(woldkup+retire+cma+abbott+medtronic)-totalCost;
@@ -2101,6 +2140,8 @@ function loadSnapshotForm() {
   // 원화/달러 입력값이 있으면 환산 미리보기도 갱신
   if (typeof recalcCMAtotal === 'function') recalcCMAtotal();
   if (typeof recalcWoldkupTotal === 'function') recalcWoldkupTotal();
+  // 저장된 투자 항목 순서 적용
+  if (typeof applyInvestOrderToDom === 'function') applyInvestOrderToDom();
 }
 
 // ━━ COMPUTE ━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3095,22 +3136,28 @@ function renderAssetPage() {
       const gainStr=r!==null?((g>=0?'▲ +':'▼ ')+fmtW(Math.abs(g))+'('+r+'%)'):'';
       return ai(name,gainStr,val,val>0?cls:'cft',badge||'');
     };
-    // ISA는 납입원금 = 월간*12*경과월수 추정 어려우므로, 단순히 평가액만 표시
     const mkISARow=(name,valKey,monthlyKey)=>{
       const val=sn[valKey]||0;
       const monthly=sn[monthlyKey]||0;
       const sub = monthly>0 ? '월 '+fmt(monthly)+'원 납입' : '';
       return ai(name, sub, val, val>0?'cpr':'cft', '');
     };
-    inv.innerHTML=[
-      mkInvRow('토스 CMA','월드컵납입','월드컵평가','cpr',''),
-      mkInvRow('퇴직연금(IRP)','퇴직연금납입','퇴직연금평가','cpr',''),
-      mkInvRow('나무 CMA','CMA납입','CMA','cpr',''),
-      mkInvRow('Abbott 주식','Abbott납입','Abbott','cpr',''),
-      mkInvRow('Medtronic 주식','Medtronic납입','Medtronic','cpr',''),
-      mkISARow('도형 ISA','도형ISA평가','도형ISA월간'),
-      mkISARow('예진 ISA','예진ISA평가','예진ISA월간'),
-    ].join('');
+    // 키별 렌더 함수 매핑 (회사주식과 ISA는 두 항목씩 렌더)
+    const rendererByKey = {
+      '월드컵':   () => mkInvRow('토스 CMA','월드컵납입','월드컵평가','cpr',''),
+      '퇴직연금': () => mkInvRow('퇴직연금(IRP)','퇴직연금납입','퇴직연금평가','cpr',''),
+      'CMA':      () => mkInvRow('나무 CMA','CMA납입','CMA','cpr',''),
+      '회사주식': () => [
+        mkInvRow('Abbott 주식','Abbott납입','Abbott','cpr',''),
+        mkInvRow('Medtronic 주식','Medtronic납입','Medtronic','cpr',''),
+      ].join(''),
+      'ISA':      () => [
+        mkISARow('도형 ISA','도형ISA평가','도형ISA월간'),
+        mkISARow('예진 ISA','예진ISA평가','예진ISA월간'),
+      ].join(''),
+    };
+    const order = (typeof getInvestOrder === 'function') ? getInvestOrder() : ['월드컵','퇴직연금','CMA','회사주식','ISA'];
+    inv.innerHTML = order.map(k => rendererByKey[k] ? rendererByKey[k]() : '').join('');
   }
   set('as-invest-total',fmtW(c.투자)); set('as-invest-badge',fmtW(c.투자));
 
@@ -4099,11 +4146,21 @@ function loadPlanInputs() {
   if ($('plan-price')) $('plan-price').value = saved.price || '6.5';
   if ($('plan-loan')) $('plan-loan').value = saved.loan || '4';
   if ($('plan-year')) $('plan-year').value = saved.year || '2028';
+  if ($('plan-month')) $('plan-month').value = saved.month || '1';
   if ($('plan-monthly')) $('plan-monthly').value = saved.monthly || '';
   if ($('plan-price-rate')) $('plan-price-rate').value = saved.priceRate || '3';
   if ($('plan-invest-rate')) $('plan-invest-rate').value = saved.investRate || '5';
   // monthly 비어있으면 예산 탭에서 자동 채움
   if ($('plan-monthly') && !$('plan-monthly').value) autoFillMonthlySave();
+}
+
+// 안전한 숫자 파싱 (콤마/공백/원 등 제거)
+function _toNum(v, def) {
+  if (v == null) return def;
+  const cleaned = String(v).replace(/[^\d.\-]/g, '');
+  if (!cleaned) return def;
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? def : n;
 }
 
 // 예산 탭의 저축+투자 합을 자동으로 plan-monthly에 채움 (만 단위)
@@ -4120,17 +4177,20 @@ function autoFillMonthlySave() {
 }
 
 function renderPlan() {
-  // 입력값 저장
-  const price = parseFloat($('plan-price') ? $('plan-price').value || '6.5' : '6.5') * 100000000;
-  const loanAmt = parseFloat($('plan-loan') ? $('plan-loan').value || '4' : '4') * 100000000;
-  const targetYear = parseInt($('plan-year') ? $('plan-year').value || '2028' : '2028');
-  const monthlySaveInput = parseInt($('plan-monthly') ? $('plan-monthly').value || '0' : '0') * 10000;
-  const priceRate = parseFloat($('plan-price-rate') ? $('plan-price-rate').value || '0' : '0') / 100;
-  const investRate = parseFloat($('plan-invest-rate') ? $('plan-invest-rate').value || '0' : '0') / 100;
+  // 입력값 안전 파싱 (콤마/공백 등 모두 처리)
+  const price = _toNum($('plan-price') ? $('plan-price').value : '', 6.5) * 100000000;
+  const loanAmt = _toNum($('plan-loan') ? $('plan-loan').value : '', 4) * 100000000;
+  const targetYear = Math.round(_toNum($('plan-year') ? $('plan-year').value : '', 2028));
+  const targetMonth = Math.min(Math.max(Math.round(_toNum($('plan-month') ? $('plan-month').value : '', 1)), 1), 12);
+  const monthlySaveInput = Math.round(_toNum($('plan-monthly') ? $('plan-monthly').value : '', 0)) * 10000;
+  const priceRate = _toNum($('plan-price-rate') ? $('plan-price-rate').value : '', 0) / 100;
+  const investRate = _toNum($('plan-invest-rate') ? $('plan-invest-rate').value : '', 0) / 100;
+
   LS_SET('ml_plan', {
     price: $('plan-price') ? $('plan-price').value : '6.5',
     loan: $('plan-loan') ? $('plan-loan').value : '4',
     year: $('plan-year') ? $('plan-year').value : '2028',
+    month: $('plan-month') ? $('plan-month').value : '1',
     monthly: $('plan-monthly') ? $('plan-monthly').value : '',
     priceRate: $('plan-price-rate') ? $('plan-price-rate').value : '3',
     investRate: $('plan-invest-rate') ? $('plan-invest-rate').value : '5',
@@ -4139,18 +4199,22 @@ function renderPlan() {
   const c = compute(currentMonth());
   const currentNet = c.순자산; // 현재 순자산
   const now = new Date();
-  const monthsToTarget = Math.max((targetYear - now.getFullYear()) * 12 - now.getMonth(), 1);
+  // 목표 시점 = targetYear년 targetMonth월 1일
+  const targetDate = new Date(targetYear, targetMonth - 1, 1);
+  const monthsToTarget = Math.max(
+    (targetDate.getFullYear() - now.getFullYear()) * 12 + (targetDate.getMonth() - now.getMonth()),
+    1
+  );
 
   // 목표가 인상 반영 (연 priceRate%)
   const yearsToTarget = monthsToTarget / 12;
   const futurePrice = price * Math.pow(1 + priceRate, yearsToTarget);
   const futureNeeded = futurePrice - loanAmt;
-  // 월 평가용: 단순 계산 vs 복리 시뮬
+  // 월 평가용
   const short = Math.max(futureNeeded - currentNet, 0);
-  const monthlySave = monthlySaveInput; // 사용자 입력값(자동/수동)
+  const monthlySave = monthlySaveInput;
 
-  // 복리 시뮬: 현재 순자산이 매월 investRate/12로 늘고, 매월 monthlySave도 적립되며 동일 수익률 적용
-  // FV = currentNet*(1+r)^n + monthlySave * [((1+r)^n - 1)/r] (r=월수익률)
+  // 복리 시뮬: FV = currentNet*(1+r)^n + monthlySave * [((1+r)^n - 1)/r]
   const r = investRate / 12;
   const n = monthsToTarget;
   let projectedNet;
@@ -4162,7 +4226,6 @@ function renderPlan() {
   const projectedShort = Math.max(futureNeeded - projectedNet, 0);
 
   // 추가 필요 월 저축 (복리 고려해 역산)
-  // futureNeeded = currentNet*(1+r)^n + (monthlySave + extra) * [((1+r)^n - 1)/r]
   let additionalPerMonth = 0;
   if (projectedShort > 0) {
     const factor = r > 0 ? (Math.pow(1+r, n) - 1) / r : n;
@@ -4173,8 +4236,6 @@ function renderPlan() {
   const onTrack = projectedShort === 0;
   const achieveStr = (function(){
     if (r > 0) {
-      // monthlySave + currentNet 복리로 futureNeeded 도달 개월수
-      // 단순: 매월 시뮬레이션
       let cur = currentNet, m = 0;
       while (cur < futureNeeded && m < 600) {
         cur = cur * (1 + r) + monthlySave;
@@ -4190,16 +4251,27 @@ function renderPlan() {
     }
   })();
 
+  const targetLabel = targetYear + '년 ' + targetMonth + '월';
+
+  // 히어로 카드 라벨/금액 갱신
+  const heroLabel = $('plan-hero-label');
+  if (heroLabel) heroLabel.textContent = targetLabel + ' 매수 목표';
+  const heroPrice = $('plan-target-price');
+  if (heroPrice) {
+    const priceEok = (price / 100000000).toFixed(price % 100000000 === 0 ? 0 : 1);
+    heroPrice.textContent = priceEok + '억';
+  }
+
   // D-day
   const dday = $('plan-dday');
   if (dday) {
-    const daysLeft = Math.max(Math.round((new Date(targetYear,0,1)-now)/(1000*60*60*24)), 0);
+    const daysLeft = Math.max(Math.round((targetDate - now)/(1000*60*60*24)), 0);
     let alertMsg;
     if (onTrack) {
-      alertMsg = '<b>'+targetYear+'년 전</b>에 목표를 달성할 수 있어요. 월 저축 <b>'+fmtW(monthlySave)+'</b>을 유지해 주세요.'
+      alertMsg = '<b>'+targetLabel+'</b>까지 목표를 달성할 수 있어요. 월 저축 <b>'+fmtW(monthlySave)+'</b>을 유지해 주세요.'
         + (priceRate>0||investRate>0 ? '<div style="font-size:11px;color:var(--faint);margin-top:6px;">자산 가격 인상 연 '+(priceRate*100).toFixed(1)+'%, 투자 수익률 연 '+(investRate*100).toFixed(1)+'% 가정</div>' : '');
     } else if (additionalPerMonth > 0) {
-      alertMsg = '<b>'+targetYear+'년</b>까지 달성하려면 <b style="color:var(--red);">월 '+fmtW(additionalPerMonth)+'</b>을 추가로 저축해야 해요.'
+      alertMsg = '<b>'+targetLabel+'</b>까지 달성하려면 <b style="color:var(--red);">월 '+fmtW(additionalPerMonth)+'</b>을 추가로 저축해야 해요.'
         + '<div style="font-size:11px;color:var(--faint);margin-top:6px;line-height:1.6;">현재 '+fmtW(monthlySave)+' + 추가 '+fmtW(additionalPerMonth)+' = 매월 '+fmtW(totalNeededPerMonth)+'</div>'
         + (priceRate>0||investRate>0
             ? '<div style="font-size:11px;color:var(--faint);margin-top:4px;line-height:1.5;">자산 가격 인상 연 '+(priceRate*100).toFixed(1)+'% (목표가 '+fmtW(Math.round(futurePrice))+'까지 상승), 투자 수익률 연 '+(investRate*100).toFixed(1)+'% 복리 가정</div>'
@@ -4208,7 +4280,7 @@ function renderPlan() {
       alertMsg = '목표 기간이 너무 짧아 달성이 어려워요. 목표가나 시점을 조정해 보세요.';
     }
     dday.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
-      + '<div><div style="font-size:11px;color:var(--sub);margin-bottom:2px;">'+targetYear+'년까지</div>'
+      + '<div><div style="font-size:11px;color:var(--sub);margin-bottom:2px;">'+targetLabel+'까지</div>'
       + '<div style="font-size:28px;font-weight:900;color:var(--blue);">D-'+daysLeft.toLocaleString()+'</div></div>'
       + '<div style="text-align:right;"><div class="bdg '+(onTrack?'bdg-gr':'bdg-rd')+'" style="font-size:13px;padding:6px 14px;">'+(onTrack?'목표 달성 가능':'속도 부족')+'</div>'
       + '<div style="font-size:11px;color:var(--faint);margin-top:4px;">예상 달성: '+achieveStr+'</div></div>'
@@ -4219,14 +4291,14 @@ function renderPlan() {
   // 자금 구성
   const breakdown = $('plan-breakdown');
   if (breakdown) {
-    const priceLabel = priceRate > 0 ? targetYear+'년 예상 매수가' : '매수 목표가';
-    const neededLabel = priceRate > 0 ? targetYear+'년 필요 자기자본' : '필요 자기자본';
+    const priceLabel = priceRate > 0 ? targetLabel+' 예상 매수가' : '매수 목표가';
+    const neededLabel = priceRate > 0 ? targetLabel+' 필요 자기자본' : '필요 자기자본';
     const items = [
       {l:priceLabel, v:Math.round(futurePrice), cls:'cbl'},
       {l:'대출 (신생아특례/생애최초)', v:loanAmt, cls:'crd'},
       {l:neededLabel, v:Math.round(futureNeeded), cls:'cyl'},
       {l:'현재 순자산', v:currentNet, cls:currentNet>=futureNeeded?'cgr':'crd'},
-      {l:targetYear+'년 예상 순자산', v:Math.round(projectedNet), cls:projectedNet>=futureNeeded?'cgr':'crd'},
+      {l:targetLabel+' 예상 순자산', v:Math.round(projectedNet), cls:projectedNet>=futureNeeded?'cgr':'crd'},
       {l:'부족액', v:Math.round(projectedShort), cls:projectedShort===0?'cgr':'crd'},
     ];
     const pct = futureNeeded > 0 ? Math.min(Math.round(projectedNet/futureNeeded*100), 100) : 0;
@@ -5039,6 +5111,157 @@ async function recalcCMAtotal() {
 async function recalcWoldkupTotal() {
   return _recalcInvestTotal('월드컵', 'sn-월드컵평가', 'woldkup-fx-preview');
 }
+
+// ━━ 투자 항목 순서 편집 (드래그앤드롭) ━━━━━━
+const INVEST_ORDER_KEY = 'ml_invest_order';
+const INVEST_DEFAULT_ORDER = ['월드컵','퇴직연금','CMA','회사주식','ISA'];
+const INVEST_LABELS = {
+  '월드컵':   { name:'토스 CMA',           previewId:'sinvest-wk' },
+  '퇴직연금': { name:'퇴직연금(IRP)',      previewId:'sinvest-re' },
+  'CMA':      { name:'나무 CMA',           previewId:'sinvest-cm' },
+  '회사주식': { name:'회사주식 (Abbott+MDT)', previewId:'sinvest-sk' },
+  'ISA':      { name:'ISA (도형+예진)',    previewId:'sinvest-isa' },
+};
+function getInvestOrder() {
+  const saved = LS(INVEST_ORDER_KEY);
+  if (Array.isArray(saved) && saved.length === INVEST_DEFAULT_ORDER.length
+      && INVEST_DEFAULT_ORDER.every(k => saved.includes(k))) {
+    return saved;
+  }
+  return INVEST_DEFAULT_ORDER.slice();
+}
+function setInvestOrder(order) {
+  LS_SET(INVEST_ORDER_KEY, order);
+}
+let _investReorderMode = false;
+function toggleInvestReorder() {
+  _investReorderMode = !_investReorderMode;
+  const btn = $('invest-reorder-btn');
+  const help = $('invest-reorder-help');
+  if (btn) {
+    btn.textContent = _investReorderMode ? '편집 완료' : '순서 편집';
+    btn.style.background = _investReorderMode ? 'var(--blue)' : 'none';
+    btn.style.color = _investReorderMode ? '#fff' : 'var(--sub)';
+    btn.style.borderColor = _investReorderMode ? 'var(--blue)' : 'var(--border)';
+  }
+  if (help) help.style.display = _investReorderMode ? 'block' : 'none';
+  document.querySelectorAll('.invest-drag-handle').forEach(h => {
+    h.style.display = _investReorderMode ? 'inline-block' : 'none';
+  });
+  document.querySelectorAll('.invest-item').forEach(el => {
+    if (_investReorderMode) {
+      el.setAttribute('draggable', 'true');
+      el.style.cursor = 'grab';
+      el.style.background = '#f9fafb';
+    } else {
+      el.removeAttribute('draggable');
+      el.style.cursor = '';
+      el.style.background = '';
+    }
+  });
+  if (!_investReorderMode) {
+    showToast('순서를 저장했어요');
+    // 합계 미리보기/자산 페이지 등 즉시 갱신
+    onSnapInput();
+    if (curPage === 'asset') renderAssetPage();
+  }
+}
+// 현재 DOM 순서를 INVEST_ORDER로 저장
+function _captureInvestOrderFromDom() {
+  const wrap = $('invest-items-wrap');
+  if (!wrap) return;
+  const order = Array.from(wrap.querySelectorAll('.invest-item'))
+    .map(el => el.getAttribute('data-invest-key'))
+    .filter(k => k && INVEST_DEFAULT_ORDER.includes(k));
+  if (order.length === INVEST_DEFAULT_ORDER.length) setInvestOrder(order);
+}
+// 저장된 순서대로 DOM 재배열 (페이지 로드 시 호출)
+function applyInvestOrderToDom() {
+  const wrap = $('invest-items-wrap');
+  if (!wrap) return;
+  const order = getInvestOrder();
+  const items = {};
+  wrap.querySelectorAll('.invest-item').forEach(el => {
+    const k = el.getAttribute('data-invest-key');
+    if (k) items[k] = el;
+  });
+  order.forEach(k => { if (items[k]) wrap.appendChild(items[k]); });
+}
+// 드래그 이벤트
+let _dragSrc = null;
+document.addEventListener('dragstart', (e) => {
+  if (!_investReorderMode) return;
+  const item = e.target.closest && e.target.closest('.invest-item');
+  if (!item) return;
+  _dragSrc = item;
+  item.style.opacity = '0.4';
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', item.getAttribute('data-invest-key') || ''); } catch(_) {}
+}, true);
+document.addEventListener('dragover', (e) => {
+  if (!_investReorderMode) return;
+  const item = e.target.closest && e.target.closest('.invest-item');
+  if (!item || item === _dragSrc) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const rect = item.getBoundingClientRect();
+  const after = (e.clientY - rect.top) > rect.height / 2;
+  const wrap = $('invest-items-wrap');
+  if (!wrap || !_dragSrc) return;
+  if (after) {
+    if (item.nextSibling !== _dragSrc) wrap.insertBefore(_dragSrc, item.nextSibling);
+  } else {
+    if (item !== _dragSrc.nextSibling) wrap.insertBefore(_dragSrc, item);
+  }
+}, true);
+document.addEventListener('dragend', (e) => {
+  if (!_dragSrc) return;
+  _dragSrc.style.opacity = '';
+  _dragSrc = null;
+  _captureInvestOrderFromDom();
+}, true);
+// 모바일 터치 드래그 (touchstart/move/end로 시뮬레이션)
+let _touchSrc = null;
+let _touchStartY = 0;
+document.addEventListener('touchstart', (e) => {
+  if (!_investReorderMode) return;
+  const handle = e.target.closest && e.target.closest('.invest-drag-handle');
+  if (!handle) return;
+  const item = handle.closest('.invest-item');
+  if (!item) return;
+  _touchSrc = item;
+  _touchStartY = e.touches[0].clientY;
+  item.style.opacity = '0.6';
+  item.style.background = '#dbeafe';
+  e.preventDefault();
+}, { passive: false });
+document.addEventListener('touchmove', (e) => {
+  if (!_touchSrc) return;
+  e.preventDefault();
+  const y = e.touches[0].clientY;
+  const wrap = $('invest-items-wrap');
+  if (!wrap) return;
+  const others = Array.from(wrap.querySelectorAll('.invest-item')).filter(el => el !== _touchSrc);
+  for (const el of others) {
+    const rect = el.getBoundingClientRect();
+    if (y >= rect.top && y <= rect.bottom) {
+      const after = (y - rect.top) > rect.height / 2;
+      if (after) {
+        if (el.nextSibling !== _touchSrc) wrap.insertBefore(_touchSrc, el.nextSibling);
+      } else {
+        if (el !== _touchSrc.nextSibling) wrap.insertBefore(_touchSrc, el);
+      }
+      break;
+    }
+  }
+}, { passive: false });
+document.addEventListener('touchend', (e) => {
+  if (!_touchSrc) return;
+  _touchSrc.style.opacity = '';
+  _touchSrc.style.background = '#f9fafb';
+  _touchSrc = null;
+  _captureInvestOrderFromDom();
+}, { passive: false });
 
 // 하위 호환 - 기존 호출부 보호
 const recalcCMAfromUSD = recalcCMAtotal;
