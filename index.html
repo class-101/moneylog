@@ -287,12 +287,12 @@ textarea.fi{resize:vertical;line-height:1.6;min-height:68px;}
 .aisub{font-size:11px;color:var(--faint);margin-top:1px;}
 .aiamt{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;}
 /* ── STEP ACCORDION */
-.step{background:var(--white);border-radius:var(--r);border:1px solid var(--border);}
-.steph{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;user-select:none;}
+.step{background:var(--white);border-radius:14px;border:1px solid var(--border);}
+.steph{display:flex;align-items:center;gap:10px;padding:16px 18px;cursor:pointer;user-select:none;min-height:56px;}
 .stepnum{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .stepnum.done{background:var(--green);}
 .steptitle{font-size:14px;font-weight:700;flex:1;}
-.stepbody{padding:0 16px 14px;display:none;}
+.stepbody{padding:0 18px 16px;display:none;}
 .stepbody.on{display:block;}
 /* ── CHART PLACEHOLDER */
 .chart-wrap{width:100%;position:relative;}
@@ -711,26 +711,25 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     <span class="rec-fab-icon">＋</span>거래 추가
   </button>
 
-  <!-- 이미지 OCR 자동 입력 (접기/펼치기) -->
+  <!-- 이미지로 거래 추가 (접기/펼치기) -->
   <div id="ai-acc">
     <div class="acc-header" id="ai-acc-hd" onclick="toggleAcc('ai')">
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:16px;">📸</span>
-        <span style="font-size:14px;font-weight:700;">이미지 자동 입력</span>
-        <span class="bdg bdg-gr" style="font-size:10px;">무료 OCR</span>
+        <span style="font-size:14px;font-weight:700;">이미지로 거래 추가</span>
       </div>
       <span class="acc-arrow" id="ai-acc-arr">▼</span>
     </div>
     <div class="acc-body" id="ai-acc-body" style="display:none;">
       <div class="acc-body-inner">
-        <p style="font-size:12px;color:var(--sub);margin-bottom:10px;">통장·카드 화면 캡처 → 거래를 자동 추출 (브라우저 내 처리, 비용 0원)</p>
-        <div class="uarea" onclick="document.getElementById('img-input').click()" style="padding:14px;">
-          <div style="font-size:24px;margin-bottom:4px;">📱</div>
-          <div style="font-size:13px;font-weight:600;color:var(--blue);">이미지 업로드</div>
-          <div style="font-size:10px;color:var(--faint);margin-top:4px;">최초 1회 한국어 OCR 모델 ~5MB 다운로드</div>
+        <p style="font-size:13px;color:var(--sub);margin-bottom:12px;line-height:1.5;">통장·카드 결제 화면을 캡처하면 거래 내역을 자동으로 추출해 드립니다.</p>
+        <div class="uarea" onclick="document.getElementById('img-input').click()" style="padding:18px 14px;">
+          <div style="font-size:28px;margin-bottom:6px;">📱</div>
+          <div style="font-size:14px;font-weight:700;color:var(--blue);">이미지 선택</div>
+          <div style="font-size:11px;color:var(--faint);margin-top:4px;">JPG, PNG · 최대 8MB</div>
         </div>
         <input type="file" id="img-input" accept="image/*" style="display:none" onchange="handleImageUpload(event)">
-        <div id="img-result" style="margin-top:8px;"></div>
+        <div id="img-result" style="margin-top:10px;"></div>
       </div>
     </div>
   </div>
@@ -1087,7 +1086,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <div class="acc-body-inner">
         <div id="as-realestates"></div>
         <div class="rltotal" style="border-top-color:#fde68a;"><span class="rk">부동산 평가 합계</span><span class="rv" id="as-realestate-total" style="color:#92400e;">—</span></div>
-        <div style="font-size:10px;color:var(--faint);margin-top:6px;line-height:1.5;">⚠️ 위 금액은 <b>참고용</b>이며 상단 자산 합계 차트에는 포함되지 않습니다.</div>
+        <div style="font-size:10px;color:var(--faint);margin-top:6px;line-height:1.5;"><b>참고용</b> 항목이에요. 상단 자산 합계 차트에는 포함되지 않아요.</div>
       </div>
     </div>
   </div>
@@ -1122,7 +1121,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <span style="font-size:12px;color:var(--faint);">▼</span>
     </div>
     <div class="stepbody" id="sb1">
-      <div class="al info" style="margin-bottom:12px;font-size:12px;"><div class="ali">💡</div><div>가용현금 = 결제+생활비+신한 합산 (자물쇠🔒는 참고용)</div></div>
+      <div class="al info" style="margin-bottom:12px;font-size:12px;"><div class="ali">💡</div><div>가용현금은 결제·생활비·신한 통장의 합이에요. 자물쇠 🔒 표시는 참고용이에요.</div></div>
       <div class="fg"><label>결제 통장</label><input class="fi" id="sn-결제통장" placeholder="1,204,407" oninput="onSnapInput()"></div>
       <div class="fg"><label style="color:var(--faint);">└ 카드값 자물쇠🔒 (다음달 출금 예정)</label><input class="fi" id="sn-카드자물쇠" placeholder="45,001" oninput="onSnapInput()"></div>
       <div class="fg"><label>생활비 통장</label><input class="fi" id="sn-생활비통장" placeholder="1,044,043" oninput="onSnapInput()"></div>
@@ -1227,18 +1226,6 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         </div>
         <div id="sloan-int" style="font-size:11px;color:var(--sub);margin-top:4px;text-align:right;"></div>
       </div>
-
-      <!-- AI 이미지 파싱 -->
-      <div style="margin-top:12px;">
-        <div style="font-size:12px;font-weight:700;color:var(--sub);margin-bottom:8px;display:flex;align-items:center;gap:6px;">📸 대출 정보 자동 입력 <span class="bdg bdg-bl" style="font-size:10px;">AI</span></div>
-        <div class="uarea" onclick="document.getElementById('loan-img-input').click()" style="padding:14px;">
-          <div style="font-size:22px;margin-bottom:4px;">🏦</div>
-          <div style="font-size:12px;font-weight:600;color:var(--blue);">대출 앱 화면 캡처 업로드</div>
-          <div style="font-size:11px;color:var(--faint);margin-top:2px;">은행 앱, 대출 정보 화면을 캡처해서 올리세요</div>
-        </div>
-        <input type="file" id="loan-img-input" accept="image/*" style="display:none" onchange="handleAssetImageUpload(event,'loan')">
-        <div id="loan-img-result" style="margin-top:8px;"></div>
-      </div>
     </div>
   </div>
 
@@ -1278,22 +1265,6 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         <div style="font-size:11px;color:var(--faint);">💡 만기 5년. 중도해지 시 정부기여금 미지급. 절대 유지 권장.</div>
       </div>
 
-      <!-- ISA -->
-      <div style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
-        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--text);">📊 ISA (개인종합자산관리계좌) <span style="font-size:10px;font-weight:600;color:var(--purple);background:#f3e8ff;padding:2px 7px;border-radius:99px;margin-left:4px;">투자 분류</span></div>
-        <div class="fg2">
-          <div class="fg"><label>도형 현재 평가액</label><input class="fi" id="sn-도형ISA평가" placeholder="8,898,610" oninput="onSnapInput()"></div>
-          <div class="fg"><label>도형 월 납입액</label><input class="fi" id="sn-도형ISA월간" placeholder="500,000" inputmode="numeric"></div>
-          <div class="fg"><label>예진 현재 평가액</label><input class="fi" id="sn-예진ISA평가" placeholder="1,282,655" oninput="onSnapInput()"></div>
-          <div class="fg"><label>예진 월 납입액</label><input class="fi" id="sn-예진ISA월간" placeholder="500,000" inputmode="numeric"></div>
-        </div>
-        <div class="fg2">
-          <div class="fg"><label>도형 만기일</label><input class="fi" id="sn-도형ISA만기" type="date"></div>
-          <div class="fg"><label>예진 만기일</label><input class="fi" id="sn-예진ISA만기" type="date"></div>
-        </div>
-        <div style="font-size:11px;color:var(--faint);">💡 연 2,000만 / 총 1억 한도. 만기 후 연금계좌 이전 시 추가 세액공제.</div>
-      </div>
-
       <!-- 가족모임 -->
       <div style="font-size:11px;font-weight:700;color:var(--faint);margin:10px 0 8px;text-transform:uppercase;letter-spacing:.5px;">가족 공동 모임통장 <span style="font-weight:400;">— 자산 제외</span></div>
       <div class="fg2">
@@ -1312,18 +1283,6 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <span id="ssave-total" style="font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--green);">—</span>
         </div>
       </div>
-
-      <!-- AI 이미지 파싱 -->
-      <div style="margin-top:12px;">
-        <div style="font-size:12px;font-weight:700;color:var(--sub);margin-bottom:8px;display:flex;align-items:center;gap:6px;">📸 저축 정보 자동 입력 <span class="bdg bdg-bl" style="font-size:10px;">AI</span></div>
-        <div class="uarea" onclick="document.getElementById('save-img-input').click()" style="padding:14px;">
-          <div style="font-size:22px;margin-bottom:4px;">💚</div>
-          <div style="font-size:12px;font-weight:600;color:var(--blue);">저축 상품 화면 캡처 업로드</div>
-          <div style="font-size:11px;color:var(--faint);margin-top:2px;">청약통장, 청도계, ISA 앱 화면을 올리세요</div>
-        </div>
-        <input type="file" id="save-img-input" accept="image/*" style="display:none" onchange="handleAssetImageUpload(event,'save')">
-        <div id="save-img-result" style="margin-top:8px;"></div>
-      </div>
     </div>
   </div>
 
@@ -1335,6 +1294,22 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     </div>
     <div class="stepbody" id="sb4">
       <div style="font-size:11px;color:var(--sub);margin-bottom:12px;line-height:1.6;">현재 평가액을 입력하세요. 수익률은 자동으로 계산됩니다.</div>
+
+      <!-- ISA (개인종합자산관리계좌) -->
+      <div style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--text);">📊 ISA (개인종합자산관리계좌)</div>
+        <div class="fg2">
+          <div class="fg"><label>도형 현재 평가액</label><input class="fi" id="sn-도형ISA평가" placeholder="8,898,610" oninput="onSnapInput()"></div>
+          <div class="fg"><label>도형 월 납입액</label><input class="fi" id="sn-도형ISA월간" placeholder="500,000" inputmode="numeric"></div>
+          <div class="fg"><label>예진 현재 평가액</label><input class="fi" id="sn-예진ISA평가" placeholder="1,282,655" oninput="onSnapInput()"></div>
+          <div class="fg"><label>예진 월 납입액</label><input class="fi" id="sn-예진ISA월간" placeholder="500,000" inputmode="numeric"></div>
+        </div>
+        <div class="fg2">
+          <div class="fg"><label>도형 만기일</label><input class="fi" id="sn-도형ISA만기" type="date"></div>
+          <div class="fg"><label>예진 만기일</label><input class="fi" id="sn-예진ISA만기" type="date"></div>
+        </div>
+        <div style="font-size:11px;color:var(--faint);">💡 연 2,000만 / 총 1억 한도. 만기 후 연금계좌 이전 시 추가 세액공제.</div>
+      </div>
 
       <!-- 월드컵 (저축형 투자) -->
       <div style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
@@ -1426,18 +1401,6 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <span id="sinvest-gain" style="font-weight:700;font-variant-numeric:tabular-nums;"></span>
         </div>
       </div>
-
-      <!-- AI 이미지 파싱 -->
-      <div style="margin-top:12px;">
-        <div style="font-size:12px;font-weight:700;color:var(--sub);margin-bottom:8px;display:flex;align-items:center;gap:6px;">📸 투자 정보 자동 입력 <span class="bdg bdg-bl" style="font-size:10px;">AI</span></div>
-        <div class="uarea" onclick="document.getElementById('invest-img-input').click()" style="padding:14px;">
-          <div style="font-size:22px;margin-bottom:4px;">📈</div>
-          <div style="font-size:12px;font-weight:600;color:var(--blue);">투자 앱 화면 캡처 업로드</div>
-          <div style="font-size:11px;color:var(--faint);margin-top:2px;">토스, 퇴직연금, 증권사 앱 화면을 올리세요</div>
-        </div>
-        <input type="file" id="invest-img-input" accept="image/*" style="display:none" onchange="handleAssetImageUpload(event,'invest')">
-        <div id="invest-img-result" style="margin-top:8px;"></div>
-      </div>
     </div>
   </div>
 
@@ -1449,7 +1412,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <span style="font-size:12px;color:var(--faint);">▼</span>
     </div>
     <div class="stepbody" id="sb5">
-      <div class="al info" style="margin-bottom:12px;font-size:12px;"><div class="ali">💡</div><div>실거주 보증금 및 보유 부동산은 매월 가벼운 트래킹용 (자산 합계 계산에는 포함하지 않음)</div></div>
+      <div class="al info" style="margin-bottom:12px;font-size:12px;"><div class="ali">💡</div><div>전세 보증금과 보유 부동산은 자산 합계에 포함되지 않는 참고용 항목이에요.</div></div>
 
       <!-- 전세 보증금 -->
       <div style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
@@ -1458,7 +1421,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div class="fg"><label>본인 부담 보증금 (대출 제외)</label><input class="fi" id="sn-전세보증금" placeholder="20,000,000" inputmode="numeric" oninput="onSnapInput()"></div>
           <div class="fg"><label>임대 종료일</label><input type="date" id="sn-전세만기" placeholder="2027-04-30"></div>
         </div>
-        <div style="font-size:10px;color:var(--faint);margin-top:6px;">💡 전세대출(버팀목 1.4억)은 자동 반영되어 있어 여기 다시 입력하지 않습니다.</div>
+        <div style="font-size:11px;color:var(--faint);margin-top:6px;">전세대출(버팀목 1.4억)은 부채에 자동 반영돼요.</div>
       </div>
 
       <!-- 오피스텔 -->
@@ -1469,7 +1432,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div class="fg"><label>매수가 (취득가)</label><input class="fi" id="sn-오피스텔매수" placeholder="170,000,000" inputmode="numeric" oninput="calcRealEstateGain()"></div>
         </div>
         <div id="오피스텔-return" style="font-size:12px;color:var(--faint);margin-top:4px;"></div>
-        <div style="font-size:10px;color:var(--faint);margin-top:6px;">💡 오피스텔 대출(1.7억)은 부채에 자동 반영되어 있습니다. 평가 시세는 매월 거의 안 바뀌어도 1번씩 갱신만 해주세요.</div>
+        <div style="font-size:11px;color:var(--faint);margin-top:6px;">오피스텔 대출(1.7억)은 부채에 자동 반영돼요. 평가 시세는 한 달에 한 번만 갱신해도 충분해요.</div>
       </div>
 
       <!-- 부동산 합계 미리보기 -->
@@ -1485,12 +1448,12 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <span style="color:var(--sub);">오피스텔 평가차익</span>
           <span id="sre-gain" style="font-weight:700;font-variant-numeric:tabular-nums;"></span>
         </div>
-        <div style="font-size:10px;color:var(--faint);margin-top:8px;line-height:1.5;">⚠️ 위 금액은 <b>참고용</b>이며 자산 페이지의 총자산/순자산 계산에는 포함되지 않습니다.</div>
+        <div style="font-size:10px;color:var(--faint);margin-top:8px;line-height:1.5;"><b>참고용</b> 항목이에요. 총자산/순자산 계산에는 포함되지 않아요.</div>
       </div>
     </div>
   </div>
 
-  <div id="snap-result" style="text-align:center;font-size:13px;display:none;"></div>
+  <div id="snap-result" style="display:none;"></div>
 
   <!-- 예산 설정 (아코디언) -->
   <div id="set-acc-budget">
@@ -1582,13 +1545,12 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
   </div></div>
 
 
-  <!-- ━━ Supabase 실시간 동기화 (아코디언) ━━ -->
+  <!-- ━━ 실시간 동기화 (아코디언) ━━ -->
   <div id="set-acc-sync">
     <div class="acc-header" id="set-acc-sync-hd" onclick="toggleAcc('set-acc-sync')">
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:16px;">🔴</span>
+        <span style="font-size:16px;">🔄</span>
         <span style="font-size:14px;font-weight:700;">실시간 동기화</span>
-        <span class="bdg bdg-gr" style="font-size:10px;">Supabase</span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         <span id="sb-status" style="font-size:11px;font-weight:700;"><span style="color:var(--yellow);">● 연결 중</span></span>
@@ -1599,41 +1561,27 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <div class="acc-body-inner">
 
     <!-- 설명 -->
-    <div class="al ok" style="margin-bottom:16px;">
-      <div class="ali">🔴</div>
-      <div style="font-size:12px;line-height:1.7;">
-        <b>실시간 동기화 활성화됨.</b><br>
-        도형이 거래 입력 → 3초 후 자동 저장 → 예진 폰에서 즉시 반영.<br>
-        아무것도 누를 필요 없어요.
-      </div>
+    <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:13px;font-weight:700;color:#065f46;margin-bottom:6px;">두 분의 폰이 항상 같은 데이터를 봅니다</div>
+      <div style="font-size:12px;color:#047857;line-height:1.6;">한 분이 입력하면 잠시 후 다른 분의 폰에 자동으로 반영돼요.</div>
     </div>
 
     <!-- 수동 버튼 (긴급용) -->
     <div class="btnrow" style="margin-bottom:10px;">
-      <button class="btn btn-green" onclick="isSyncing=false;sbPush()">⬆ 지금 저장</button>
-      <button class="btn btn-outline" onclick="sbPull()">⬇ 지금 불러오기</button>
+      <button class="btn btn-green" onclick="isSyncing=false;sbPush()">지금 저장</button>
+      <button class="btn btn-outline" onclick="sbPull()">지금 불러오기</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:14px;">
       <div id="sb-last-push" style="font-size:11px;color:var(--faint);"></div>
       <div id="sb-last-pull" style="font-size:11px;color:var(--faint);"></div>
     </div>
 
-    <!-- 사용 안내 -->
-    <div style="background:var(--bg);border-radius:var(--rsm);padding:12px;margin-bottom:14px;">
-      <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;">📋 동기화 방식</div>
-      <div style="font-size:11px;color:var(--sub);line-height:1.9;">
-        <b>자동:</b> 거래 입력/수정 후 3초 뒤 자동 저장 → 상대방 폰에 즉시 반영<br>
-        <b>앱 시작 시:</b> 자동으로 최신 데이터 수신<br>
-        <b>수동:</b> 위 버튼으로 즉시 저장/수신 가능
-      </div>
-    </div>
-
     <!-- 보조 백업 -->
-    <div style="font-size:11px;font-weight:800;color:var(--faint);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">보조 백업</div>
+    <div style="font-size:11px;font-weight:800;color:var(--faint);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">파일로 백업</div>
     <div class="btnrow">
-      <button class="btn btn-outline btn-sm" onclick="exportDataJSON()" style="flex:1;height:38px;font-size:12px;">📥 JSON 백업</button>
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('import-file').click()" style="flex:1;height:38px;font-size:12px;">📤 JSON 복원</button>
-      <button class="btn btn-outline btn-sm" onclick="exportExcel()" style="flex:1;height:38px;font-size:12px;">📊 엑셀</button>
+      <button class="btn btn-outline btn-sm" onclick="exportDataJSON()" style="flex:1;height:38px;font-size:12px;">JSON 백업</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('import-file').click()" style="flex:1;height:38px;font-size:12px;">JSON 복원</button>
+      <button class="btn btn-outline btn-sm" onclick="exportExcel()" style="flex:1;height:38px;font-size:12px;">엑셀</button>
     </div>
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importDataJSON(event)">
       </div>
@@ -1652,16 +1600,14 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     </div>
     <div class="acc-body" id="set-acc-danger-body" style="display:none;border-color:#fecaca;">
       <div class="acc-body-inner">
-        <p style="font-size:12px;color:var(--sub);line-height:1.7;margin-bottom:14px;">
-          처음부터 새로 시작하려면 모든 데이터를 초기화하세요.<br>
-          <b style="color:var(--red);">⚠️ 거래내역, 잔액, 예산, 고정지출 모두 삭제됩니다.</b><br>
-          클라우드에 동기화된 데이터도 함께 삭제됩니다.
+        <p style="font-size:13px;color:var(--text);line-height:1.7;margin-bottom:14px;">
+          처음부터 다시 시작하고 싶으신가요?<br>
+          <b style="color:var(--red);">거래내역, 잔액, 예산, 고정지출이 모두 삭제돼요.</b> 두 분의 다른 폰에 있는 데이터도 함께 사라져요.
         </p>
         <div class="btnrow" style="margin-bottom:8px;">
-          <button onclick="resetAllData()" style="flex:1;background:var(--white);color:var(--red);border:1.5px solid var(--red);height:44px;border-radius:var(--rsm);font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🗑️ 모든 데이터 초기화</button>
-          <button onclick="exportDataJSON()" style="flex:1;background:var(--white);color:var(--sub);border:1.5px solid var(--border);height:44px;border-radius:var(--rsm);font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">먼저 백업하기</button>
+          <button onclick="exportDataJSON()" style="flex:1;background:var(--white);color:var(--text);border:1.5px solid var(--border);height:44px;border-radius:var(--rsm);font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">먼저 백업하기</button>
+          <button onclick="resetAllData()" style="flex:1;background:var(--red);color:#fff;border:none;height:44px;border-radius:var(--rsm);font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">모두 삭제</button>
         </div>
-        <p style="font-size:11px;color:var(--faint);text-align:center;margin-top:8px;">초기화 전에 먼저 백업을 받아두세요.</p>
       </div>
     </div>
   </div>
@@ -1724,7 +1670,7 @@ const CAT_TYPE_LABELS={income:'💰 수입',fixed:'🏠 고정지출',variable:'
 const LS = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const LS_SET = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 function getState() { return LS('ml_v4') || {}; }
-function setState(s) { LS_SET('ml_v4', s); scheduleSbPush(); }
+function setState(s, silent) { LS_SET('ml_v4', s); if (!silent) scheduleSbPush(); }
 function getMonthKey(d) { d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function ensureMonth(s,k) { if(!s[k]) s[k]={snapshot:{},budget:{},transactions:[]}; return s[k]; }
 function getCatMap() { return LS('ml_cats') || {
@@ -1800,7 +1746,7 @@ function attachFlatpickr() {
   document.querySelectorAll('input[type="date"]:not([data-fp-attached])').forEach(inp => {
     inp.setAttribute('data-fp-attached', '1');
     try {
-      const placeholder = '예: 2030-01-31 (또는 📅 탭)';
+      const placeholder = '날짜 입력 또는 선택';
       const fp = flatpickr(inp, {
         locale: 'ko',
         dateFormat: 'Y-m-d',
@@ -1878,10 +1824,20 @@ function _markDirty(inp) {
   Object.keys(ls).forEach(k => { if (now - (ls[k].at||0) > DIRTY_PROTECT_MS) delete ls[k]; });
   _writeDirtyLS(ls);
 }
-// 다중 이벤트로 dirty 부착 (input/change/keyup)
-['input','change','keyup'].forEach(ev => {
+// 다중 이벤트로 dirty 부착 (input/change/keyup/blur 모두)
+['input','change','keyup','blur'].forEach(ev => {
   document.addEventListener(ev, (e) => _markDirty(e.target), true);
 });
+// blur 시에도 추가 안전망: 만약 input이 비어있지 않고 placeholder와 다르다면 dirty로 간주
+document.addEventListener('blur', (e) => {
+  const inp = e.target;
+  if (!inp || inp.tagName !== 'INPUT') return;
+  if (!inp.id || (!inp.id.startsWith('sn-') && !inp.id.startsWith('b-'))) return;
+  // 값이 있고 dirty가 아니면 (이전에 부착 안 됐을 수 있음) 부착
+  if (inp.value && inp.getAttribute('data-dirty') !== '1') {
+    _markDirty(inp);
+  }
+}, true);
 function isInputDirty(inp) {
   if (!inp || !inp.getAttribute) return false;
   if (inp.getAttribute('data-dirty') !== '1') return false;
@@ -2095,8 +2051,7 @@ function saveSnapshot() {
   });
   setState(state);
   clearDirtyFlags(); // 저장 완료했으니 dirty 보호 해제
-  const res=$('snap-result'); res.style.display='block'; res.innerHTML='<span style="color:var(--green);">✅ 저장 완료</span>';
-  showToast('✅ 잔액 저장 완료');
+  showToast('잔액이 저장됐어요');
   renderAll();
 }
 function loadSnapshotForm() {
@@ -2257,15 +2212,15 @@ function submitTx() {
   const cat=$('r-cat')?$('r-cat').value:'';
   const memo=$('r-memo')?$('r-memo').value.trim():'';
   const method=$('r-method')?$('r-method').value:'';
-  if(!date){showToast('날짜를 입력해주세요');return;}
-  if(!amt){showToast('금액을 입력해주세요');return;}
+  if(!date){showToast('날짜를 입력해 주세요');return;}
+  if(!amt){showToast('금액을 입력해 주세요');return;}
   const mon=date.slice(0,7), state=getState(), md=ensureMonth(state,mon);
   md.transactions.push({id:Date.now(),date,type:recType,cat,amt,memo,method});
   setState(state);
   if($('r-amt')){ $('r-amt').value=''; setTimeout(()=>{ const a=$('r-amt'); if(a) a.focus(); },80); }
   if($('r-memo')) $('r-memo').value='';
   // 날짜는 오늘로 유지 (연속 입력 시 편의)
-  showToast((memo||cat)+' '+fmtW(amt)+' 추가됨 ✓');
+  showToast((memo||cat)+' '+fmtW(amt)+' 추가했어요');
   renderAll(); renderRecordPage();
 }
 
@@ -2340,13 +2295,13 @@ function submitTxDrawer() {
   const cat = $('drw-cat') ? $('drw-cat').value : '';
   const memo = $('drw-memo') ? $('drw-memo').value.trim() : '';
   const method = $('drw-method') ? $('drw-method').value : '';
-  if (!date) { showToast('날짜를 입력해주세요'); return; }
-  if (!amt) { showToast('금액을 입력해주세요'); return; }
+  if (!date) { showToast('날짜를 입력해 주세요'); return; }
+  if (!amt) { showToast('금액을 입력해 주세요'); return; }
   const mon = date.slice(0,7), state=getState(), md=ensureMonth(state,mon);
   md.transactions.push({id:Date.now(), date, type:window._recType||'variable', cat, amt, memo, method});
   setState(state);
   closeDrawer();
-  showToast((memo||cat)+' '+fmtW(amt)+' 추가됨 ✓');
+  showToast((memo||cat)+' '+fmtW(amt)+' 추가했어요');
   renderAll(); renderRecordPage();
 }
 
@@ -2415,7 +2370,7 @@ function submitRecEdit() {
   saveRecurring(list);
   closeDrawer();
   renderRecurringList();
-  showToast('✅ 수정 완료');
+  showToast('수정됐어요');
 }
 
 // 고정 지출 리스트 렌더 (완전 재설계)
@@ -2581,12 +2536,12 @@ function txSelectAll(checked) {
 }
 
 function deleteSelectedTxs() {
-  if (window._txSelected.size === 0) { showToast('선택된 항목이 없습니다'); return; }
+  if (window._txSelected.size === 0) { showToast('선택한 항목이 없어요'); return; }
   const cnt = window._txSelected.size;
   // confirm 대신 즉시 삭제 + undo 토스트 (토스 패턴)
   const mon=currentMonth(), state=getState(), md=state[mon]||{transactions:[]};
   const deletedTxs = md.transactions.filter(t => window._txSelected.has(t.id) || window._txSelected.has(parseInt(t.id)));
-  if (deletedTxs.length === 0) { showToast('삭제할 거래를 찾지 못했습니다'); return; }
+  if (deletedTxs.length === 0) { showToast('삭제할 거래를 찾지 못했어요'); return; }
   // 삭제 실행
   md.transactions = md.transactions.filter(t => !window._txSelected.has(t.id) && !window._txSelected.has(parseInt(t.id)));
   setState(state);
@@ -2628,7 +2583,7 @@ function undoBulkDelete() {
   const tundo = $('tundo');
   if (t) t.classList.remove('on');
   if (tundo) tundo.style.display = 'none';
-  showToast('↩ 되돌렸습니다');
+  showToast('되돌렸어요');
   renderAll();
 }
 
@@ -2704,7 +2659,7 @@ function submitEditTx(mon, id) {
     memo:$('et-memo')?$('et-memo').value.trim():md.transactions[idx].memo,
     method:$('et-method')?$('et-method').value:md.transactions[idx].method,
   };
-  setState(state); closeDrawer(); renderAll(); renderRecordPage(); showToast('✅ 수정 완료');
+  setState(state); closeDrawer(); renderAll(); renderRecordPage(); showToast('수정됐어요');
 }
 function deleteTxFromEdit(mon, id) {
   if(!confirm('이 거래를 삭제할까요?')) return;
@@ -2712,7 +2667,7 @@ function deleteTxFromEdit(mon, id) {
   const tx=state[mon].transactions.find(t=>t.id===id);
   if(tx) lastDeleted={mon,tx};
   state[mon].transactions=state[mon].transactions.filter(t=>t.id!==id);
-  setState(state); closeDrawer(); showToast('삭제됨',3500,true); renderAll(); renderRecordPage();
+  setState(state); closeDrawer(); showToast('삭제됐어요',3500,true); renderAll(); renderRecordPage();
 }
 function deleteTx(mon,id) {
   const state=getState(); if(!state[mon]) return;
@@ -2720,7 +2675,7 @@ function deleteTx(mon,id) {
   lastDeleted={mon,tx};
   state[mon].transactions=state[mon].transactions.filter(t=>t.id!==id);
   setState(state);
-  showToast('삭제됨',3500,true);
+  showToast('삭제됐어요',3500,true);
   renderAll(); renderRecordPage();
 }
 function undoDelete() {
@@ -2730,7 +2685,7 @@ function undoDelete() {
   md.transactions.sort((a,b)=>a.date.localeCompare(b.date));
   setState(state); lastDeleted=null;
   $('toast').classList.remove('on');
-  showToast('↩ 되돌렸습니다');
+  showToast('되돌렸어요');
   renderAll(); renderRecordPage();
 }
 
@@ -2753,17 +2708,17 @@ function manualSaveBudget() {
   BUDGET_KEYS.forEach(k=>{ md.budget[k]=fi('b-'+k); });
   setState(state);
   clearDirtyFlags(); // 저장 완료, 보호 해제
-  showToast('✅ 예산 저장 완료');
+  showToast('예산이 저장됐어요');
   renderHome();
 }
 function copyBudgetFromLastMonth() {
   const mon=currentMonth(), [y,m]=mon.split('-').map(Number);
   const prev=m===1?(y-1)+'-12':y+'-'+String(m-1).padStart(2,'0');
   const state=getState(), pb=(state[prev]||{}).budget||{};
-  if(!Object.keys(pb).length){ showToast('지난달 예산 없음'); return; }
+  if(!Object.keys(pb).length){ showToast('지난달 예산이 없어요'); return; }
   const md=ensureMonth(state,mon);
   md.budget={...pb}; setState(state);
-  loadBudgetForm(); showToast('✅ 지난달 예산 복사됨');
+  loadBudgetForm(); showToast('지난달 예산을 복사했어요');
 }
 function loadBudgetForm() {
   const b=(getState()[currentMonth()]||{}).budget||{};
@@ -3130,7 +3085,7 @@ function renderAssetPage() {
     const officeCost = sn.오피스텔매수 || 0;
     const reTotal = dep + office;
     if (dep === 0 && office === 0) {
-      reEl.innerHTML = '<div style="text-align:center;padding:14px 0;color:var(--faint);font-size:12px;">설정 → 부동산에서 입력해 주세요</div>';
+      reEl.innerHTML = '<div style="text-align:center;padding:14px 0;color:var(--faint);font-size:12px;">설정 탭 → 부동산에서 입력해 주세요</div>';
     } else {
       const rows = [];
       if (dep > 0) {
@@ -3180,7 +3135,7 @@ function toggleRec(id) {
 function deleteRec(id) {
   if(!confirm('이 고정 지출을 삭제할까요?')) return;
   saveRecurring(getRecurring().filter(r=>r.id!==id));
-  renderRecurringList(); showToast('삭제됨');
+  renderRecurringList(); showToast('삭제됐어요');
 }
 function setRT(type, el) {
   window._curRT = type;
@@ -3197,11 +3152,11 @@ function submitRec() {
   const amt=parseNum($('rta-amt')?$('rta-amt').value:'');
   const day=parseInt($('rta-day')?$('rta-day').value||'1':'1');
   const method=$('rta-method')?$('rta-method').value:'';
-  if(!cat){showToast('카테고리를 선택하세요');return;}
-  if(!amt){showToast('금액을 입력하세요');return;}
+  if(!cat){showToast('카테고리를 선택해 주세요');return;}
+  if(!amt){showToast('금액을 입력해 주세요');return;}
   const list=getRecurring();
   list.push({id:Date.now(),name:cat,type:window._curRT||'fixed',cat,amt,day,method,active:true});
-  saveRecurring(list); closeDrawer(); renderRecurringList(); showToast('✅ 추가됨');
+  saveRecurring(list); closeDrawer(); renderRecurringList(); showToast('추가했어요');
 }
 
 
@@ -3219,7 +3174,7 @@ function deleteRecFromEdit(id) {
 
 function showRecDeleteUndo(name) {
   const t = $('toast');
-  if (!t) { showToast('삭제됨'); return; }
+  if (!t) { showToast('삭제됐어요'); return; }
   const tmsg = $('tmsg');
   const tundo = $('tundo');
   if (tmsg) tmsg.textContent = '✅ "' + name + '" 삭제됨';
@@ -3243,7 +3198,7 @@ function undoRecDelete() {
   window._lastDeletedRec = null;
   const t = $('toast');
   if (t) t.classList.remove('on');
-  showToast('↩ 되돌렸습니다');
+  showToast('되돌렸어요');
   renderRecurringList();
 }
 
@@ -3251,8 +3206,8 @@ function undoRecDelete() {
 // 모든 데이터 초기화
 async function resetAllData() {
   // 2단계 확인
-  if (!confirm('정말 모든 데이터를 초기화할까요?\n\n거래내역, 잔액, 예산, 고정지출이 모두 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.')) return;
-  if (!confirm('한 번 더 확인합니다.\n\n클라우드 데이터도 함께 초기화됩니다.\n\n계속하시겠습니까?')) return;
+  if (!confirm('정말 모든 데이터를 삭제할까요?\n\n거래내역, 잔액, 예산, 고정지출이 모두 사라져요.\n이 작업은 되돌릴 수 없어요.')) return;
+  if (!confirm('마지막으로 확인할게요.\n\n다른 폰의 데이터까지 함께 사라져요.\n\n정말 진행할까요?')) return;
   
   try {
     // 로컬 초기화
@@ -3315,21 +3270,27 @@ async function handleImageUpload(evt) {
     res.innerHTML = '<div class="al warn"><div class="ali">⚠️</div><div>이미지 파일이 너무 큽니다 ('+(file.size/1024/1024).toFixed(1)+'MB). 8MB 이하로 압축해 주세요.</div></div>';
     return;
   }
-  res.innerHTML = '<div style="padding:12px;text-align:center;"><div style="color:var(--sub);font-size:13px;margin-bottom:6px;">⏳ 이미지 인식 중...</div><div id="ocr-progress" style="font-size:11px;color:var(--faint);">한국어 OCR 모델 로딩 중 (최초 1회 ~5MB)</div><div class="ptrack" style="margin-top:8px;height:5px;"><div class="pfill" id="ocr-bar" style="width:0%;background:var(--blue);transition:width .3s;"></div></div></div>';
+  res.innerHTML = '<div style="padding:18px 14px;text-align:center;background:#f8fafc;border-radius:12px;"><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;" id="ocr-title">거래 내역을 분석하고 있어요</div><div id="ocr-progress" style="font-size:12px;color:var(--sub);margin-bottom:10px;">잠시만 기다려 주세요</div><div class="ptrack" style="height:6px;background:#e2e8f0;border-radius:99px;overflow:hidden;"><div class="pfill" id="ocr-bar" style="width:0%;height:100%;background:var(--blue);transition:width .3s;border-radius:99px;"></div></div></div>';
   try {
     const imgURL = URL.createObjectURL(file);
     const todayStr = getMonthKey() + '-' + String(new Date().getDate()).padStart(2,'0');
     const result = await Tesseract.recognize(imgURL, 'kor+eng', {
       logger: (m) => {
-        const bar = $('ocr-bar'), prog = $('ocr-progress');
+        const bar = $('ocr-bar'), prog = $('ocr-progress'), title = $('ocr-title');
         if (m.status && prog) {
-          const phase = m.status === 'loading tesseract core' ? '코어 로딩'
-            : m.status === 'loading language traineddata' ? '한국어 모델 로딩'
-            : m.status === 'initializing tesseract' ? '초기화'
-            : m.status === 'initializing api' ? 'API 초기화'
-            : m.status === 'recognizing text' ? '텍스트 인식 중'
-            : m.status;
-          prog.textContent = phase + ' ' + Math.round((m.progress||0)*100) + '%';
+          let phase, mainTitle;
+          if (m.status === 'loading tesseract core' || m.status === 'loading language traineddata' || m.status === 'initializing tesseract' || m.status === 'initializing api') {
+            mainTitle = '준비하고 있어요';
+            phase = '잠시만 기다려 주세요';
+          } else if (m.status === 'recognizing text') {
+            mainTitle = '거래 내역을 분석하고 있어요';
+            phase = Math.round((m.progress||0)*100) + '% 완료';
+          } else {
+            mainTitle = '거래 내역을 분석하고 있어요';
+            phase = '잠시만 기다려 주세요';
+          }
+          if (title) title.textContent = mainTitle;
+          prog.textContent = phase;
         }
         if (m.progress != null && bar) bar.style.width = Math.round(m.progress*100) + '%';
       }
@@ -3337,21 +3298,22 @@ async function handleImageUpload(evt) {
     URL.revokeObjectURL(imgURL);
     const rawText = (result && result.data && result.data.text) ? result.data.text : '';
     if (!rawText.trim()) {
-      res.innerHTML = '<div class="al warn"><div class="ali">⚠️</div><div>텍스트를 인식하지 못했습니다. 더 선명한 이미지를 사용해 주세요.</div></div>';
+      res.innerHTML = '<div style="padding:16px;background:#fef3c7;border-radius:12px;"><div style="font-size:14px;font-weight:700;color:#92400e;margin-bottom:4px;">거래 내역을 찾지 못했어요</div><div style="font-size:12px;color:#92400e;line-height:1.5;">금액과 날짜가 또렷하게 보이는 화면을 사용해 보세요.</div></div>';
       return;
     }
     const txList = parseTransactionsFromOCR(rawText, todayStr);
     if (txList.length === 0) {
-      res.innerHTML = '<div class="al warn" style="flex-direction:column;align-items:flex-start;">'
-        + '<div style="display:flex;align-items:flex-start;gap:8px;width:100%;"><div class="ali">⚠️</div><div style="flex:1;"><b>거래 내역을 찾을 수 없습니다</b><br><span style="font-size:11px;color:var(--sub);">금액(예: -8,400원, +50,000원)이 보이는 화면을 사용해 주세요.</span></div></div>'
-        + '<details style="margin-top:8px;width:100%;font-size:10px;color:var(--faint);"><summary style="cursor:pointer;">▼ 인식된 텍스트 보기</summary><pre style="margin-top:6px;padding:6px;background:#f8f9fa;border-radius:4px;font-size:10px;white-space:pre-wrap;word-break:break-all;max-height:160px;overflow:auto;">'+rawText.slice(0,800).replace(/</g,'&lt;')+'</pre></details>'
+      res.innerHTML = '<div style="padding:16px;background:#fef3c7;border-radius:12px;">'
+        + '<div style="font-size:14px;font-weight:700;color:#92400e;margin-bottom:4px;">거래 내역을 찾지 못했어요</div>'
+        + '<div style="font-size:12px;color:#92400e;line-height:1.5;margin-bottom:10px;">금액(예: -8,400원)이 보이는 화면을 사용해 보세요.</div>'
+        + '<details style="font-size:11px;color:#92400e;"><summary style="cursor:pointer;font-weight:600;">인식된 텍스트 보기</summary><pre style="margin-top:6px;padding:8px;background:rgba(255,255,255,.6);border-radius:6px;font-size:10px;white-space:pre-wrap;word-break:break-all;max-height:160px;overflow:auto;color:#78350f;">'+rawText.slice(0,800).replace(/</g,'&lt;')+'</pre></details>'
         + '</div>';
       return;
     }
     showImageResults(txList);
   } catch (e) {
     console.error('[handleImageUpload OCR]', e);
-    res.innerHTML = '<div class="al warn"><div class="ali">⚠️</div><div>OCR 처리 실패<br><span style="font-size:11px;color:var(--faint);">'+(e.message||'알 수 없는 오류').slice(0,150)+'</span></div></div>';
+    res.innerHTML = '<div style="padding:16px;background:#fee2e2;border-radius:12px;"><div style="font-size:14px;font-weight:700;color:#991b1b;margin-bottom:4px;">분석에 실패했어요</div><div style="font-size:12px;color:#991b1b;line-height:1.5;">잠시 후 다시 시도해 주세요.</div></div>';
   }
 }
 
@@ -3595,12 +3557,12 @@ function checkReminder() {
   if(dismissed||hasSnap){ wrap.innerHTML=''; return; }
   if(daysLeft<=3) {
     wrap.innerHTML='<div class="al danger" style="justify-content:space-between;">'
-      +'<div style="display:flex;gap:8px;align-items:flex-start;"><div class="ali">🔔</div><div><b>월말 잔액 입력 안 했어요!</b><br><span style="font-size:12px;">'+daysLeft+'일 남았어요. 설정 탭에서 입력하세요.</span></div></div>'
+      +'<div style="display:flex;gap:8px;align-items:flex-start;"><div class="ali">🔔</div><div><b>이번 달 잔액 입력이 필요해요</b><br><span style="font-size:12px;">'+daysLeft+'일 남았어요. 설정에서 입력해 주세요.</span></div></div>'
       +'<button onclick="dismissRem(\''+mon+'\')" style="border:none;background:none;font-size:18px;color:var(--faint);cursor:pointer;flex-shrink:0;">×</button>'
       +'</div>';
   } else if(today>=25) {
     wrap.innerHTML='<div class="al warn" style="justify-content:space-between;">'
-      +'<div style="display:flex;gap:8px;"><div class="ali">💡</div><div>월말이 다가오고 있어요. 잔액 입력을 준비해두세요.</div></div>'
+      +'<div style="display:flex;gap:8px;"><div class="ali">💡</div><div>월말이 다가왔어요. 잔액 입력을 준비해 주세요.</div></div>'
       +'<button onclick="dismissRem(\''+mon+'\')" style="border:none;background:none;font-size:18px;color:var(--faint);cursor:pointer;flex-shrink:0;">×</button>'
       +'</div>';
   } else wrap.innerHTML='';
@@ -3627,10 +3589,10 @@ function saveCatEdit() {
   saveCatMap(map);
   const mta=$('methods-ta'); if(mta) savePayMethods(mta.value.split(',').map(s=>s.trim()).filter(Boolean));
   const h=$('cat-saved'); if(h){ h.style.display='block'; setTimeout(()=>h.style.display='none',1500); }
-  showToast('✓ 저장 완료');
+  showToast('저장됐어요');
   updateRecCats(); updateRecMethods();
 }
-function resetCats() { if(!confirm('카테고리를 기본값으로 초기화할까요?')) return; localStorage.removeItem('ml_cats'); localStorage.removeItem('ml_methods'); renderCatFields(); showToast('초기화됨'); }
+function resetCats() { if(!confirm('카테고리를 기본값으로 초기화할까요?')) return; localStorage.removeItem('ml_cats'); localStorage.removeItem('ml_methods'); renderCatFields(); showToast('초기화했어요'); }
 
 // ━━ SYNC ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function exportDataJSON() {
@@ -3638,7 +3600,7 @@ function exportDataJSON() {
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
   a.download='머니로그_백업_'+new Date().toISOString().slice(0,10)+'.json';
-  a.click(); showToast('📥 백업 저장됨');
+  a.click(); showToast('백업이 저장됐어요');
 }
 function importDataJSON(evt) {
   const file=evt.target.files[0]; if(!file) return;
@@ -3647,8 +3609,8 @@ function importDataJSON(evt) {
     const d=JSON.parse(e.target.result);
     if(d.state) setState(d.state); if(d.recurring) saveRecurring(d.recurring);
     if(d.cats) localStorage.setItem('ml_cats',d.cats); if(d.methods) localStorage.setItem('ml_methods',d.methods);
-    showToast('✅ 복원 완료!',3000); renderAll();
-  } catch{ showToast('❌ 파일 형식 오류'); }};
+    showToast('복원이 완료됐어요',3000); renderAll();
+  } catch{ showToast('파일 형식이 맞지 않아요'); }};
   r.readAsText(file);
 }
 function copyShareCode() {
@@ -3778,7 +3740,7 @@ function submitGoal(id) {
   const target = parseNum($('goal-target') ? $('goal-target').value : '');
   const deadline = $('goal-deadline') ? $('goal-deadline').value : '';
   const note = $('goal-note') ? $('goal-note').value.trim() : '';
-  if (!name) { showToast('목표 이름을 입력해주세요'); return; }
+  if (!name) { showToast('목표 이름을 입력해 주세요'); return; }
   const goals = getGoals();
   if (id) {
     const g = goals.find(g => g.id === id);
@@ -3787,13 +3749,13 @@ function submitGoal(id) {
     goals.push({id: Date.now(), type, name, target, deadline, note, active: true, startVal: compute(currentMonth()).변동대출});
   }
   saveGoals(goals);
-  closeDrawer(); renderGoals(); showToast('✅ 목표 저장됨');
+  closeDrawer(); renderGoals(); showToast('목표를 저장했어요');
 }
 
 function deleteGoal(id) {
   if (!confirm('목표를 삭제할까요?')) return;
   saveGoals(getGoals().filter(g => g.id !== id));
-  renderGoals(); showToast('삭제됨');
+  renderGoals(); showToast('삭제됐어요');
 }
 
 // ━━ 📊 엑셀(XLSX) 내보내기 ━━━━━━━━━━━━━━
@@ -3848,7 +3810,7 @@ function exportExcel() {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  showToast('📊 엑셀 파일 다운로드 완료!');
+  showToast('엑셀 파일을 저장했어요');
 }
 
 
@@ -4099,13 +4061,13 @@ function renderPlan() {
     const additionalPerMonth = Math.max(neededPerMonth - monthlySave, 0);
     let alertMsg;
     if (onTrack) {
-      alertMsg = '현재 월 순저축 <b>'+fmtW(monthlySave)+'</b>으로 <b>'+targetYear+'년 전 목표 달성</b> 가능합니다.';
+      alertMsg = '지금 페이스로 <b>'+targetYear+'년 전</b>에 목표를 달성할 수 있어요. 월 저축 <b>'+fmtW(monthlySave)+'</b>을 유지해 주세요.';
     } else if (additionalPerMonth > 0) {
-      alertMsg = '<b>'+targetYear+'년 달성</b>을 위해 매월 추가 <b style="color:var(--red);">'+fmtW(additionalPerMonth)+'</b> 저축 필요'
-        + '<div style="font-size:11px;color:var(--faint);margin-top:6px;line-height:1.5;">현재 월 저축 '+fmtW(monthlySave)+' + 추가 '+fmtW(additionalPerMonth)+' = 총 '+fmtW(neededPerMonth)+'/월</div>'
-        + '<div style="font-size:10px;color:var(--faint);margin-top:4px;">⚠️ 단순 산술 (자산 가격 상승·투자 수익률 미반영, 보수적 추정)</div>';
+      alertMsg = '<b>'+targetYear+'년</b>까지 달성하려면 <b style="color:var(--red);">월 '+fmtW(additionalPerMonth)+'</b>을 추가로 저축해야 해요.'
+        + '<div style="font-size:11px;color:var(--faint);margin-top:6px;line-height:1.6;">현재 '+fmtW(monthlySave)+' + 추가 '+fmtW(additionalPerMonth)+' = 매월 '+fmtW(neededPerMonth)+'</div>'
+        + '<div style="font-size:11px;color:var(--faint);margin-top:6px;line-height:1.5;">단순 계산 결과예요. 자산 가격 변동과 투자 수익은 반영되어 있지 않아요.</div>';
     } else {
-      alertMsg = '목표 기간 내 도달 불가. 목표가 또는 목표 시점을 조정해 보세요.';
+      alertMsg = '목표 기간이 너무 짧아 달성이 어려워요. 목표가나 시점을 조정해 보세요.';
     }
     dday.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
       + '<div><div style="font-size:11px;color:var(--sub);margin-bottom:2px;">'+targetYear+'년까지</div>'
@@ -4334,94 +4296,6 @@ function renderMaturityAlerts(sn) {
 }
 
 
-// ━━ 자산 이미지 AI 파싱 (대출/저축/투자 공통)
-const ASSET_PROMPTS = {
-  loan: '이 이미지에서 대출 정보를 추출해주세요. JSON 형식으로만 응답하세요. 형식: {"항목":[{"이름":"대출명","잔액":숫자,"금리":숫자,"만기일":"YYYY-MM-DD","월상환액":숫자,"기관":"은행명"}]}. 없는 항목은 null로. JSON 외 텍스트 없이.',
-  save: '이 이미지에서 저축/적금 상품 정보를 추출해주세요. JSON 형식으로만 응답하세요. 형식: {"항목":[{"이름":"상품명","잔액":숫자,"금리":숫자,"만기일":"YYYY-MM-DD","월납입액":숫자,"기관":"금융사명"}]}. 없는 항목은 null로. JSON 외 텍스트 없이.',
-  invest: '이 이미지에서 투자/펀드/주식 정보를 추출해주세요. JSON 형식으로만 응답하세요. 형식: {"항목":[{"이름":"상품명","평가액":숫자,"납입원금":숫자,"수익률":숫자,"수익금":숫자,"기관":"금융사명"}]}. 없는 항목은 null로. JSON 외 텍스트 없이.',
-};
-
-async function handleAssetImageUpload(evt, assetType) {
-  const file = evt.target.files[0]; if(!file) return;
-  const resultId = assetType+'-img-result';
-  const resEl = $(resultId); if(!resEl) return;
-  // 자산 정보 자동 분류는 단순 OCR로는 정확도가 낮아 임시 비활성
-  resEl.innerHTML = '<div class="al info" style="flex-direction:column;align-items:flex-start;">'
-    + '<div style="display:flex;align-items:flex-start;gap:8px;width:100%;"><div class="ali">💡</div><div style="flex:1;"><b>자산 자동 인식은 준비 중입니다</b><br><span style="font-size:11px;color:var(--sub);">투자/대출 항목은 분류 정확도가 중요해 수동 입력을 권장합니다.</span></div></div>'
-    + '<div style="margin-top:8px;width:100%;font-size:12px;color:var(--text);line-height:1.6;">아래 입력 칸에 직접 입력해 주세요. 캡처 이미지를 참고하면서 입력하면 빠릅니다.</div>'
-    + '</div>';
-  // 파일 input 초기화 (다시 같은 파일 업로드 가능하도록)
-  evt.target.value = '';
-}
-function applyAssetAI(assetType) {
-  const items = (window._aiItems && window._aiItems[assetType]) || [];
-  // 체크된 항목만 적용 — 첫 번째 체크된 항목부터 해당 필드에 순서대로 매핑
-  const checkedItems = items.filter((_,i) => {
-    const chk = $(assetType+'-ai-'+i+'-chk');
-    return chk && chk.checked;
-  });
-
-  if(assetType === 'loan') {
-    // 대출: 마통/청약대출/학자금 순서로 매핑
-    const targets = [
-      {bal:'sn-도형마통', rate:'sn-도형마통금리'},
-      {bal:'sn-청약대출', rate:'sn-청약대출금리', expire:'sn-청약대출만기'},
-      {bal:'sn-학자금', rate:'sn-학자금금리', expire:'sn-학자금만기', monthly:'sn-학자금월상환'},
-    ];
-    checkedItems.forEach((item,i) => {
-      if(i >= targets.length) return;
-      const t = targets[i];
-      if($(t.bal)) $(t.bal).value = item.잔액 ? fmt(item.잔액) : '';
-      if($(t.rate)) $(t.rate).value = item.금리 || '';
-      if(t.expire && $(t.expire)) $(t.expire).value = item.만기일||'';
-      if(t.monthly && $(t.monthly)) $(t.monthly).value = item.월상환액 ? fmt(item.월상환액) : '';
-    });
-  } else if(assetType === 'save') {
-    // 저축: 상품명으로 매핑
-    checkedItems.forEach(item => {
-      const name = (item.이름||'').toLowerCase();
-      if(name.includes('청약')) {
-        const target = name.includes('도형') ? 'sn-도형청약' : 'sn-예진청약';
-        if($(target)) $(target).value = item.잔액 ? fmt(item.잔액) : '';
-      } else if(name.includes('도약')||name.includes('청도')) {
-        const target = name.includes('도형') ? 'sn-도형청도계' : 'sn-예진청도계';
-        if($(target)) $(target).value = item.잔액 ? fmt(item.잔액) : '';
-        const mTarget = name.includes('도형') ? 'sn-도형청도계납입' : 'sn-예진청도계납입';
-        if($(mTarget)&&item.월납입액) $(mTarget).value = fmt(item.월납입액);
-      } else if(name.includes('isa')) {
-        const target = name.includes('도형') ? 'sn-도형ISA평가' : 'sn-예진ISA평가';
-        if($(target)) $(target).value = item.잔액 ? fmt(item.잔액) : '';
-      }
-    });
-  } else if(assetType === 'invest') {
-    // 투자: 상품명으로 매핑
-    checkedItems.forEach(item => {
-      const name = (item.이름||'').toLowerCase();
-      if(name.includes('월드컵')||name.includes('토스')) {
-        if($('sn-월드컵평가')) $('sn-월드컵평가').value = item.평가액 ? fmt(item.평가액) : '';
-        if($('sn-월드컵납입')&&item.납입원금) $('sn-월드컵납입').value = fmt(item.납입원금);
-      } else if(name.includes('퇴직')||name.includes('irp')) {
-        if($('sn-퇴직연금평가')) $('sn-퇴직연금평가').value = item.평가액 ? fmt(item.평가액) : '';
-        if($('sn-퇴직연금납입')&&item.납입원금) $('sn-퇴직연금납입').value = fmt(item.납입원금);
-      } else if(name.includes('cma')) {
-        if($('sn-CMA')) $('sn-CMA').value = item.평가액 ? fmt(item.평가액) : '';
-        if($('sn-CMA납입')&&item.납입원금) $('sn-CMA납입').value = fmt(item.납입원금);
-      } else if(name.includes('abbott')||name.includes('에봇')) {
-        if($('sn-Abbott')) $('sn-Abbott').value = item.평가액 ? fmt(item.평가액) : '';
-        if($('sn-Abbott납입')&&item.납입원금) $('sn-Abbott납입').value = fmt(item.납입원금);
-      } else if(name.includes('medtronic')||name.includes('메드트로닉')) {
-        if($('sn-Medtronic')) $('sn-Medtronic').value = item.평가액 ? fmt(item.평가액) : '';
-        if($('sn-Medtronic납입')&&item.납입원금) $('sn-Medtronic납입').value = fmt(item.납입원금);
-      }
-    });
-  }
-
-  onSnapInput();
-  showToast('✅ '+checkedItems.length+'개 항목 적용됨. 내용을 확인 후 저장하세요.');
-  // 결과 닫기
-  const res = $(assetType+'-img-result');
-  if(res) res.innerHTML = '<div class="al ok" style="margin-top:4px;"><div class="ali">✅</div><div>'+checkedItems.length+'개 필드에 적용됐습니다. 저장 버튼을 눌러 확정하세요.</div></div>';
-}
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -4457,7 +4331,8 @@ function getAllData() {
   };
 }
 function applyAllData(data) {
-  if (data.state)    setState(data.state);
+  // pull로 받은 데이터 적용 시에는 setState가 다시 push를 트리거하지 않도록 silent=true
+  if (data.state)    setState(data.state, true);
   if (data.recurring) saveRecurring(data.recurring);
   if (data.goals)    LS_SET('ml_goals', data.goals);
   if (data.plan)     LS_SET('ml_plan', data.plan);
@@ -4506,11 +4381,11 @@ async function gistPush() {
     const savedAt = new Date().toLocaleString('ko-KR');
     localStorage.setItem('ml_last_push', savedAt);
     const lp = $('gist-last-push'); if (lp) lp.textContent = '마지막 저장: ' + savedAt;
-    showToast('✅ GitHub에 저장 완료! ' + savedAt);
+    showToast('백업 완료 · ' + savedAt);
   } catch(e) {
     showToast('❌ 저장 실패: ' + e.message + ' (토큰/ID 확인)');
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '⬆ GitHub에 저장 (Push)'; }
+    if (btn) { btn.disabled = false; btn.textContent = '클라우드에 백업'; }
   }
 }
 
@@ -4538,7 +4413,7 @@ async function gistPull() {
       ? await (await fetch(raw.raw_url)).text()
       : raw.content;
     const parsed = JSON.parse(content);
-    if (!confirm('GitHub 데이터를 불러오면 현재 기기 데이터와 병합됩니다. 계속할까요?')) return;
+    if (!confirm('클라우드 데이터를 가져와 현재 기기와 병합할까요?')) return;
     // 거래 내역은 병합 (중복 id 제거), 나머지는 덮어쓰기
     const localState = getState();
     const remoteState = parsed.state || {};
@@ -4571,7 +4446,7 @@ async function gistPull() {
     renderAll();
     if (curPage === 'setting') { loadSnapshotForm(); loadBudgetForm(); }
   } catch(e) {
-    showToast('❌ 불러오기 실패: ' + e.message);
+    showToast('불러오기에 실패했어요');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '⬇ GitHub에서 불러오기 (Pull)'; }
   }
@@ -4596,7 +4471,7 @@ function saveGistSettings() {
   const token = ($('gist-token-input') || {}).value || '';
   const gistId = ($('gist-id-input') || {}).value || '';
   saveGistConfig(token.trim(), gistId.trim());
-  showToast('✅ GitHub 설정 저장됨');
+  showToast('설정을 저장했어요');
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -4629,10 +4504,10 @@ async function sbPush(silent = false) {
       const now = new Date().toLocaleString('ko-KR');
       localStorage.setItem('sb_last_push', now);
       updateSyncStatus();
-      showToast('✅ 저장 완료 ' + now);
+      showToast('저장됐어요 · ' + now);
     }
   } catch(e) {
-    if (!silent) showToast('❌ 저장 실패: ' + e.message);
+    if (!silent) showToast('저장에 실패했어요');
     console.error('sbPush error:', e);
   }
 }
@@ -4645,50 +4520,74 @@ async function sbPull(silent = false) {
       .from('moneylog')
       .select('value')
       .eq('id', 1)
-      .maybeSingle(); // single() 대신 — row 없어도 에러 안 남
+      .maybeSingle();
     if (error) throw error;
     if (!data || !data.value) {
-      // 아직 저장된 데이터 없음 — 첫 사용자가 Push 먼저 해야 함
-      if (!silent) showToast('아직 저장된 데이터 없음. 지금 저장하기를 눌러주세요.');
+      if (!silent) showToast('아직 저장된 데이터가 없어요. 지금 저장 버튼을 눌러 주세요.');
       return;
     }
-    // 🔒 dirty input(사용자가 입력 중) 백업 — DOM + localStorage 양쪽 모두
+    // 🔒 dirty input 백업 (DOM + localStorage)
     const dirtySnapshot = {};
     document.querySelectorAll('input[data-dirty="1"]').forEach(inp => {
       if (inp.id) {
         dirtySnapshot[inp.id] = { value: inp.value, at: parseInt(inp.getAttribute('data-dirty-at')||'0',10) };
       }
     });
-    // localStorage 백업 머지 (DOM에 없거나 attribute가 사라진 경우 대비)
     const lsBackup = getDirtyFromLS();
     Object.keys(lsBackup).forEach(id => {
       if (!dirtySnapshot[id]) dirtySnapshot[id] = lsBackup[id];
     });
     const parsed = JSON.parse(data.value);
+
+    // 🔥 핵심: pull받은 state에 사용자 dirty 입력값을 MERGE (덮어쓰기)
+    // 이렇게 하면 받은 데이터 자체에 사용자 입력이 반영되어 다음 push 시 함께 보내짐
+    if (parsed.state) {
+      const mon = currentMonth();
+      if (!parsed.state[mon]) parsed.state[mon] = { snapshot: {}, budget: {}, transactions: [] };
+      if (!parsed.state[mon].snapshot) parsed.state[mon].snapshot = {};
+      if (!parsed.state[mon].budget) parsed.state[mon].budget = {};
+      Object.keys(dirtySnapshot).forEach(id => {
+        const saved = dirtySnapshot[id];
+        if (!saved || Date.now() - (saved.at||0) > DIRTY_PROTECT_MS) return;
+        // sn-XXX → snapshot.XXX, b-XXX → budget.XXX
+        if (id.startsWith('sn-')) {
+          const key = id.slice(3);
+          const val = saved.value;
+          // 숫자 필드는 콤마/공백 제거 후 정수, 텍스트(date/select)는 그대로
+          const inp = document.getElementById(id);
+          if (inp && (inp.type === 'date' || inp.tagName === 'SELECT' || id.endsWith('상품'))) {
+            parsed.state[mon].snapshot[key] = val;
+          } else if (id.endsWith('달러현금') || id.endsWith('달러주식')) {
+            parsed.state[mon].snapshot[key] = parseFloat((val||'').replace(/,/g,'')) || 0;
+          } else {
+            parsed.state[mon].snapshot[key] = parseInt((val||'').replace(/[^\d-]/g,''), 10) || 0;
+          }
+        } else if (id.startsWith('b-')) {
+          const key = id.slice(2);
+          parsed.state[mon].budget[key] = parseInt((saved.value||'').replace(/[^\d-]/g,''), 10) || 0;
+        }
+      });
+    }
+
     applyAllData(parsed);
     const now = new Date().toLocaleString('ko-KR');
     localStorage.setItem('sb_last_pull', now);
     updateSyncStatus();
-    if (!silent) showToast('✅ 최신 데이터 수신 완료!', 2500);
+    if (!silent) showToast('최신 데이터를 불러왔어요', 2500);
     renderAll();
     if (curPage === 'setting') { loadSnapshotForm(); loadBudgetForm(); }
-    // 🔒 dirty 백업값 무조건 복원 (사용자 입력은 절대 롤백되지 않음)
+    // 🔒 dirty 백업값 무조건 input에도 복원 (UI 반영)
     Object.keys(dirtySnapshot).forEach(id => {
       const inp = document.getElementById(id);
       if (!inp) return;
       const saved = dirtySnapshot[id];
-      if (!saved) return;
-      // 보호 시간 이내일 때만 복원
-      if (Date.now() - (saved.at||0) > DIRTY_PROTECT_MS) return;
-      // 무조건 백업 값으로 복원 + dirty flag 재부착
-      if (inp.value !== saved.value) {
-        inp.value = saved.value;
-      }
+      if (!saved || Date.now() - (saved.at||0) > DIRTY_PROTECT_MS) return;
+      if (inp.value !== saved.value) inp.value = saved.value;
       inp.setAttribute('data-dirty', '1');
       inp.setAttribute('data-dirty-at', String(saved.at));
     });
   } catch(e) {
-    if (!silent) showToast('❌ 불러오기 실패: ' + e.message);
+    if (!silent) showToast('불러오기에 실패했어요');
     console.error('sbPull error:', e);
   }
 }
@@ -4712,7 +4611,7 @@ function sbSubscribe() {
       const hasDirtyLS = Object.keys(getDirtyFromLS()).length > 0;
       if (_focusedInputId || hasDirtyDOM || hasDirtyLS) {
         console.log('실시간 업데이트 감지 (편집/dirty 중 → 보류)');
-        showToast('🔄 상대방이 입력 중... (편집 끝나면 자동 반영)', 2000);
+        showToast('상대방이 입력 중이에요. 잠시 후 반영돼요.', 2000);
         const waitAndPull = () => {
           const stillFocused = !!_focusedInputId;
           let stillDirty = false;
@@ -4722,7 +4621,7 @@ function sbSubscribe() {
           // localStorage 백업도 체크
           if (Object.keys(getDirtyFromLS()).length > 0) stillDirty = true;
           if (!stillFocused && !stillDirty) {
-            sbPull(true).then(() => showToast('🔄 실시간 업데이트됨', 1500));
+            sbPull(true).then(() => showToast('동기화 완료', 1500));
           } else {
             setTimeout(waitAndPull, 1500);
           }
@@ -4733,7 +4632,7 @@ function sbSubscribe() {
       // 상대방이 업데이트 → 자동 Pull
       console.log('실시간 업데이트 감지!');
       sbPull(true).then(() => {
-        showToast('🔄 실시간 업데이트됨', 2000);
+        showToast('동기화 완료', 2000);
       });
     })
     .subscribe((status) => {
@@ -4782,11 +4681,11 @@ async function manualSync() {
     await sbPull(true);
     if(lbl) lbl.textContent = '완료 ✓';
     setTimeout(()=>{ if(lbl) lbl.textContent = '자동저장'; }, 1500);
-    showToast('🔄 동기화 완료');
+    showToast('동기화 완료');
   } catch(e) {
     if(lbl) lbl.textContent = '오류';
     setTimeout(()=>{ if(lbl) lbl.textContent = '자동저장'; }, 1500);
-    showToast('❌ 동기화 실패');
+    showToast('동기화에 실패했어요');
   }
 }
 
@@ -4810,7 +4709,7 @@ function exportCSV() {
   a.href=url; a.download='가계부_'+mon+'.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url),1000);
-  showToast('📊 CSV 다운로드됨');
+  showToast('CSV 파일을 저장했어요');
 }
 
 // ━━ TOP BUTTON ━━━━━━━━━━━━━━━━━━━━━━━━
