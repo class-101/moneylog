@@ -64,11 +64,28 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .nb.on .ni{transform:scale(1.12);}
 
 /* ── SNAP SAVE FIXED FOOTER (설정 페이지 - 잔액 저장 버튼) */
-/* 하단 네비 바로 위에 간격 없이 붙도록 — bnav 높이(약 62px + safe-area)에 맞춰 calc로 계산 */
-#snap-save-fixed-wrap{display:none;position:fixed;bottom:calc(62px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--white);padding:10px 16px;z-index:55;border-top:1px solid var(--border);box-shadow:0 -8px 24px rgba(0,0,0,.12);}
+/* 하단 네비 바로 위에 충분한 간격을 두고 카드형으로 떠 있음 */
+#snap-save-fixed-wrap{
+  display:none;
+  position:fixed;
+  bottom:calc(62px + env(safe-area-inset-bottom,0px) + 16px);
+  left:50%;transform:translateX(-50%);
+  width:calc(100% - 32px);max-width:448px;
+  z-index:55;
+  pointer-events:none;
+}
 #snap-save-fixed-wrap.show{display:block;}
-/* 활성화 시 페이지 하단 패딩 증가 */
-body.snap-save-active .scroll{padding-bottom:180px;}
+#snap-save-fixed-wrap > button{
+  pointer-events:auto;
+  border-radius:14px !important;
+  box-shadow:0 8px 28px rgba(37,99,235,.4), 0 2px 8px rgba(0,0,0,.1) !important;
+  height:54px !important;
+  font-size:15px !important;
+  font-weight:800 !important;
+  letter-spacing:-.2px;
+}
+/* 활성화 시 페이지 하단 패딩 증가 (저장 버튼이 컨텐츠 가리지 않도록 충분히 확보) */
+body.snap-save-active .scroll{padding-bottom:210px;}
 
 /* ── SCROLL */
 .scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 16px 120px;display:flex;flex-direction:column;gap:0;-webkit-overflow-scrolling:touch;}
@@ -76,6 +93,8 @@ body.snap-save-active .scroll{padding-bottom:180px;}
 /* ── PAGE */
 .pg{display:none;flex-direction:column;gap:12px;}
 .pg.on{display:flex;flex-direction:column;gap:12px;padding-top:14px;padding-bottom:20px;}
+/* 비어있는 wrapper(reminder/onboarding/auto-recurring/overbudget 등)는 공간/gap 차지 안 함 */
+.pg.on > div:empty{display:none;}
 
 /* ── CARD */
 .card{background:var(--white);border-radius:var(--r);box-shadow:var(--sh1);border:1px solid var(--border);overflow:hidden;}
@@ -447,25 +466,106 @@ button:active{-webkit-tap-highlight-color:transparent;}
   border-radius:14px !important;
   box-shadow:0 12px 32px rgba(0,0,0,.16) !important;
   border:1px solid var(--border) !important;
+  padding:10px 8px 12px !important;
+  width:300px !important;
+  max-width:calc(100vw - 24px) !important;
+  background:var(--white) !important;
+  box-sizing:border-box !important;
 }
 .flatpickr-calendar.arrowTop:before{border-bottom-color:var(--border) !important;}
 .flatpickr-calendar.arrowTop:after{border-bottom-color:var(--white) !important;}
-.flatpickr-months{padding:8px 4px 4px;}
-.flatpickr-month{color:var(--text) !important;}
-.flatpickr-current-month{font-size:16px !important;font-weight:700 !important;padding:8px 0 !important;}
-.flatpickr-current-month .flatpickr-monthDropdown-months{font-weight:700 !important;font-family:'Noto Sans KR',sans-serif !important;color:var(--text) !important;}
-.flatpickr-current-month input.cur-year{font-weight:700 !important;font-family:'Noto Sans KR',sans-serif !important;color:var(--text) !important;}
-.flatpickr-prev-month, .flatpickr-next-month{fill:var(--blue) !important;color:var(--blue) !important;padding:9px !important;}
-.flatpickr-prev-month:hover, .flatpickr-next-month:hover{background:var(--blue-light) !important;border-radius:8px !important;}
-.flatpickr-weekdays{padding:0 4px;}
-span.flatpickr-weekday{font-size:11px !important;font-weight:700 !important;color:var(--faint) !important;background:transparent !important;}
+
+/* 헤더 (월/연도 + 화살표) */
+.flatpickr-months{
+  padding:0 0 6px;
+  display:flex !important;
+  align-items:center;
+  justify-content:space-between;
+}
+.flatpickr-month{
+  color:var(--text) !important;
+  background:transparent !important;
+  height:auto !important;line-height:normal !important;
+  flex:1;text-align:center;
+  overflow:visible !important;
+  min-width:0;
+}
+.flatpickr-current-month{
+  font-size:14px !important;font-weight:700 !important;
+  padding:6px 0 !important;
+  position:static !important;
+  width:auto !important;left:auto !important;
+  display:flex !important;align-items:center;justify-content:center;gap:4px;
+  height:auto !important;
+}
+.flatpickr-monthDropdown-months{
+  background:transparent !important;border:none !important;
+  font-weight:700 !important;font-family:'Noto Sans KR',sans-serif !important;
+  color:var(--text) !important;
+  padding:4px 6px !important;border-radius:6px !important;cursor:pointer;
+  font-size:14px !important;
+}
+.flatpickr-monthDropdown-months:hover{background:var(--blue-light) !important;}
+.flatpickr-monthDropdown-months:focus{outline:none !important;}
+.numInputWrapper{
+  background:transparent !important;border:none !important;
+  padding:0 !important;border-radius:6px !important;
+  width:auto !important;
+}
+.numInputWrapper:hover{background:var(--blue-light) !important;}
+.flatpickr-current-month input.cur-year{
+  font-weight:700 !important;font-family:'Noto Sans KR',sans-serif !important;color:var(--text) !important;
+  font-size:14px !important;padding:0 4px !important;
+  width:60px !important;
+  background:transparent !important;
+}
+.flatpickr-prev-month, .flatpickr-next-month{
+  fill:var(--blue) !important;color:var(--blue) !important;
+  padding:6px !important;
+  position:static !important;
+  border-radius:8px !important;
+  height:32px !important;width:32px !important;
+  display:flex !important;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.flatpickr-prev-month:hover, .flatpickr-next-month:hover{background:var(--blue-light) !important;}
+.flatpickr-prev-month svg, .flatpickr-next-month svg{fill:none !important;stroke:var(--blue) !important;}
+
+/* 요일 헤더 */
+.flatpickr-weekdays{padding:0;height:auto !important;background:transparent !important;}
+.flatpickr-weekdaycontainer{display:flex !important;flex:1;}
+span.flatpickr-weekday{
+  font-size:10px !important;font-weight:700 !important;
+  color:var(--faint) !important;background:transparent !important;
+  padding:6px 0 !important;flex:1;text-align:center;
+}
+
+/* 날짜 그리드 */
+.flatpickr-innerContainer{padding:0 !important;border:none !important;display:block !important;}
+.flatpickr-rContainer{padding:0 !important;width:100% !important;display:block !important;}
+.dayContainer{
+  padding:1px 0 !important;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:none !important;
+  display:flex !important;
+  flex-wrap:wrap !important;
+}
+.flatpickr-days{
+  width:100% !important;min-width:0 !important;max-width:none !important;
+  display:flex !important;
+}
 .flatpickr-day{
   border-radius:8px !important;
   font-weight:600 !important;
   color:var(--text) !important;
   font-family:'Noto Sans KR',sans-serif !important;
-  margin:1px;
-  max-width:38px !important;height:38px !important;line-height:36px !important;
+  margin:1px !important;
+  max-width:none !important;
+  flex-basis:calc(14.2857% - 2px) !important;
+  height:34px !important;line-height:32px !important;
+  font-size:13px !important;
+  border:1.5px solid transparent !important;
 }
 .flatpickr-day:hover{background:var(--blue-light) !important;border-color:var(--blue-light) !important;color:var(--blue) !important;}
 .flatpickr-day.today{border-color:var(--blue) !important;color:var(--blue) !important;font-weight:800 !important;}
@@ -474,22 +574,26 @@ span.flatpickr-weekday{font-size:11px !important;font-weight:700 !important;colo
   background:var(--blue) !important;border-color:var(--blue) !important;color:#fff !important;
   font-weight:700 !important;box-shadow:0 2px 8px rgba(37,99,235,.3) !important;
 }
-.flatpickr-day.flatpickr-disabled, .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay{color:var(--faint) !important;font-weight:400 !important;opacity:.5;}
-.flatpickr-innerContainer{padding:0 4px 4px;}
-/* alt input(보이는 input)이 .fi 스타일 그대로 받도록 */
+/* 이전/다음 달 날짜 — 회색으로 흐릿하게 */
+.flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay{
+  color:#d1d5db !important;font-weight:400 !important;opacity:.6;
+}
+.flatpickr-day.flatpickr-disabled{color:#e5e7eb !important;opacity:.4;cursor:not-allowed;}
+
+/* alt input(보이는 input) — 직접 입력 가능 + 우측 캘린더 아이콘 영역 명확 */
 input.flatpickr-alt-input{
   width:100%;background:var(--bg);border:1.5px solid var(--border);
   border-radius:var(--rsm);padding:10px 13px;font-size:14px;
   font-family:'Noto Sans KR',sans-serif;color:var(--text);outline:none;
   -webkit-appearance:none;
-  min-height:44px;font-weight:600;
-  padding-right:38px;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+  min-height:44px;font-weight:600;letter-spacing:.3px;
+  padding-right:42px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 12px center;
-  cursor:pointer;
+  cursor:text;
 }
 input.flatpickr-alt-input:focus{border-color:var(--blue);background-color:var(--white);box-shadow:0 0 0 3px rgba(37,99,235,.1);}
-input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;}
+input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-size:12px;}
 </style>
 <!-- flatpickr (예쁜 캘린더 picker) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
@@ -965,6 +1069,25 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;}
       </div>
     </div>
   </div>
+  <!-- 부동산 (참고용 - 자산 합계 미포함) -->
+  <div id="as-acc-realestate">
+    <div class="acc-header" id="as-acc-realestate-hd" onclick="toggleAcc('as-acc-realestate')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">🏘️</span>
+        <span style="font-size:14px;font-weight:700;">부동산</span>
+        <span class="bdg" id="as-realestate-badge" style="background:#fef3c7;color:#92400e;">—</span>
+        <span style="font-size:10px;color:var(--faint);font-weight:600;">참고 · 합계 미포함</span>
+      </div>
+      <span class="acc-arrow" id="as-acc-realestate-arr">▼</span>
+    </div>
+    <div class="acc-body" id="as-acc-realestate-body" style="display:none;">
+      <div class="acc-body-inner">
+        <div id="as-realestates"></div>
+        <div class="rltotal" style="border-top-color:#fde68a;"><span class="rk">부동산 평가 합계</span><span class="rv" id="as-realestate-total" style="color:#92400e;">—</span></div>
+        <div style="font-size:10px;color:var(--faint);margin-top:6px;line-height:1.5;">⚠️ 위 금액은 <b>참고용</b>이며 상단 자산 합계 차트에는 포함되지 않습니다.</div>
+      </div>
+    </div>
+  </div>
   <!-- 동기화 -->
   <div class="sync-card card"><div class="cp">
     <div class="ctitle" style="color:var(--blue);">📡 동기화 · 백업</div>
@@ -995,7 +1118,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;}
       <div class="steptitle">📱 통장 잔액</div>
       <span style="font-size:12px;color:var(--faint);">▼</span>
     </div>
-    <div class="stepbody on" id="sb1">
+    <div class="stepbody" id="sb1">
       <div class="al info" style="margin-bottom:12px;font-size:12px;"><div class="ali">💡</div><div>가용현금 = 결제+생활비+신한 합산 (자물쇠🔒는 참고용)</div></div>
       <div class="fg"><label>결제 통장</label><input class="fi" id="sn-결제통장" placeholder="1,204,407" oninput="onSnapInput()"></div>
       <div class="fg"><label style="color:var(--faint);">└ 카드값 자물쇠🔒 (다음달 출금 예정)</label><input class="fi" id="sn-카드자물쇠" placeholder="45,001" oninput="onSnapInput()"></div>
@@ -1315,6 +1438,55 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;}
     </div>
   </div>
 
+  <!-- 부동산 (참고용 - 자산 합계에는 미포함) -->
+  <div class="step" id="step5">
+    <div class="steph" onclick="toggleStep(5)">
+      <div class="stepnum" id="sn5">5</div>
+      <div class="steptitle">🏘️ 부동산 <span style="font-size:10px;font-weight:600;color:var(--faint);margin-left:4px;">(참고 · 자산 미포함)</span></div>
+      <span style="font-size:12px;color:var(--faint);">▼</span>
+    </div>
+    <div class="stepbody" id="sb5">
+      <div class="al info" style="margin-bottom:12px;font-size:12px;"><div class="ali">💡</div><div>실거주 보증금 및 보유 부동산은 매월 가벼운 트래킹용 (자산 합계 계산에는 포함하지 않음)</div></div>
+
+      <!-- 전세 보증금 -->
+      <div style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--text);">🏠 전세 보증금 (실거주)</div>
+        <div class="fg2">
+          <div class="fg"><label>본인 부담 보증금 (대출 제외)</label><input class="fi" id="sn-전세보증금" placeholder="20,000,000" inputmode="numeric" oninput="onSnapInput()"></div>
+          <div class="fg"><label>임대 종료일</label><input type="date" id="sn-전세만기" placeholder="2027-04-30"></div>
+        </div>
+        <div style="font-size:10px;color:var(--faint);margin-top:6px;">💡 전세대출(버팀목 1.4억)은 자동 반영되어 있어 여기 다시 입력하지 않습니다.</div>
+      </div>
+
+      <!-- 오피스텔 -->
+      <div style="border:1px solid var(--border);border-radius:var(--rsm);padding:12px;margin-bottom:8px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--text);">🏢 오피스텔 (보유)</div>
+        <div class="fg2">
+          <div class="fg"><label>현재 평가 시세</label><input class="fi" id="sn-오피스텔평가" placeholder="180,000,000" inputmode="numeric" oninput="onSnapInput();calcRealEstateGain()"></div>
+          <div class="fg"><label>매수가 (취득가)</label><input class="fi" id="sn-오피스텔매수" placeholder="170,000,000" inputmode="numeric" oninput="calcRealEstateGain()"></div>
+        </div>
+        <div id="오피스텔-return" style="font-size:12px;color:var(--faint);margin-top:4px;"></div>
+        <div style="font-size:10px;color:var(--faint);margin-top:6px;">💡 오피스텔 대출(1.7억)은 부채에 자동 반영되어 있습니다. 평가 시세는 매월 거의 안 바뀌어도 1번씩 갱신만 해주세요.</div>
+      </div>
+
+      <!-- 부동산 합계 미리보기 -->
+      <div id="snap-realestate-preview" style="display:none;background:#fefce8;border:1px solid #fde68a;border-radius:var(--rsm);padding:12px;margin-top:12px;">
+        <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;">🏘️ 부동산 (참고)</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">전세 보증금 (본인 부담)</span><span id="sre-deposit" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">오피스텔 평가</span><span id="sre-office" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0 2px;border-top:1.5px solid #fde68a;margin-top:4px;">
+          <span style="font-size:14px;font-weight:800;">부동산 평가 합계</span>
+          <span id="sre-total" style="font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;color:#92400e;">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px;">
+          <span style="color:var(--sub);">오피스텔 평가차익</span>
+          <span id="sre-gain" style="font-weight:700;font-variant-numeric:tabular-nums;"></span>
+        </div>
+        <div style="font-size:10px;color:var(--faint);margin-top:8px;line-height:1.5;">⚠️ 위 금액은 <b>참고용</b>이며 자산 페이지의 총자산/순자산 계산에는 포함되지 않습니다.</div>
+      </div>
+    </div>
+  </div>
+
   <div id="snap-result" style="text-align:center;font-size:13px;display:none;"></div>
 
   <!-- 예산 설정 (아코디언) -->
@@ -1532,7 +1704,9 @@ const SNAP_KEYS=['결제통장','카드자물쇠','생활비통장','고정자�
   '도형가족모임','예진가족모임',
   // 투자
   '월드컵납입','월드컵평가','퇴직연금납입','퇴직연금평가','퇴직연금상품',
-  'CMA납입','CMA','CMA원화현금','CMA원화주식','CMA달러현금','CMA달러주식','Abbott납입','Abbott','Medtronic납입','Medtronic'];
+  'CMA납입','CMA','CMA원화현금','CMA원화주식','CMA달러현금','CMA달러주식','Abbott납입','Abbott','Medtronic납입','Medtronic',
+  // 부동산 (참고용 - 자산 미포함)
+  '전세보증금','전세만기','오피스텔평가','오피스텔매수'];
 const BUDGET_KEYS=['도형월급','예진월급','인센','부수입',
   '월세','관리비','전세이자','식자재','교통','통신','인터넷','도형운동','예진운동',
   '외식비','간식','예진점심','소모품','쇼핑','미용','유니','경조사','용돈','기타',
@@ -1623,17 +1797,35 @@ function attachFlatpickr() {
   document.querySelectorAll('input[type="date"]:not([data-fp-attached])').forEach(inp => {
     inp.setAttribute('data-fp-attached', '1');
     try {
-      const placeholder = inp.placeholder || '날짜 선택';
-      flatpickr(inp, {
+      const placeholder = '예: 2030-01-31 (또는 📅 탭)';
+      const fp = flatpickr(inp, {
         locale: 'ko',
         dateFormat: 'Y-m-d',
         altInput: true,
-        altFormat: 'Y년 n월 j일',
+        altFormat: 'Y-m-d',
         altInputClass: 'flatpickr-alt-input',
-        allowInput: false,
-        disableMobile: true, // 모바일에서도 native가 아닌 flatpickr 사용
-        onReady: function(_, __, fp) {
-          if (fp.altInput) fp.altInput.placeholder = placeholder;
+        allowInput: true,
+        clickOpens: false, // 직접 입력 우선 — 캘린더는 아이콘 탭 시
+        disableMobile: true,
+        showMonths: 1,
+        monthSelectorType: 'dropdown',
+        position: 'auto center',
+        prevArrow: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>',
+        nextArrow: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>',
+        onReady: function(_, __, fpInst) {
+          if (fpInst.altInput) {
+            fpInst.altInput.placeholder = placeholder;
+            fpInst.altInput.removeAttribute('readonly'); // 직접 입력 허용
+            // 📅 아이콘만 탭하면 캘린더 열림 (input 영역은 직접 입력)
+            fpInst.altInput.addEventListener('click', (e) => {
+              const rect = fpInst.altInput.getBoundingClientRect();
+              const clickX = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX) || 0;
+              // 우측 40px 영역(아이콘 위치) 클릭이면 캘린더 열기
+              if (clickX > rect.right - 44) {
+                fpInst.open();
+              }
+            });
+          }
         }
       });
     } catch(e) {
@@ -1661,26 +1853,67 @@ function watchDateInputs() {
 // ━━ DIRTY FLAG SYSTEM (강화된 동시 편집 보호) ━━━━━━━━━━━━━━━━━━━━
 // 사용자가 한 번이라도 input에 입력하면 data-dirty 부착 + 마지막 입력 시각 기록
 // loadSnapshotForm/loadBudgetForm은 dirty이고 보호 시간 이내면 덮어쓰지 않음
-// 기본 보호 시간: 입력 후 30초 (focus 여부 무관)
-const DIRTY_PROTECT_MS = 30 * 1000;
-document.addEventListener('input', (e) => {
-  const inp = e.target;
+// 보호 시간: 입력 후 60초 (focus 여부 무관)
+const DIRTY_PROTECT_MS = 60 * 1000;
+const DIRTY_LS_KEY = 'ml_dirty_inputs'; // localStorage 백업
+function _readDirtyLS() {
+  try { return JSON.parse(localStorage.getItem(DIRTY_LS_KEY) || '{}'); } catch(_) { return {}; }
+}
+function _writeDirtyLS(obj) {
+  try { localStorage.setItem(DIRTY_LS_KEY, JSON.stringify(obj)); } catch(_) {}
+}
+function _markDirty(inp) {
   if (!inp || inp.tagName !== 'INPUT') return;
   if (!inp.id || (!inp.id.startsWith('sn-') && !inp.id.startsWith('b-'))) return;
+  const now = Date.now();
   inp.setAttribute('data-dirty', '1');
-  inp.setAttribute('data-dirty-at', String(Date.now()));
-}, true);
+  inp.setAttribute('data-dirty-at', String(now));
+  // localStorage에도 백업 (sbPull/페이지 전환에도 안전)
+  const ls = _readDirtyLS();
+  ls[inp.id] = { value: inp.value, at: now };
+  // 만료된(60초 초과) 항목 정리
+  Object.keys(ls).forEach(k => { if (now - (ls[k].at||0) > DIRTY_PROTECT_MS) delete ls[k]; });
+  _writeDirtyLS(ls);
+}
+// 다중 이벤트로 dirty 부착 (input/change/keyup)
+['input','change','keyup'].forEach(ev => {
+  document.addEventListener(ev, (e) => _markDirty(e.target), true);
+});
 function isInputDirty(inp) {
   if (!inp || !inp.getAttribute) return false;
   if (inp.getAttribute('data-dirty') !== '1') return false;
   const at = parseInt(inp.getAttribute('data-dirty-at') || '0', 10);
   return (Date.now() - at) < DIRTY_PROTECT_MS;
 }
+// localStorage에서 dirty 입력 가져오기
+function getDirtyFromLS() {
+  const ls = _readDirtyLS();
+  const now = Date.now();
+  const valid = {};
+  Object.keys(ls).forEach(k => {
+    if (now - (ls[k].at||0) < DIRTY_PROTECT_MS) valid[k] = ls[k];
+  });
+  return valid;
+}
 // dirty flag 수동 해제 (저장 직후 호출)
 function clearDirtyFlags() {
   document.querySelectorAll('input[data-dirty]').forEach(inp => {
     inp.removeAttribute('data-dirty');
     inp.removeAttribute('data-dirty-at');
+  });
+  _writeDirtyLS({});
+}
+// 페이지 로드 시 LS에 남아있는 dirty 값을 input에 복원 (안전장치)
+function restoreDirtyFromLS() {
+  const ls = getDirtyFromLS();
+  Object.keys(ls).forEach(id => {
+    const inp = document.getElementById(id);
+    if (!inp) return;
+    const saved = ls[id];
+    if (!saved) return;
+    if (inp.value !== saved.value) inp.value = saved.value;
+    inp.setAttribute('data-dirty', '1');
+    inp.setAttribute('data-dirty-at', String(saved.at));
   });
 }
 
@@ -1837,6 +2070,9 @@ function onSnapInput() {
       ig.style.color=totalGain>=0?'var(--green)':'var(--red)';
     }
   } else if(ip) ip.style.display='none';
+
+  // ── 부동산 미리보기 (참고용 - 자산 합계 미포함)
+  if (typeof calcRealEstateGain === 'function') calcRealEstateGain();
 }
 function saveSnapshot() {
   const mon=currentMonth(), state=getState(), md=ensureMonth(state,mon);
@@ -2881,6 +3117,37 @@ function renderAssetPage() {
     ].join('');
   }
   set('as-invest-total',fmtW(c.투자)); set('as-invest-badge',fmtW(c.투자));
+
+  // 🏘️ 부동산 (참고용 - 자산 합계 미포함)
+  const reEl = $('as-realestates');
+  if (reEl) {
+    const dep = sn.전세보증금 || 0;
+    const office = sn.오피스텔평가 || 0;
+    const officeCost = sn.오피스텔매수 || 0;
+    const reTotal = dep + office;
+    if (dep === 0 && office === 0) {
+      reEl.innerHTML = '<div style="text-align:center;padding:14px 0;color:var(--faint);font-size:12px;">설정 → 부동산에서 입력해 주세요</div>';
+    } else {
+      const rows = [];
+      if (dep > 0) {
+        rows.push('<div class="rl"><span class="rk">🏠 전세 보증금 (실거주)</span><span class="rv">'+fmtW(dep)+'</span></div>');
+      }
+      if (office > 0) {
+        let officeGain = '';
+        if (officeCost > 0) {
+          const gain = office - officeCost;
+          const gcls = gain >= 0 ? 'var(--green)' : 'var(--red)';
+          const gpct = ((gain/officeCost)*100).toFixed(1);
+          officeGain = ' <span style="font-size:11px;color:'+gcls+';font-weight:700;">('+(gain>=0?'+':'')+gpct+'%)</span>';
+        }
+        rows.push('<div class="rl"><span class="rk">🏢 오피스텔'+officeGain+'</span><span class="rv">'+fmtW(office)+'</span></div>');
+      }
+      reEl.innerHTML = rows.join('');
+    }
+    set('as-realestate-total', fmtW(reTotal));
+    const reBadgeEl = $('as-realestate-badge');
+    if (reBadgeEl) reBadgeEl.textContent = reTotal > 0 ? fmtW(reTotal) : '—';
+  }
 }
 
 // ━━ RECURRING ━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3037,73 +3304,99 @@ async function handleImageUpload(evt) {
   const res=$('img-result'); if(!res) return;
   res.style.display='block';
   res.innerHTML='<div style="text-align:center;padding:12px;color:var(--sub);">⏳ AI 분석 중...</div>';
+  // 파일 크기 체크 (5MB 초과 시 안내)
+  if (file.size > 5 * 1024 * 1024) {
+    res.innerHTML='<div class="al warn"><div class="ali">⚠️</div><div>이미지 파일이 너무 큽니다 ('+(file.size/1024/1024).toFixed(1)+'MB).<br>5MB 이하로 압축해 주세요.</div></div>';
+    return;
+  }
   const b64=await new Promise((ok,err)=>{
     const r=new FileReader(); r.onload=()=>ok(r.result.split(',')[1]); r.onerror=err; r.readAsDataURL(file);
   });
   const todayStr=getMonthKey()+'-'+String(new Date().getDate()).padStart(2,'0');
+  const userApiKey = localStorage.getItem('ml_anthropic_key') || '';
+  let rawText = ''; // 디버깅용 응답 텍스트 보존
+  let httpStatus = 0;
   try {
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',max_tokens:1500,
-        messages:[{role:'user',content:[
-          {type:'image',source:{type:'base64',media_type:file.type,data:b64}},
-          {type:'text',text:
-            '이 화면에서 보이는 모든 거래 내역(통장 입출금, 카드 결제, 가계부 항목 등)을 추출하세요.\n\n'+
-            '⚠️ 매우 중요: 거래가 1건만 보여도 반드시 JSON **배열**로 응답하세요. 예: [{"date":"2026-05-01","memo":"다이소","amt":1000,"type":"expense"}]\n\n'+
-            '규칙:\n'+
-            '1. 단 1건이어도 배열로 감쌀 것 (절대 객체 단독 X)\n'+
-            '2. 금액(amt)은 항상 양수 정수, 콤마 제거. -1,000원 → 1000, +50,000원 → 50000\n'+
-            '3. type은 출금/지출/-는 "expense", 입금/+는 "income"\n'+
-            '4. 날짜가 안 보이면 오늘 ('+todayStr+')\n'+
-            '5. 가맹점명/메모는 화면에 보이는 그대로 (예: "다이소", "고반식당 용인보정점", "네이버시리즈")\n'+
-            '6. 카드 종류/결제수단(예: "(신)KB국민 My WE:SH...")는 memo에 포함하지 말 것\n'+
-            '7. JSON 배열 외 어떤 설명도 추가하지 말 것 (코드블록 ```도 X)\n\n'+
-            '출력 형식 정확히: [{"date":"YYYY-MM-DD","memo":"...","amt":숫자,"type":"income"|"expense"}, ...]'
-          }
-        ]}]
-      })
-    });
-    if(!resp.ok) {
-      const errTxt = await resp.text();
-      throw new Error('API 오류 '+resp.status+': '+errTxt.slice(0,100));
+    const headers = {'Content-Type':'application/json'};
+    if (userApiKey) {
+      headers['x-api-key'] = userApiKey;
+      headers['anthropic-version'] = '2023-06-01';
+      headers['anthropic-dangerous-direct-browser-access'] = 'true';
     }
-    const data=await resp.json();
-    const txt=data.content?data.content.filter(b=>b.type==='text').map(b=>b.text).join(''):'';
-    if(!txt) throw new Error('AI 응답 없음');
-    // 1차 파싱 시도: 코드블록 제거 후
+    const reqBody = {
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1500,
+      messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:file.type,data:b64}},
+        {type:'text',text:
+          '이 화면에서 보이는 모든 거래 내역(통장 입출금, 카드 결제, 가계부 항목 등)을 추출하세요.\n\n'+
+          '⚠️ 매우 중요: 거래가 1건만 보여도 반드시 JSON **배열**로 응답하세요. 예: [{"date":"2026-05-01","memo":"다이소","amt":1000,"type":"expense"}]\n\n'+
+          '규칙:\n'+
+          '1. 단 1건이어도 배열로 감쌀 것 (절대 객체 단독 X)\n'+
+          '2. 금액(amt)은 항상 양수 정수, 콤마 제거. -1,000원 → 1000, +50,000원 → 50000\n'+
+          '3. type은 출금/지출/-는 "expense", 입금/+는 "income"\n'+
+          '4. 날짜가 안 보이면 오늘 ('+todayStr+')\n'+
+          '5. 가맹점명/메모는 화면에 보이는 그대로 (예: "다이소", "고반식당 용인보정점", "네이버시리즈")\n'+
+          '6. 카드 종류/결제수단(예: "(신)KB국민 My WE:SH...")는 memo에 포함하지 말 것\n'+
+          '7. JSON 배열 외 어떤 설명도 추가하지 말 것 (코드블록 ```도 X)\n\n'+
+          '출력 형식 정확히: [{"date":"YYYY-MM-DD","memo":"...","amt":숫자,"type":"income"|"expense"}, ...]'
+        }
+      ]}]
+    };
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers, body:JSON.stringify(reqBody)
+    });
+    httpStatus = resp.status;
+    rawText = await resp.text(); // 응답을 텍스트로 받아서 보존
+    if(!resp.ok) {
+      // 에러 응답에서 메시지 추출 시도
+      let errMsg = rawText;
+      try {
+        const errJson = JSON.parse(rawText);
+        if (errJson.error && errJson.error.message) errMsg = errJson.error.message;
+        else if (errJson.message) errMsg = errJson.message;
+      } catch(_) {}
+      throw new Error('HTTP '+resp.status+': '+errMsg.slice(0,200));
+    }
+    // 본문 JSON 파싱
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch(parseErr) {
+      throw new Error('응답이 JSON이 아님 ('+rawText.slice(0,80)+'...)');
+    }
+    // Anthropic 표준 응답: {content: [{type:'text', text:'...'}]}
+    const txt = data.content && Array.isArray(data.content)
+      ? data.content.filter(b=>b && b.type==='text').map(b=>b.text||'').join('')
+      : '';
+    if(!txt) {
+      // content가 없으면 응답 형태가 예상과 다른 것
+      const dump = JSON.stringify(data).slice(0, 200);
+      throw new Error('응답에 거래 텍스트 없음 ('+dump+')');
+    }
     let cleaned = txt.replace(/```json|```/g,'').trim();
-    // 텍스트 안에서 JSON만 추출 (앞뒤 설명 제거)
     const arrMatch = cleaned.match(/\[[\s\S]*\]/);
     const objMatch = cleaned.match(/\{[\s\S]*\}/);
     let txList=null;
     if(arrMatch) {
       try { txList = JSON.parse(arrMatch[0]); } catch(_) {}
     }
-    // 배열 파싱 실패 → 단일 객체 시도
     if(!Array.isArray(txList) && objMatch) {
       try {
         const obj = JSON.parse(objMatch[0]);
-        // 객체에 amt가 있으면 단건 거래로 간주
-        if(obj && (obj.amt != null || obj.amount != null)) {
-          txList = [obj];
-        } else if(obj && Array.isArray(obj.transactions)) {
-          txList = obj.transactions;
-        } else if(obj && Array.isArray(obj.items)) {
-          txList = obj.items;
-        }
+        if(obj && (obj.amt != null || obj.amount != null)) txList = [obj];
+        else if(obj && Array.isArray(obj.transactions)) txList = obj.transactions;
+        else if(obj && Array.isArray(obj.items)) txList = obj.items;
       } catch(_) {}
     }
-    // 마지막 시도: cleaned 전체 파싱
     if(!Array.isArray(txList)) {
       try {
         const parsed = JSON.parse(cleaned);
         txList = Array.isArray(parsed) ? parsed : [parsed];
       } catch(_) {
-        throw new Error('JSON 파싱 실패: '+cleaned.slice(0,80));
+        throw new Error('JSON 파싱 실패. AI 응답 첫 80자: '+cleaned.slice(0,80));
       }
     }
-    // 정규화: 필드 보정
     txList = (txList||[]).filter(t=>t && (t.amt != null || t.amount != null)).map(t=>({
       date: t.date || todayStr,
       memo: (t.memo || t.description || t.merchant || '거래').toString(),
@@ -3111,13 +3404,84 @@ async function handleImageUpload(evt) {
       type: (t.type==='income' || t.type==='입금' || t.type==='수입') ? 'income' : 'expense'
     })).filter(t=>t.amt > 0);
     if(txList.length===0){
-      res.innerHTML='<div class="al warn"><div class="ali">⚠️</div><div>거래 내역을 찾을 수 없습니다. 금액·날짜가 또렷한 화면을 사용해 주세요.</div></div>';
+      res.innerHTML='<div class="al warn"><div class="ali">⚠️</div><div>거래 내역을 찾을 수 없습니다. 금액·날짜가 또렷한 화면을 사용해 주세요.<br><span style="font-size:11px;color:var(--faint);">AI 응답: '+(cleaned||'(빈 응답)').slice(0,100)+'</span></div></div>';
       return;
     }
     showImageResults(txList);
   } catch(e) {
-    console.error('[handleImageUpload]', e);
-    res.innerHTML='<div class="al warn"><div class="ali">⚠️</div><div>이미지 분석에 실패했습니다.<br><span style="font-size:11px;color:var(--faint);">'+(e.message||'알 수 없는 오류').slice(0,120)+'</span></div></div>';
+    console.error('[handleImageUpload]', e, 'rawText:', rawText);
+    const errMsg = (e.message||'알 수 없는 오류').toString();
+    const isFetchFail = errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError') || errMsg.includes('TypeError');
+    const isCORS = errMsg.includes('CORS') || errMsg.includes('cors');
+    const isAuth = httpStatus === 401 || httpStatus === 403 || errMsg.toLowerCase().includes('authentication') || errMsg.toLowerCase().includes('api key');
+    if (isFetchFail || isCORS) {
+      // 네트워크/CORS 실패
+      res.innerHTML =
+        '<div class="al warn" style="flex-direction:column;align-items:flex-start;">'
+        +'<div style="display:flex;align-items:flex-start;gap:8px;width:100%;">'
+        +'<div class="ali">⚠️</div>'
+        +'<div style="flex:1;"><b>이미지 자동 인식을 사용할 수 없습니다</b><br>'
+        +'<span style="font-size:12px;color:var(--sub);">브라우저에서 Anthropic API 직접 호출이 차단됩니다 (CORS).</span></div>'
+        +'</div>'
+        +'<div style="margin-top:10px;width:100%;font-size:12px;color:var(--text);line-height:1.7;">'
+        +'<b>해결 방법</b><br>'
+        +'① Anthropic API 키 입력 (브라우저 직접 호출 모드)<br>'
+        +'② 카카오톡/인스타그램 인앱 브라우저 X — 사파리/크롬으로 열기<br>'
+        +'③ 거래 추가 버튼으로 수동 입력'
+        +'</div>'
+        +'<div style="margin-top:10px;width:100%;display:flex;gap:6px;">'
+        +'<input type="password" id="user-api-key-inp" placeholder="sk-ant-..." style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;" value="'+(userApiKey||'').replace(/"/g,'&quot;')+'">'
+        +'<button onclick="saveUserApiKey()" style="padding:8px 14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">저장</button>'
+        +'</div>'
+        +'<div style="margin-top:6px;width:100%;font-size:10px;color:var(--faint);">키는 본 기기 localStorage에만 저장됩니다. <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--blue);">키 발급 →</a></div>'
+        +'</div>';
+    } else if (isAuth) {
+      // API 키 인증 실패
+      res.innerHTML =
+        '<div class="al warn" style="flex-direction:column;align-items:flex-start;">'
+        +'<div style="display:flex;align-items:flex-start;gap:8px;width:100%;">'
+        +'<div class="ali">🔑</div>'
+        +'<div style="flex:1;"><b>API 키 인증 실패</b><br>'
+        +'<span style="font-size:12px;color:var(--sub);">'+errMsg.slice(0,150)+'</span></div>'
+        +'</div>'
+        +'<div style="margin-top:10px;width:100%;display:flex;gap:6px;">'
+        +'<input type="password" id="user-api-key-inp" placeholder="sk-ant-..." style="flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;">'
+        +'<button onclick="saveUserApiKey()" style="padding:8px 14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;">새 키 저장</button>'
+        +'</div>'
+        +'<div style="margin-top:6px;width:100%;font-size:10px;color:var(--faint);"><a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--blue);">유효한 키 발급받기 →</a></div>'
+        +'</div>';
+    } else {
+      // 기타 — 자세한 정보 노출
+      const truncatedRaw = rawText ? rawText.slice(0, 200) : '';
+      res.innerHTML =
+        '<div class="al warn" style="flex-direction:column;align-items:flex-start;">'
+        +'<div style="display:flex;align-items:flex-start;gap:8px;width:100%;">'
+        +'<div class="ali">⚠️</div>'
+        +'<div style="flex:1;"><b>이미지 분석 실패</b><br>'
+        +'<span style="font-size:11px;color:var(--faint);font-family:monospace;word-break:break-all;">'+errMsg.slice(0,150)+'</span></div>'
+        +'</div>'
+        +(truncatedRaw ? '<details style="margin-top:8px;width:100%;font-size:10px;color:var(--faint);"><summary style="cursor:pointer;">▼ 응답 본문 보기 (디버그용)</summary><pre style="margin-top:6px;padding:6px;background:#f8f9fa;border-radius:4px;font-size:9px;white-space:pre-wrap;word-break:break-all;max-height:120px;overflow:auto;">'+truncatedRaw.replace(/</g,'&lt;')+'</pre></details>' : '')
+        +'<div style="margin-top:8px;width:100%;font-size:11px;color:var(--sub);">💡 거래 추가 버튼으로 수동 입력하시거나, 다른 화면 캡처를 시도해보세요.</div>'
+        +'</div>';
+    }
+  }
+}
+
+// 사용자 Anthropic API 키 저장 (이미지 인식용)
+function saveUserApiKey() {
+  const inp = $('user-api-key-inp');
+  if (!inp) return;
+  const key = (inp.value||'').trim();
+  if (key && !key.startsWith('sk-ant-')) {
+    showToast('⚠️ Anthropic API 키 형식이 아닙니다 (sk-ant-...)');
+    return;
+  }
+  if (key) {
+    localStorage.setItem('ml_anthropic_key', key);
+    showToast('✅ API 키 저장됨. 이미지를 다시 업로드하세요.');
+  } else {
+    localStorage.removeItem('ml_anthropic_key');
+    showToast('🗑 API 키 삭제됨');
   }
 }
 // 이미지 분석 결과 편집 폼으로 표시
@@ -3947,6 +4311,54 @@ function calcInvestReturn(key) {
   resEl.innerHTML='<span style="'+cls+';font-weight:700;">'+(gain>=0?'▲':'▼')+' '+(gain>=0?'+':'')+fmt(gain)+'원 ('+rate+'%)</span>';
 }
 
+// 오피스텔 평가차익 계산 (sn-오피스텔평가 vs sn-오피스텔매수)
+function calcRealEstateGain() {
+  const valEl = $('sn-오피스텔평가');
+  const costEl = $('sn-오피스텔매수');
+  const resEl = $('오피스텔-return');
+  const previewEl = $('snap-realestate-preview');
+  const depEl = $('sn-전세보증금');
+  // 개별 차익 계산
+  if (valEl && costEl && resEl) {
+    const cost = parseNum(costEl.value);
+    const val = parseNum(valEl.value);
+    if (cost && val) {
+      const gain = val - cost;
+      const rate = (gain/cost*100).toFixed(2);
+      const cls = gain>=0?'color:var(--green)':'color:var(--red)';
+      resEl.innerHTML = '<span style="'+cls+';font-weight:700;">'+(gain>=0?'▲':'▼')+' '+(gain>=0?'+':'')+fmt(gain)+'원 ('+rate+'%)</span>';
+    } else {
+      resEl.textContent = '';
+    }
+  }
+  // 미리보기 렌더
+  if (!previewEl) return;
+  const dep = depEl ? parseNum(depEl.value) : 0;
+  const office = valEl ? parseNum(valEl.value) : 0;
+  const cost = costEl ? parseNum(costEl.value) : 0;
+  if (dep === 0 && office === 0) {
+    previewEl.style.display = 'none';
+    return;
+  }
+  previewEl.style.display = 'block';
+  const total = dep + office;
+  const gain = office && cost ? (office - cost) : 0;
+  const gainRate = office && cost ? ((gain/cost)*100).toFixed(1) : '0';
+  const setText = (id, txt) => { const e = $(id); if (e) e.textContent = txt; };
+  setText('sre-deposit', fmtW(dep));
+  setText('sre-office', fmtW(office));
+  setText('sre-total', fmtW(total));
+  const gainEl = $('sre-gain');
+  if (gainEl) {
+    if (office && cost) {
+      const gcls = gain >= 0 ? 'var(--green)' : 'var(--red)';
+      gainEl.innerHTML = '<span style="color:'+gcls+';">'+(gain>=0?'+':'')+fmt(gain)+'원 ('+gainRate+'%)</span>';
+    } else {
+      gainEl.textContent = '—';
+    }
+  }
+}
+
 // ━━ 저축/대출 만기 경보 렌더 (자산 탭)
 function renderMaturityAlerts(sn) {
   const alerts = [];
@@ -3986,9 +4398,17 @@ async function handleAssetImageUpload(evt, assetType) {
     const r=new FileReader(); r.onload=()=>ok(r.result.split(',')[1]); r.onerror=err; r.readAsDataURL(file);
   });
 
+  const userApiKey = localStorage.getItem('ml_anthropic_key') || '';
+  let rawText = ''; let httpStatus = 0;
   try {
+    const headers = {'Content-Type':'application/json'};
+    if (userApiKey) {
+      headers['x-api-key'] = userApiKey;
+      headers['anthropic-version'] = '2023-06-01';
+      headers['anthropic-dangerous-direct-browser-access'] = 'true';
+    }
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers,
       body: JSON.stringify({
         model:'claude-sonnet-4-20250514', max_tokens:1000,
         messages:[{role:'user', content:[
@@ -3997,10 +4417,13 @@ async function handleAssetImageUpload(evt, assetType) {
         ]}]
       })
     });
-    const data = await resp.json();
+    httpStatus = resp.status;
+    rawText = await resp.text();
+    if (!resp.ok) throw new Error('HTTP '+resp.status+': '+rawText.slice(0,150));
+    const data = JSON.parse(rawText);
     const txt = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
     let parsed;
-    try { parsed = JSON.parse(txt.replace(/```json|```/g,'').trim()); } catch { throw new Error('파싱 실패'); }
+    try { parsed = JSON.parse(txt.replace(/```json|```/g,'').trim()); } catch { throw new Error('파싱 실패: '+txt.slice(0,80)); }
     const items = parsed.항목||[];
     if(!items.length) { resEl.innerHTML='<div style="color:var(--faint);font-size:13px;text-align:center;padding:12px;">인식된 항목이 없습니다. 더 선명한 이미지를 올려주세요.</div>'; return; }
 
@@ -4021,12 +4444,18 @@ async function handleAssetImageUpload(evt, assetType) {
           +'</div></label>';
       }).join('')
       +'<div class="btnrow" style="margin-top:10px;">'
-      +'<div class="btnrow" style="margin-top:10px;">'
       +'<button class="btn btn-blue" onclick="window._aiItems=window._aiItems||{};window._aiItems.'+assetType+'='+JSON.stringify(items)+';applyAssetAI(\''+assetType+'\');">필드에 적용하기</button>'
       +'<button onclick="document.getElementById(\''+assetType+'-img-result\').innerHTML=\'\'" style="flex:0 0 auto;height:44px;padding:0 14px;border:1.5px solid var(--border);border-radius:var(--rsm);background:var(--white);font-size:13px;font-weight:600;cursor:pointer;">취소</button>'
       +'</div>';
   } catch(e) {
-    resEl.innerHTML = '<div class="al warn"><div class="ali">⚠️</div><div>분석 실패. 텍스트가 명확한 화면을 올려주세요.</div></div>';
+    console.error('[handleAssetImageUpload]', e, 'rawText:', rawText);
+    const errMsg = (e.message||'알 수 없는 오류').toString();
+    const isFetchFail = errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError') || errMsg.includes('TypeError');
+    if (isFetchFail) {
+      resEl.innerHTML = '<div class="al warn"><div class="ali">⚠️</div><div>API 호출 실패 (CORS).<br><span style="font-size:11px;color:var(--faint);">기록 탭 AI 자동 입력에서 API 키를 먼저 설정해주세요.</span></div></div>';
+    } else {
+      resEl.innerHTML = '<div class="al warn"><div class="ali">⚠️</div><div>분석 실패<br><span style="font-size:11px;color:var(--faint);">'+errMsg.slice(0,150)+'</span></div></div>';
+    }
   }
 }
 
@@ -4329,15 +4758,17 @@ async function sbPull(silent = false) {
       if (!silent) showToast('아직 저장된 데이터 없음. 지금 저장하기를 눌러주세요.');
       return;
     }
-    // 🔒 dirty input의 현재 값을 미리 백업 (applyAllData 후 복원)
+    // 🔒 dirty input(사용자가 입력 중) 백업 — DOM + localStorage 양쪽 모두
     const dirtySnapshot = {};
     document.querySelectorAll('input[data-dirty="1"]').forEach(inp => {
       if (inp.id) {
-        dirtySnapshot[inp.id] = {
-          value: inp.value,
-          dirtyAt: inp.getAttribute('data-dirty-at')
-        };
+        dirtySnapshot[inp.id] = { value: inp.value, at: parseInt(inp.getAttribute('data-dirty-at')||'0',10) };
       }
+    });
+    // localStorage 백업 머지 (DOM에 없거나 attribute가 사라진 경우 대비)
+    const lsBackup = getDirtyFromLS();
+    Object.keys(lsBackup).forEach(id => {
+      if (!dirtySnapshot[id]) dirtySnapshot[id] = lsBackup[id];
     });
     const parsed = JSON.parse(data.value);
     applyAllData(parsed);
@@ -4347,19 +4778,20 @@ async function sbPull(silent = false) {
     if (!silent) showToast('✅ 최신 데이터 수신 완료!', 2500);
     renderAll();
     if (curPage === 'setting') { loadSnapshotForm(); loadBudgetForm(); }
-    // 🔒 dirty 값 복원 (loadSnapshotForm/loadBudgetForm이 보호하지 못한 케이스 대비)
+    // 🔒 dirty 백업값 무조건 복원 (사용자 입력은 절대 롤백되지 않음)
     Object.keys(dirtySnapshot).forEach(id => {
       const inp = document.getElementById(id);
-      if (inp && isInputDirty(inp)) {
-        // 여전히 dirty 상태이면 사용자가 입력한 값 강제 복원
-        const saved = dirtySnapshot[id];
-        if (saved && inp.value !== saved.value) {
-          inp.value = saved.value;
-          // dirty flag 재부착 (applyAllData가 attribute를 날렸을 수 있음)
-          inp.setAttribute('data-dirty', '1');
-          if (saved.dirtyAt) inp.setAttribute('data-dirty-at', saved.dirtyAt);
-        }
+      if (!inp) return;
+      const saved = dirtySnapshot[id];
+      if (!saved) return;
+      // 보호 시간 이내일 때만 복원
+      if (Date.now() - (saved.at||0) > DIRTY_PROTECT_MS) return;
+      // 무조건 백업 값으로 복원 + dirty flag 재부착
+      if (inp.value !== saved.value) {
+        inp.value = saved.value;
       }
+      inp.setAttribute('data-dirty', '1');
+      inp.setAttribute('data-dirty-at', String(saved.at));
     });
   } catch(e) {
     if (!silent) showToast('❌ 불러오기 실패: ' + e.message);
@@ -4381,18 +4813,20 @@ function sbSubscribe() {
       filter: 'id=eq.1'
     }, (payload) => {
       if (isSyncing) return; // 내가 업데이트한 건 무시
-      // 🔒 보류 조건: focus 중이거나 dirty input이 하나라도 있으면 보류
-      const hasDirtyInput = !!document.querySelector('input[data-dirty="1"]');
-      if (_focusedInputId || hasDirtyInput) {
+      // 🔒 보류 조건: focus 중이거나 dirty input(DOM/localStorage)이 하나라도 있으면 보류
+      const hasDirtyDOM = !!document.querySelector('input[data-dirty="1"]');
+      const hasDirtyLS = Object.keys(getDirtyFromLS()).length > 0;
+      if (_focusedInputId || hasDirtyDOM || hasDirtyLS) {
         console.log('실시간 업데이트 감지 (편집/dirty 중 → 보류)');
         showToast('🔄 상대방이 입력 중... (편집 끝나면 자동 반영)', 2000);
         const waitAndPull = () => {
           const stillFocused = !!_focusedInputId;
-          // dirty 중에서도 30초 보호 시간 안 지난 게 있는지 확인
           let stillDirty = false;
           document.querySelectorAll('input[data-dirty="1"]').forEach(inp => {
             if (isInputDirty(inp)) stillDirty = true;
           });
+          // localStorage 백업도 체크
+          if (Object.keys(getDirtyFromLS()).length > 0) stillDirty = true;
           if (!stillFocused && !stillDirty) {
             sbPull(true).then(() => showToast('🔄 실시간 업데이트됨', 1500));
           } else {
@@ -4721,9 +5155,7 @@ function init() {
   initTopBtn();
   renderGistSettings();
   initSupabase();
-  // 고정지출 아코디언 기본 열기
-  const fixedBody=$('fixed-acc-body');
-  if(fixedBody){ fixedBody.style.display='block'; const arr=$('fixed-acc-arr'); if(arr) arr.classList.add('open'); const hd=$('fixed-acc-hd'); if(hd) hd.classList.add('open'); }
+  // (모든 아코디언 기본 닫힘 — 사용자 요청)
   // 날짜 초기화
   const today=new Date();
   const pad=n=>String(n).padStart(2,'0');
@@ -4734,6 +5166,8 @@ function init() {
   loadPlanInputs();
   renderAll();
   loadSnapshotForm(); loadBudgetForm(); renderCatFields();
+  // 🔒 페이지 새로고침/재진입 시 localStorage에 남아있는 dirty 입력값 복원
+  restoreDirtyFromLS();
   // 💱 환율 초기 로드 + 30분마다 자동 새로고침
   refreshFxRate();
   setInterval(refreshFxRate, 30 * 60 * 1000);
