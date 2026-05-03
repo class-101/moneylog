@@ -778,6 +778,12 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         <span id="rec-mon-label" style="font-size:12px;color:var(--faint);"></span>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
+        <select class="fsel" id="rec-sort" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;">
+          <option value="date_desc">최신순</option>
+          <option value="date_asc">오래된순</option>
+          <option value="amt_desc">금액 높은순</option>
+          <option value="amt_asc">금액 낮은순</option>
+        </select>
         <select class="fsel" id="rec-filter" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;">
           <option value="">전체</option>
           <option value="income">수입</option>
@@ -1721,7 +1727,7 @@ function getCatMap() { return LS('ml_cats') || {
   transfer:['저축 이체','투자 이체','가족 이체','개인 이체','환급','기타 이체'],
 }; }
 function saveCatMap(m) { LS_SET('ml_cats',m); }
-function getPayMethods() { return LS('ml_methods') || ['카드','현금','이체','자동이체','계좌이체','삼성페이','카카오페이']; }
+function getPayMethods() { return LS('ml_methods') || ['체크카드','신용카드','현금','이체','자동이체','계좌이체','삼성페이','카카오페이']; }
 function savePayMethods(a) { LS_SET('ml_methods',a); }
 function getRecurring() { return LS('ml_recurring') || []; }
 function saveRecurring(a) { LS_SET('ml_recurring',a); }
@@ -1792,7 +1798,7 @@ document.addEventListener('input', autoCommaFormat, true);
 // type="date" input을 flatpickr로 자동 변환
 function attachFlatpickr() {
   if (typeof flatpickr === 'undefined') return;
-  document.querySelectorAll('input[type="date"]:not([data-fp-attached])').forEach(inp => {
+  document.querySelectorAll('input[type="date"]:not([data-fp-attached]):not([data-no-fp])').forEach(inp => {
     inp.setAttribute('data-fp-attached', '1');
     try {
       const placeholder = '날짜 입력 또는 선택';
@@ -2273,7 +2279,7 @@ function updateRecCats() {
 }
 function updateRecMethods() {
   const sel=$('r-method'); if(!sel) return;
-  sel.innerHTML=getPayMethods().map(m=>'<option>'+m+'</option>').join('');
+  sel.innerHTML=getPayMethods().map(m=>'<option'+(m==='체크카드'?' selected':'')+'>'+m+'</option>').join('');
 }
 function submitTx() {
   const date=$('r-date')?$('r-date').value:'';
@@ -2333,14 +2339,14 @@ function openTxDrawer() {
     + '<input class="fi" id="drw-amt" placeholder="0" inputmode="numeric" oninput="fmtInput(this)" style="font-size:20px;font-weight:700;text-align:right;" autofocus>'
     + '</div>'
     // 날짜
-    + '<div class="fg2"><div class="fg"><label>날짜</label><input class="fi" type="date" id="drw-date" value="'+todayStr+'"></div>'
+    + '<div class="fg2"><div class="fg"><label>날짜</label><input class="fi" type="date" id="drw-date" data-no-fp value="'+todayStr+'"></div>'
     // 카테고리 (이름 겸용)
     + '<div class="fg"><label>카테고리</label><select class="fsel fi" id="drw-cat"></select></div></div>'
     // 메모
     + '<div class="fg"><label>메모 <span style="color:var(--faint);font-weight:400;">(선택)</span></label><input class="fi" id="drw-memo" placeholder="예: 스타벅스 강남역"></div>'
     // 결제수단
     + '<div class="fg" style="margin-bottom:16px;"><label>결제 수단</label>'
-    + '<select class="fsel fi" id="drw-method">'+getPayMethods().map(m=>'<option>'+m+'</option>').join('')+'</select></div>'
+    + '<select class="fsel fi" id="drw-method">'+getPayMethods().map(m=>'<option'+(m==='체크카드'?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
     + '<button class="btn btn-blue" onclick="submitTxDrawer()">추가하기</button>';
 
   updateDrwCats();
@@ -2522,7 +2528,7 @@ function openRecAdd() {
     + '<div class="fg"><label>금액</label><input class="fi" id="rta-amt" inputmode="numeric" placeholder="0"></div>'
     + '<div class="fg"><label>출금일 (매달)</label><input class="fi" id="rta-day" inputmode="numeric" placeholder="1"></div>'
     + '</div>'
-    + '<div class="fg"><label>결제 수단</label><select class="fsel fi" id="rta-method">'+getPayMethods().map(m=>'<option>'+m+'</option>').join('')+'</select></div>'
+    + '<div class="fg"><label>결제 수단</label><select class="fsel fi" id="rta-method">'+getPayMethods().map(m=>'<option'+(m==='체크카드'?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
     + '<button class="btn btn-blue" onclick="submitRec()">추가하기</button>';
   updateRTCats();
   openDrawer();
@@ -2534,7 +2540,13 @@ function renderRecordPage() {
   if(label) label.textContent=mon.replace('-','년 ')+'월';
   const state=getState(), md=state[mon]||{transactions:[]};
   const typeF=$('rec-filter')?$('rec-filter').value:'';
-  let txs=[...md.transactions].sort((a,b)=>b.date.localeCompare(a.date));
+  const sortBy=$('rec-sort')?$('rec-sort').value:'date_desc';
+  let txs=[...md.transactions];
+  // 정렬
+  if (sortBy === 'date_asc') txs.sort((a,b)=>a.date.localeCompare(b.date) || (a.id||0)-(b.id||0));
+  else if (sortBy === 'amt_desc') txs.sort((a,b)=>(b.amt||0)-(a.amt||0));
+  else if (sortBy === 'amt_asc') txs.sort((a,b)=>(a.amt||0)-(b.amt||0));
+  else txs.sort((a,b)=>b.date.localeCompare(a.date) || (b.id||0)-(a.id||0));
   if(typeF) txs=txs.filter(t=>t.type===typeF);
   const wrap=$('rec-tx-list');
   if(wrap) {
@@ -2699,7 +2711,7 @@ function openEditTx(mon, id) {
   const catOpts=curCats.map(cat=>'<option value="'+cat+'"'+(cat===tx.cat?' selected':'')+'>'+cat+'</option>').join('');
   $('dbody').innerHTML=
     '<div class="fg2">'
-    +'<div class="fg"><label>날짜</label><input class="fi" type="date" id="et-date" value="'+tx.date+'"></div>'
+    +'<div class="fg"><label>날짜</label><input class="fi" type="date" id="et-date" data-no-fp value="'+tx.date+'"></div>'
     +'<div class="fg"><label>금액</label><input class="fi" id="et-amt" value="'+fmt(tx.amt)+'" inputmode="numeric"></div>'
     +'</div>'
     +'<div class="fg"><label>유형</label><select class="fsel fi" id="et-type" onchange="updateEditCats()">'+typeOpts+'</select></div>'
@@ -3651,7 +3663,7 @@ function applyImageTxs(txList) {
       date:t.date||mon+'-'+String(new Date().getDate()).padStart(2,'0'),
       type:auto.type,
       cat:auto.cat,
-      amt:t.amt, memo:t.memo||'', method:'카드'
+      amt:t.amt, memo:t.memo||'', method:'체크카드'
     });
     cnt++;
   });
