@@ -278,6 +278,23 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   background:var(--bg);border-radius:12px;
   border:1px solid var(--border);
 }
+.rec-row-sub{
+  margin-top:10px;padding:10px 12px 8px;
+  background:var(--blue-light);
+  border-radius:10px;
+  border:1px dashed #bfdbfe;
+}
+.rec-row-sub .rec-row-head{margin-bottom:8px;}
+.rec-row-name-sub{
+  font-size:11.5px;color:var(--sub);font-weight:600;
+  letter-spacing:-.2px;
+}
+.rec-sub-icon{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:50%;
+  background:rgba(255,255,255,.7);
+  font-size:11px;
+}
 .rec-row-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .rec-row-name{font-size:13px;font-weight:700;color:var(--text);}
 .rec-row-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
@@ -1973,7 +1990,7 @@ const FIXED_LOANS = {
 };
 const SNAP_KEYS=['결제통장','카드자물쇠','생활비통장','고정자물쇠','도형신한',
   // 토스 실잔액 (보정용)
-  '실잔_결제','실잔_생활비','실잔_신한',
+  '실잔_결제','실잔_생활비','실잔_자물쇠','실잔_신한',
   // 대출
   '도형마통','도형마통금리','도형마통한도','도형마통기관',
   '예진마통','예진마통금리','예진마통한도','예진마통기관',
@@ -3640,13 +3657,17 @@ function renderAssetPage() {
   const 보관합계 = c.보관중;
 
   // 토스/네이버 스타일 통장 카드 빌더
-  const acctCard = (name, balance, badge, lockTitle, lockAmt, lockTone, dirty, role, variant) => {
+  const acctCard = (name, balance, badge, lockTitle, lockAmt, lockTone, dirty, role, variant, lockDirty) => {
     const balCls = balance>=0 ? (variant==='nextmonth'?'csb':'cbl') : 'crd';
     const cardCls = 'bank-card' + (variant==='nextmonth' ? ' bank-card-nextmonth' : '');
     // dirty: 사용자 입력 잔액과 거래 합산값 차이 (있으면 노란 안내)
     const diffBox = dirty ? '<div style="margin-top:8px;padding:8px 10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:11px;color:#92400e;line-height:1.5;">'
       + '⚠️ 토스 실잔액과 ' + fmtW(Math.abs(dirty)) + ' 차이. <a onclick="reconcileBank(\''+name+'\')" style="color:#b45309;font-weight:700;text-decoration:underline;cursor:pointer;">잔액 보정</a>'
       + '</div>' : '';
+    // lockDirty: 자물쇠 잔액 차이 (생활비 통장에만 사용)
+    const lockDiffNote = lockDirty
+      ? '<span style="font-size:10.5px;color:#b45309;font-weight:700;margin-left:6px;">⚠️ '+fmtW(Math.abs(lockDirty))+' 차이</span>'
+      : '';
     return '<div class="'+cardCls+'">'
       // 1행: 이름 + 배지
       + '<div class="bank-row1">'
@@ -3657,12 +3678,12 @@ function renderAssetPage() {
       + (role ? '<div class="bank-role">'+role+'</div>' : '')
       // 2행: 큰 잔액 (자유 잔액 강조)
       + '<div class="bank-amt '+balCls+'">'+fmtW(balance)+'</div>'
-      // 3행: 자물쇠 보관 영역 (있을 때만)
-      + (lockTitle ? '<div class="bank-lock '+lockTone+'">'
+      // 3행: 자물쇠 보관 영역 (있을 때만) + 보정 링크
+      + (lockTitle ? '<div class="bank-lock '+lockTone+'" onclick="reconcileBank(\'자물쇠\')" style="cursor:pointer;" title="자물쇠 보관액 보정">'
           +   '<div class="bank-lock-icon">🔒</div>'
           +   '<div class="bank-lock-text">'
-          +     '<div class="bank-lock-label">'+lockTitle+'</div>'
-          +     '<div class="bank-lock-amt">'+fmtW(lockAmt)+' 보관중</div>'
+          +     '<div class="bank-lock-label">'+lockTitle+lockDiffNote+'</div>'
+          +     '<div class="bank-lock-amt">'+fmtW(lockAmt)+' 보관중 <span style="font-size:10px;color:var(--faint);font-weight:500;margin-left:4px;">✏️ 보정</span></div>'
           +   '</div>'
           + '</div>' : '')
       + diffBox
@@ -3674,9 +3695,11 @@ function renderAssetPage() {
     const 토스결제실잔 = (sn.실잔_결제 != null) ? sn.실잔_결제 : null;
     const 토스생활비실잔 = (sn.실잔_생활비 != null) ? sn.실잔_생활비 : null;
     const 토스신한실잔 = (sn.실잔_신한 != null) ? sn.실잔_신한 : null;
+    const 토스자물쇠실잔 = (sn.실잔_자물쇠 != null) ? sn.실잔_자물쇠 : null;
     const diff결제 = 토스결제실잔 != null ? (c.결제 - 토스결제실잔) : 0;
     const diff생활비 = 토스생활비실잔 != null ? (c.생활비 - 토스생활비실잔) : 0;
     const diff신한 = 토스신한실잔 != null ? (c.신한 - 토스신한실잔) : 0;
+    const diff자물쇠 = 토스자물쇠실잔 != null ? (c.고정자물쇠 - 토스자물쇠실잔) : 0;
 
     // 결제 통장: 자물쇠 박스 제거 — 통장 자체가 "다음달 카드값 모음" 역할
     // 카드값이 있으면 통장 설명에만 표시 (별도 보관 박스 X)
@@ -3685,19 +3708,24 @@ function renderAssetPage() {
       : '다음달 나갈 카드값 모음';
 
     // 생활비 통장: 자물쇠 박스 유지 (사용자 운영 흐름 그대로)
-    const 자물쇠경고문구 = 자물쇠잔액 < 0
+    let 자물쇠경고문구 = 자물쇠잔액 < 0
       ? '⚠️ 고정비 자물쇠 ' + fmtW(Math.abs(자물쇠잔액)) + ' 초과 사용'
       : '이번달 나갈 고정비/저축/투자';
+    // 자물쇠가 생활비 통장 잔액보다 크면 모순 상태 (보정 필요)
+    if (자물쇠잔액 > c.생활비 && 자물쇠잔액 > 0 && c.생활비 > 0) {
+      자물쇠경고문구 = '⚠️ 자물쇠가 생활비 잔액보다 많음 — 보정 필요';
+    }
     const 생활비Lock = (자물쇠잔액 !== 0 || 자물쇠사용액 > 0)
-      ? { title: 자물쇠경고문구, amt: 자물쇠잔액, tone: 자물쇠잔액<0 ? 'tone-red' : 'tone-blue' }
+      ? { title: 자물쇠경고문구, amt: 자물쇠잔액,
+          tone: (자물쇠잔액<0 || 자물쇠잔액>c.생활비) ? 'tone-red' : 'tone-blue' }
       : null;
 
     cashList.innerHTML =
       acctCard('결제 통장', c.결제, '<span class="bdg bdg-bl">결제</span>',
-               null, 0, '', diff결제, 결제역할, 'nextmonth')
+               null, 0, '', diff결제, 결제역할, 'nextmonth', 0)
       + acctCard('생활비 통장', c.생활비, '<span class="bdg bdg-tl">생활</span>',
-                 생활비Lock?생활비Lock.title:null, 생활비Lock?생활비Lock.amt:0, 생활비Lock?생활비Lock.tone:'', diff생활비, '변동지출 · 자물쇠 안 고정/저축/투자')
-      + acctCard('도형 신한', c.신한, '<span class="bdg bdg-gy">신한</span>', null, 0, '', diff신한, '비상금 · 별도 보관');
+                 생활비Lock?생활비Lock.title:null, 생활비Lock?생활비Lock.amt:0, 생활비Lock?생활비Lock.tone:'', diff생활비, '변동지출 · 자물쇠 안 고정/저축/투자', null, diff자물쇠)
+      + acctCard('도형 신한', c.신한, '<span class="bdg bdg-gy">신한</span>', null, 0, '', diff신한, '비상금 · 별도 보관', null, 0);
 
     // ── 자유잔액 / 보관 분리 합계 (토스 스타일)
     cashList.innerHTML += '<div class="cash-summary">'
@@ -4605,6 +4633,7 @@ function openReconcileSheet() {
   const sn = (getState()[currentMonth()]||{}).snapshot||{};
   const toss결제 = sn.실잔_결제 != null ? sn.실잔_결제 : '';
   const toss생활비 = sn.실잔_생활비 != null ? sn.실잔_생활비 : '';
+  const toss자물쇠 = sn.실잔_자물쇠 != null ? sn.실잔_자물쇠 : '';
   const toss신한 = sn.실잔_신한 != null ? sn.실잔_신한 : '';
 
   $('dtitle').textContent = '💱 토스 실잔액과 맞추기';
@@ -4612,8 +4641,10 @@ function openReconcileSheet() {
     '<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:14px;padding:11px 13px;background:var(--blue-light);border-radius:10px;">'
     + '💡 토스 앱의 <b>실제 잔액</b>을 입력하면 차이를 표시하고, 차액을 자동 반영합니다. 입력하지 않은 통장은 보정하지 않습니다.'
     + '</div>'
-    + '<div style="font-size:11px;color:var(--sub);line-height:1.5;margin-bottom:14px;padding:9px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">'
-    + '<b>📥 결제 통장</b>은 다음달 나갈 카드값을 모아두는 통장입니다.'
+    + '<div style="font-size:11px;color:var(--sub);line-height:1.55;margin-bottom:14px;padding:9px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">'
+    + '<b>📥 결제 통장</b>은 다음달 나갈 카드값을 모아두는 통장입니다.<br>'
+    + '<b>💰 생활비 통장</b>은 토스에 표시되는 <b>전체 잔액</b>을 입력하세요. 자물쇠 보관분도 통장 안에 포함되어 있어야 합니다.<br>'
+    + '<b>🔒 자물쇠</b>는 생활비 통장 안에서 따로 보관해 둔 고정/저축/투자 분 (토스의 "보관중" 금액)'
     + '</div>'
 
     // 결제 통장
@@ -4633,6 +4664,16 @@ function openReconcileSheet() {
     +     '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val cbl">'+fmtW(c.생활비)+'</div></div>'
     +     '<div class="rec-cell"><div class="rec-cell-lbl">토스 실잔액</div><input class="fi rec-cell-in" id="rec-생활비" placeholder="213,261" inputmode="numeric" value="'+(toss생활비!==''?Number(toss생활비).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
     +     '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-생활비">—</div></div>'
+    +   '</div>'
+
+    //   └ 자물쇠 (생활비 통장 내부 보관 분리 영역)
+    +   '<div class="rec-row-sub">'
+    +     '<div class="rec-row-head"><span class="rec-sub-icon">🔒</span><span class="rec-row-name-sub">└ 자물쇠 (이번달 나갈 고정/저축/투자)</span></div>'
+    +     '<div class="rec-row-grid">'
+    +       '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val csb">'+fmtW(c.고정자물쇠)+'</div></div>'
+    +       '<div class="rec-cell"><div class="rec-cell-lbl">토스 보관액</div><input class="fi rec-cell-in" id="rec-자물쇠" placeholder="2,604,495" inputmode="numeric" value="'+(toss자물쇠!==''?Number(toss자물쇠).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
+    +       '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-자물쇠">—</div></div>'
+    +     '</div>'
     +   '</div>'
     + '</div>'
 
@@ -4655,7 +4696,7 @@ function openReconcileSheet() {
     +   '</label>'
     +   '<label style="display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer;">'
     +     '<input type="radio" name="rec-mode" value="tx"> '
-    +     '<span><b>보정 거래 자동 추가</b> (차이만큼 변동지출/수입 거래 1건 자동 생성)</span>'
+    +     '<span><b>보정 거래 자동 추가</b> (차이만큼 변동지출/수입 거래 1건 자동 생성 — <span style="color:var(--faint);">자물쇠는 snapshot 보정만 가능</span>)</span>'
     +   '</label>'
     + '</div>'
 
@@ -4670,8 +4711,11 @@ function openReconcileSheet() {
 
 function recalcReconcileDiff() {
   const c = compute(currentMonth());
-  ['결제','생활비','신한'].forEach(name => {
-    const screen = name==='결제' ? c.결제 : name==='생활비' ? c.생활비 : c.신한;
+  ['결제','생활비','자물쇠','신한'].forEach(name => {
+    const screen = name==='결제' ? c.결제
+                 : name==='생활비' ? c.생활비
+                 : name==='자물쇠' ? c.고정자물쇠
+                 : c.신한;
     const inp = $('rec-'+name);
     const out = $('rec-diff-'+name);
     if (!inp || !out) return;
@@ -4697,16 +4741,26 @@ function applyReconcile() {
   const c = compute(mon);
 
   let touched = 0;
-  ['결제','생활비','신한'].forEach(name => {
+  ['결제','생활비','자물쇠','신한'].forEach(name => {
     const inp = $('rec-'+name);
     if (!inp) return;
     const v = inp.value.replace(/,/g,'').trim();
     if (!v) return;
     const real = parseInt(v) || 0;
     sn['실잔_'+name] = real; // 토스 실잔액 저장 (참고용)
-    const screen = name==='결제' ? c.결제 : name==='생활비' ? c.생활비 : c.신한;
+    const screen = name==='결제' ? c.결제
+                 : name==='생활비' ? c.생활비
+                 : name==='자물쇠' ? c.고정자물쇠
+                 : c.신한;
     const diff = screen - real;
     if (diff === 0) return;
+
+    // 자물쇠는 항상 snapshot 보정 (거래로는 처리 불가)
+    if (name === '자물쇠') {
+      sn.고정자물쇠 = (sn.고정자물쇠 || 0) - diff;
+      touched++;
+      return;
+    }
 
     if (mode === 'adjust') {
       // 월초 스냅샷 직접 조정
@@ -4753,7 +4807,7 @@ function reconcileBank(name) {
   // 자산카드 안 "잔액 보정" 링크 클릭 시 — 모달 열고 해당 통장으로 포커스
   openReconcileSheet();
   setTimeout(() => {
-    const map = {'결제 통장':'결제','생활비 통장':'생활비','도형 신한':'신한'};
+    const map = {'결제 통장':'결제','생활비 통장':'생활비','자물쇠':'자물쇠','도형 신한':'신한'};
     const id = map[name];
     if (id && $('rec-'+id)) $('rec-'+id).focus();
   }, 350);
