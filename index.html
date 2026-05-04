@@ -616,7 +616,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
 <div class="shell">
 <!-- TOPBAR -->
 <div class="topbar">
-  <div class="logo">머니로그<b>.</b></div>
+  <div class="logo" onclick="navToPage('home')" style="cursor:pointer;" title="홈으로">머니로그<b>.</b></div>
   <div style="display:flex;align-items:center;gap:6px;">
     <!-- 상태 칩 (단순 표시, 클릭 안됨) -->
     <div id="topbar-sync" title="자동 실시간 동기화 중. 입력 시 3초 후 자동 저장됩니다." style="display:flex;align-items:center;gap:4px;background:var(--green-light);border:1px solid #a7f3d0;border-radius:99px;padding:4px 9px;font-size:11px;font-weight:700;color:var(--green);font-family:'Noto Sans KR',sans-serif;height:26px;cursor:default;">
@@ -2018,6 +2018,8 @@ function goPage(page, nb) {
   else document.querySelectorAll('.nb').forEach(b=>{ if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+page+"'")) b.classList.add('on'); });
   $('scr').scrollTop=0;
   curPage=page;
+  // 새로고침 후에도 같은 페이지로 복원되도록 저장
+  try { localStorage.setItem('ml_curpage', page); } catch(_) {}
   // 잔액 저장 fixed 버튼은 설정 페이지에서만 표시
   const saveWrap = $('snap-save-fixed-wrap');
   if (saveWrap) {
@@ -3597,15 +3599,27 @@ function parseTransactionsFromOCR(text, todayStr) {
   const dateRe = /(?:(\d{2,4})\s*[.\-\/년]\s*)?(\d{1,2})\s*[.\-\/월]\s*(\d{1,2})\s*(?:일)?/;
   // 시간 패턴
   const timeOnlyLine = /^\d{1,2}:\d{2}(:\d{2})?$/;
-  // 날짜 헤더 줄 (관대 — OCR 노이즈 허용)
-  // 매칭: "5월 3일", "5월 3일 일요일", "5.3", "5/3", "2026.5.3", "5 월 3 일"
-  // 뒤에 한글(요일류)이 와도 OK
-  const dateHeaderRe = /^\s*(?:\d{2,4}\s*[.\-\/년]\s*)?\d{1,2}\s*[.\-\/월]\s*\d{1,2}\s*(?:일)?\s*[가-힣\s]{0,10}\s*$/;
-  // 라인 안에 날짜 키워드만 있고 금액/시간 없는 줄 (엄격한 거래 행과 분리)
+  // 라인이 날짜 헤더인지 판정
+  // 헤더 조건:
+  //   1. 부호 있는 금액 없음 (거래 행 아님)
+  //   2. "원" 단위 큰 숫자 없음 (잔액/금액 행 아님)
+  //   3. 날짜 패턴이 매칭됨 (월/일 또는 . - / 구분자)
   const looksLikeDateHeader = (l) => {
-    if (!dateHeaderRe.test(l)) return false;
-    // 금액 매치가 없어야 헤더 (거래 행 아님)
-    return !/[+\-−]\s*\d/.test(l) && !/\d{3,}\s*원/.test(l);
+    if (!l) return false;
+    // 금액/원 단위가 있으면 거래/잔액 행
+    if (/[+\-−]\s*\d/.test(l)) return false;
+    if (/\d{3,}\s*[원¢￦]/.test(l)) return false;
+    // 단독 큰 숫자 (잔액) — 점/슬래시 같은 날짜 구분자는 살려서 구분
+    const hasDateSeparator = /[월일년.\-\/]/.test(l);
+    if (!hasDateSeparator) {
+      const trimmed = l.replace(/[원윈읜¢￦\s]/g, '');
+      if (/^\d{4,}$/.test(trimmed)) return false;
+    }
+    // 날짜 패턴
+    if (/\d{1,2}\s*월\s*\d{1,2}\s*일?/.test(l)) return true;
+    if (/^\s*(?:\d{2,4}\s*[.\-\/]\s*)?\d{1,2}\s*[.\-\/]\s*\d{1,2}\s*$/.test(l)) return true;
+    if (/^\s*\d{2,4}\s*년\s*\d{1,2}\s*월\s*\d{1,2}\s*일?/.test(l)) return true;
+    return false;
   };
 
   // 잔액 줄 마킹 (3중)
@@ -3712,7 +3726,7 @@ function parseTransactionsFromOCR(text, todayStr) {
       while (j >= 0 && (isBalanceOnly[j] || isTimeOnly[j])) j--;
       if (j >= 0) {
         const prev = lines[j];
-        if (!balanceOnlyLine.test(prev) && !dateHeaderRe.test(prev) && !/^[+\-−]?\s*[\d,\s]+원?\s*$/.test(prev)) {
+        if (!balanceOnlyLine.test(prev) && !looksLikeDateHeader(prev) && !/^[+\-−]?\s*[\d,\s]+원?\s*$/.test(prev)) {
           memo = prev.replace(/\d{1,2}:\d{2}(:\d{2})?/g, '').replace(/\s{2,}/g, ' ').trim();
         }
       }
@@ -5622,6 +5636,14 @@ function init() {
   setInterval(refreshFxRate, 30 * 60 * 1000);
   // 📅 flatpickr 적용 (예쁜 캘린더)
   watchDateInputs();
+  // 🔁 새로고침 시 마지막 보던 페이지로 복원
+  try {
+    const lastPage = localStorage.getItem('ml_curpage');
+    const validPages = ['home', 'record', 'analysis', 'asset', 'setting'];
+    if (lastPage && validPages.includes(lastPage) && lastPage !== 'home') {
+      navToPage(lastPage);
+    }
+  } catch(_) {}
   // 📷 OCR 환경 사전 감지 — 차단 환경이면 안내 박스 표시
   setTimeout(async () => {
     const notice = $('ocr-env-notice');
