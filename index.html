@@ -3591,8 +3591,8 @@ function parseTransactionsFromOCR(text, todayStr) {
   const txs = [];
   // 금액 패턴 (전역)
   const amtRe = /([+\-−])?\s*([\d]{1,3}(?:[,\s][\d]{3})+|\d{3,})\s*원?/g;
-  // 단독 잔액 줄 (관대 — OCR 오인식 원/윈/읜 허용)
-  const balanceOnlyLine = /^\s*[\d][\d,\s.]*\s*[원윈읜]?\s*$/;
+  // 단독 잔액 줄 (관대 — OCR 오인식 원/윈/읜/¢/￦ 허용)
+  const balanceOnlyLine = /^\s*[\d][\d,\s.]*\s*[원윈읜¢￦Ww]?\s*$/;
   // 날짜 패턴
   const dateRe = /(?:(\d{2,4})\s*[.\-\/년]\s*)?(\d{1,2})\s*[.\-\/월]\s*(\d{1,2})\s*(?:일)?/;
   // 시간 패턴
@@ -3711,6 +3711,13 @@ function parseTransactionsFromOCR(text, todayStr) {
     // 메모가 너무 짧거나(1자) 무의미하면 빈값
     if (memo.length === 1) memo = '';
 
+    // ⚠️ 잔액 노이즈 차단 — 메모 안에 또 다른 부호 있는 금액이 포함되면 폐기
+    // 예: "[개 카드 캐시백 +500원" 같은 메모는 OCR이 거래 행+잔액 행을 합쳐 읽은 것
+    // 정상 거래 메모에는 보통 +/- 부호 + 숫자 패턴이 없음
+    if (/[+\-−]\s*\d{2,}/.test(memo)) continue;
+    // 메모 안에 "원/¢/￦" 단위가 포함되면도 잔액 노이즈 (예: "이마트 -49,840원")
+    if (/\d{2,}\s*[원¢￦]/.test(memo)) continue;
+
     // 메모 길이 제한
     if (memo.length > 50) memo = memo.slice(0, 50);
 
@@ -3730,7 +3737,24 @@ function parseTransactionsFromOCR(text, todayStr) {
     if (txs.some(t => t.memo === memo && t.amt === amt && t.date === date)) continue;
     txs.push({ date, memo, amt, type });
   }
-  return txs;
+
+  // 후처리 — 잔액 패턴 거래 제거
+  // 직전 거래의 메모로 시작하고 amt가 더 큰 거래 = 잔액 가능성 ↑
+  const filtered = [];
+  for (let k = 0; k < txs.length; k++) {
+    const cur = txs[k];
+    const prev = filtered[filtered.length - 1];
+    if (prev && prev.date === cur.date) {
+      // (1) 메모가 직전 거래 메모를 포함하고 (2) amt가 직전보다 크면 잔액
+      const curMemoNorm = (cur.memo || '').trim();
+      const prevMemoNorm = (prev.memo || '').trim();
+      if (curMemoNorm && prevMemoNorm && curMemoNorm.startsWith(prevMemoNorm) && cur.amt > prev.amt) {
+        continue; // 잔액으로 판단, 폐기
+      }
+    }
+    filtered.push(cur);
+  }
+  return filtered;
 }
 // 이미지 분석 결과 편집 폼으로 표시
 // ─── 이미지 AI 분석 결과: 심플 체크박스 리스트 (편집은 내역 탭에서)
