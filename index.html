@@ -2511,8 +2511,8 @@ function renderRecurringList() {
       + '<div onclick="openRecEdit('+r.id+')" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;">'
       + '<div class="fi-item-icon">'+TI[r.type]+'</div>'
       + '<div class="fi-item-body">'
-      + '<div class="fi-item-name">'+(r.memo||r.cat)+'</div>'
-      + '<div class="fi-item-meta">매달 '+r.day+'일 · '+(r.memo?r.cat+' · ':'')+r.method+'</div>'
+      + '<div class="fi-item-name">'+r.cat+'</div>'
+      + '<div class="fi-item-meta">매달 '+r.day+'일'+(r.memo?' · '+r.memo:'')+' · '+r.method+'</div>'
       + '</div>'
       + '<div class="fi-item-right">'
       + '<div class="fi-item-amt '+ac+'">'+sign+fmtW(r.amt)+'</div>'
@@ -2710,11 +2710,10 @@ function txRow(t,mon,showDel) {
   // 날짜 (MM.DD)
   const dParts = (t.date||'').split('-');
   const dateStr = dParts.length === 3 ? (parseInt(dParts[1],10)+'.'+parseInt(dParts[2],10)) : '';
-  // 메타: 날짜 · 카테고리 · 결제수단 (메모가 이름에 있을 때) / 날짜 · 결제수단 (메모 없을 때 카테고리는 이름으로)
+  // 위계: 카테고리=제목(1차), 날짜·메모·결제수단=메타(2차)
   const metaItems = [];
   if (dateStr) metaItems.push('<span class="txmeta-date">'+dateStr+'</span>');
-  // 메모가 있으면 카테고리도 메타에 (이름이 메모이므로)
-  if (t.memo && t.cat) metaItems.push('<span>'+t.cat+'</span>');
+  if (t.memo) metaItems.push('<span>'+t.memo+'</span>');
   if (t.method) metaItems.push('<span>'+t.method+'</span>');
   const metaHtml = metaItems.join('<span class="txmeta-dot">·</span>');
   // 부호
@@ -2723,7 +2722,7 @@ function txRow(t,mon,showDel) {
     +checkbox
     +'<div class="txdot" style="background:'+TC[t.type]+'18;color:'+TC[t.type]+';">'+TI[t.type]+'</div>'
     +'<div class="txbody">'
-    +'<div class="txname">'+(t.memo||t.cat||'거래')+'</div>'
+    +'<div class="txname">'+(t.cat||t.memo||'거래')+'</div>'
     +(metaHtml?'<div class="txmeta">'+metaHtml+'</div>':'')
     +'</div>'
     +'<div class="txright"><div class="txamt '+ac+'">'+signStr+fmtW(t.amt)+'</div></div>'
@@ -3597,6 +3596,19 @@ function retryOcr() {
 // OCR 텍스트 → 거래 배열 파싱
 // OCR 텍스트 → 거래 배열 (날짜/금액/카테고리 분류만 정확히)
 function parseTransactionsFromOCR(text, todayStr) {
+  // OCR 노이즈 normalize — "월" 글자가 깨졌을 때 복구
+  // 패턴: "5훨 3일", "5을 3일", "5뭘 3일" 등 — 숫자+한글1자+공백+숫자+일 → 숫자+월+공백+숫자+일
+  text = text.replace(/(\d{1,2})\s*[가-힣]\s*(\d{1,2})\s*일/g, (m, mo, dy) => {
+    // mo가 1~12, dy가 1~31 범위면 월로 판정
+    const moN = parseInt(mo,10), dyN = parseInt(dy,10);
+    if (moN >= 1 && moN <= 12 && dyN >= 1 && dyN <= 31) {
+      return mo + '월 ' + dy + '일';
+    }
+    return m;
+  });
+  // "원" 글자가 깨진 경우 복구
+  text = text.replace(/(\d{2,})\s*[윈읜¢￦]\s*$/gm, '$1원');
+
   const lines = text.split(/[\r\n]+/).map(s=>s.trim()).filter(s=>s.length>0);
   const txs = [];
   // 금액 패턴 (전역)
@@ -3874,16 +3886,16 @@ function showImageResults(txList, rawText) {
       // 날짜 (MM.DD)
       const dParts = (t.date||today).split('-');
       const dateStr = dParts.length === 3 ? (parseInt(dParts[1],10)+'.'+parseInt(dParts[2],10)) : (t.date||today);
-      // 메타: 날짜 · 카테고리 · 결제수단 (거래 내역과 같은 위계)
+      // 위계: 카테고리=제목(1차), 날짜·메모·결제수단=메타(2차)
       const metaParts = [];
       metaParts.push('<span style="color:var(--sub);font-weight:600;">'+dateStr+'</span>');
-      metaParts.push('<span>'+auto.cat+'</span>');
+      if (t.memo) metaParts.push('<span>'+t.memo+'</span>');
       metaParts.push('<span>체크카드</span>');
       const metaHtml = metaParts.join('<span style="color:var(--border2);">·</span>');
       return '<label id="img-row-'+i+'" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border-radius:var(--rsm);margin-bottom:5px;cursor:pointer;transition:background .1s;">'
         +'<input type="checkbox" id="img-chk-'+i+'" checked style="width:18px;height:18px;flex-shrink:0;accent-color:var(--blue);" onchange="imgUpdateCount('+txList.length+')">'
         +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;'+(t.memo?'':'color:var(--faint);font-style:italic;font-weight:600;')+'">'+(t.memo||'(메모 없음)')+'</div>'
+        +'<div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;">'+auto.cat+'</div>'
         +'<div style="font-size:12px;color:var(--faint);display:flex;align-items:center;gap:6px;margin-top:3px;">'+metaHtml+'</div>'
         +'</div>'
         +'<div style="font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-0.3px;color:'+amtColor+';flex-shrink:0;">'+(isInc?'+':'-')+fmtW(t.amt)+'</div>'
