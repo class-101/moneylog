@@ -3667,7 +3667,16 @@ function parseTransactionsFromOCR(text, todayStr) {
     // 거래액 선정 (잔액 분리)
     let chosen;
     const signed = allMatches.filter(x => x.sign === '+' || x.sign === '-' || x.sign === '−');
-    if (signed.length > 0) chosen = signed[0];
+    if (signed.length === 1) chosen = signed[0];
+    else if (signed.length >= 2) {
+      // 부호 있는 매치가 2개 이상 → 할인 전/후 가격 등. 가장 작은 절대값 (실제 결제액)
+      let minAbs = Infinity, minMatch = null;
+      for (const a of signed) {
+        const v = parseInt(a.numStr, 10);
+        if (v < minAbs) { minAbs = v; minMatch = a; }
+      }
+      chosen = minMatch;
+    }
     else if (allMatches.length === 1) chosen = allMatches[0];
     else {
       // 부호 없는 다중: 가장 작은 값 (잔액 제외)
@@ -3713,10 +3722,26 @@ function parseTransactionsFromOCR(text, todayStr) {
 
     // ⚠️ 잔액 노이즈 차단 — 메모 안에 또 다른 부호 있는 금액이 포함되면 폐기
     // 예: "[개 카드 캐시백 +500원" 같은 메모는 OCR이 거래 행+잔액 행을 합쳐 읽은 것
-    // 정상 거래 메모에는 보통 +/- 부호 + 숫자 패턴이 없음
-    if (/[+\-−]\s*\d{2,}/.test(memo)) continue;
-    // 메모 안에 "원/¢/￦" 단위가 포함되면도 잔액 노이즈 (예: "이마트 -49,840원")
-    if (/\d{2,}\s*[원¢￦]/.test(memo)) continue;
+    // 단, 줄에 부호 있는 매치가 2개 이상인 경우 (취소선 할인가)는 거래는 살리고 메모만 비움
+    if (/[+\-−]\s*\d{2,}/.test(memo)) {
+      // 만약 같은 줄에 부호 있는 매치가 2개 이상이면 = 할인가 패턴, 메모만 비움
+      if (signed.length >= 2) memo = '';
+      else continue; // 잔액 노이즈
+    }
+    // 메모 안에 "원/¢/￦" 단위가 포함되면도 잔액 노이즈
+    if (/\d{2,}\s*[원¢￦]/.test(memo)) {
+      if (signed.length >= 2) memo = '';
+      else continue;
+    }
+
+    // ⚠️ 메모 품질 검증 — 한글이 1글자 이상 있어야 신뢰
+    // 영문/숫자/특수문자만 있으면 OCR 노이즈 가능성 높음 → 빈값으로
+    // 예: "(Ic)", "=43.500", "/\\\\\\", "WE:SH" 등
+    if (memo && !/[가-힣]/.test(memo)) {
+      // 단, 영문 브랜드명(GS25, CU, CGV 같은 짧은 영문)은 보존
+      const isLikelyBrand = /^[A-Za-z][A-Za-z0-9\s]{1,15}$/.test(memo) && !/[\\\/=!@#$%^&*()<>{}\[\]:;'"`~?]/.test(memo);
+      if (!isLikelyBrand) memo = '';
+    }
 
     // 메모 길이 제한
     if (memo.length > 50) memo = memo.slice(0, 50);
