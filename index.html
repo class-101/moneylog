@@ -799,12 +799,15 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <option value="card">카드</option>
           <option value="transfer">이체</option>
         </select>
+        <select class="fsel" id="rec-method-filter" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;">
+          <option value="">결제수단</option>
+        </select>
         <button id="tx-select-toggle" onclick="toggleTxSelectMode()" style="border:1.5px solid var(--border);background:var(--white);color:var(--sub);font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">선택</button>
         <a onclick="exportCSV()" style="font-size:12px;color:var(--blue);font-weight:600;cursor:pointer;">CSV</a>
       </div>
     </div>
-    <!-- 선택 모드 툴바 (선택 시만 표시) -->
-    <div id="tx-select-toolbar" style="display:none;background:var(--blue-light);border:1.5px solid var(--blue-mid);border-radius:var(--rsm);padding:10px 14px;margin-bottom:8px;align-items:center;justify-content:space-between;gap:8px;">
+    <!-- 선택 모드 툴바 (선택 시만 표시, 스크롤 시 상단 고정) -->
+    <div id="tx-select-toolbar" style="display:none;background:var(--blue-light);border:1.5px solid var(--blue-mid);border-radius:var(--rsm);padding:10px 14px;margin-bottom:8px;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(37,99,235,.08);">
       <div style="display:flex;align-items:center;gap:10px;">
         <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;cursor:pointer;color:var(--blue);">
           <input type="checkbox" id="tx-select-all" onchange="txSelectAll(this.checked)" style="width:16px;height:16px;accent-color:var(--blue);">전체
@@ -1148,11 +1151,11 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <span style="font-size:12px;color:var(--faint);">▼</span>
     </div>
     <div class="stepbody" id="sb1">
-      <div class="al info" style="margin-bottom:12px;font-size:12px;"><div class="ali">💡</div><div>가용현금은 결제·생활비·신한 통장의 합이에요. 자물쇠 🔒 표시는 참고용이에요.</div></div>
+      <div class="al info" style="margin-bottom:12px;font-size:12px;"><div class="ali">💡</div><div>월초에 잔액을 한 번 입력하면, 거래가 발생할 때마다 통장 잔액이 자동으로 갱신돼요. 이체 거래는 출처/도착 통장을 선택할 수 있어요.</div></div>
       <div class="fg"><label>결제 통장</label><input class="fi" id="sn-결제통장" placeholder="1,204,407" oninput="onSnapInput()"></div>
-      <div class="fg"><label style="color:var(--faint);">└ 카드값 자물쇠🔒 (다음달 출금 예정)</label><input class="fi" id="sn-카드자물쇠" placeholder="45,001" oninput="onSnapInput()"></div>
+      <div class="fg"><label style="color:var(--faint);">└ 카드값 자물쇠 🔒 (참고: 다음달 출금 예정)</label><input class="fi" id="sn-카드자물쇠" placeholder="45,001" oninput="onSnapInput()"></div>
       <div class="fg"><label>생활비 통장</label><input class="fi" id="sn-생활비통장" placeholder="1,044,043" oninput="onSnapInput()"></div>
-      <div class="fg"><label style="color:var(--faint);">└ 고정비/저축/투자 자물쇠🔒 (이체 예정)</label><input class="fi" id="sn-고정자물쇠" placeholder="4,023,744" oninput="onSnapInput()"></div>
+      <div class="fg"><label style="color:var(--faint);">└ 고정비 자물쇠 🔒 (월세+적금+구독료+투자 등 고정/저축/투자 거래에서 자동 차감)</label><input class="fi" id="sn-고정자물쇠" placeholder="4,023,744" oninput="onSnapInput()"></div>
       <div class="fg"><label>도형 신한</label><input class="fi" id="sn-도형신한" placeholder="508,000" oninput="onSnapInput()"></div>
       <div id="snap-preview" style="display:none;background:var(--blue-light);border:1px solid #bfdbfe;border-radius:var(--rsm);padding:12px;margin-top:4px;">
         <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">결제 통장</span><span id="sp-결제" style="font-variant-numeric:tabular-nums;font-weight:600;color:var(--blue);">—</span></div>
@@ -2173,12 +2176,74 @@ function loadSnapshotForm() {
 }
 
 // ━━ COMPUTE ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 거래의 결제수단 → 통장 자동 매핑
+// - 신용카드("카드"): 생활비 통장 -, 결제대금 통장 + (외상이지만 즉시 결제대금에 모임)
+// - 체크카드/현금/페이/자동이체/그 외: 생활비 통장 -
+// - 수입: 결제대금 통장 +
+// - 이체: t.fromAcc / t.toAcc 가 있으면 양쪽 반영, 없으면 변화 없음
+// 자물쇠: 거래 유형이 fixed/saving/invest 면 고정자물쇠 - (음수 허용, 경고만)
+function _isCardCredit(method) {
+  // "카드" (신용) — '체크카드', '신용카드', '카드' 모두 카드 키워드 포함하지만
+  // 신용 식별: '신용' 포함하거나 단순히 '카드'와 정확히 같은 경우
+  if (!method) return false;
+  const m = String(method).trim();
+  return m === '카드' || m === '신용카드' || /신용/.test(m);
+}
+function _outflowAcc(t) {
+  // 거래의 출금 통장 결정
+  if (t.type === 'income') return null; // 수입은 입금만
+  if (t.type === 'transfer') return null; // 이체는 별도 처리
+  if (_isCardCredit(t.method)) return '생활비'; // 신용카드: 생활비에서 즉시 빠짐 (결제대금으로 모임)
+  return '생활비'; // 체크카드/현금/자동이체/페이 등 모두 생활비
+}
+
 function compute(mon) {
   const state=getState(), md=state[mon]||{snapshot:{},budget:{},transactions:[]};
   const sn=md.snapshot, bgt=md.budget, txs=md.transactions||[];
-  const 결제=sn.결제통장||0, 카드자물쇠=sn.카드자물쇠||0;
-  const 생활비=sn.생활비통장||0, 고정자물쇠=sn.고정자물쇠||0, 신한=sn.도형신한||0;
-  const 가용현금=결제+생활비+신한;
+  // 월초 입력값 (스냅샷)
+  const 결제초=sn.결제통장||0, 생활비초=sn.생활비통장||0, 신한=sn.도형신한||0;
+  const 카드자물쇠=sn.카드자물쇠||0;
+  const 고정자물쇠초=sn.고정자물쇠||0;
+  // 거래 자동 반영
+  let 결제델타=0, 생활비델타=0, 신한델타=0;
+  let 자물쇠사용=0; // fixed/saving/invest 거래 합계 (자물쇠에서 차감)
+  let cardSpend=0;
+  txs.forEach(t=>{
+    const amt = t.amt||0;
+    if (t.type === 'income') {
+      // 수입: 결제대금 +
+      결제델타 += amt;
+    } else if (t.type === 'transfer') {
+      // 이체: 출처 -, 도착 +
+      const from = t.fromAcc || '', to = t.toAcc || '';
+      if (from === '결제') 결제델타 -= amt;
+      else if (from === '생활비') 생활비델타 -= amt;
+      else if (from === '신한') 신한델타 -= amt;
+      if (to === '결제') 결제델타 += amt;
+      else if (to === '생활비') 생활비델타 += amt;
+      else if (to === '신한') 신한델타 += amt;
+    } else {
+      // 지출 (fixed/variable/saving/invest/card)
+      if (_isCardCredit(t.method)) {
+        // 신용카드: 생활비 -, 결제대금 + (외상)
+        생활비델타 -= amt;
+        결제델타 += amt;
+        cardSpend += amt;
+      } else {
+        // 체크카드/현금/자동이체/페이: 생활비 -
+        생활비델타 -= amt;
+      }
+      // 자물쇠 차감 (음수 허용)
+      if (t.type === 'fixed' || t.type === 'saving' || t.type === 'invest') {
+        자물쇠사용 += amt;
+      }
+    }
+  });
+  const 결제 = 결제초 + 결제델타;
+  const 생활비 = 생활비초 + 생활비델타;
+  const 고정자물쇠 = 고정자물쇠초 - 자물쇠사용; // 음수 가능
+  const 신한_now = 신한 + 신한델타;
+  const 가용현금 = 결제 + 생활비 + 신한_now;
   const 저축=(sn.도형청약||0)+(sn.예진청약||0)+(sn.도형청도계||0)+(sn.예진청도계||0);
   const 투자=(sn.월드컵평가||0)+(sn.퇴직연금평가||0)+(sn.CMA||0)+(sn.Abbott||0)+(sn.Medtronic||0)+(sn.도형ISA평가||0)+(sn.예진ISA평가||0);
   const 변동대출=(sn.도형마통||0)+(sn.예진마통||0)+(sn.청약대출||0)+(sn.학자금||0);
@@ -2190,8 +2255,13 @@ function compute(mon) {
   const totalExp=fixed+variable+saving+invest+card; // transfer는 내부이동, 지출 아님
   const bIncome=(bgt.도형월급||0)+(bgt.예진월급||0)+(bgt.인센||0)+(bgt.부수입||0);
   const saveRate=income>0?((saving+invest)/income*100).toFixed(1):0;
-  return {가용현금,저축,투자,변동대출,순자산,결제,카드자물쇠,생활비,고정자물쇠,신한,
-    income,fixed,variable,saving,invest,card,totalExp,saveRate,bIncome,bgt,sn,txs,catActual};
+  return {
+    가용현금, 저축, 투자, 변동대출, 순자산,
+    결제, 카드자물쇠, 생활비, 고정자물쇠, 신한: 신한_now,
+    결제초, 생활비초, 고정자물쇠초, 자물쇠사용, cardSpend,
+    income, fixed, variable, saving, invest, card, totalExp, saveRate, bIncome,
+    bgt, sn, txs, catActual
+  };
 }
 
 // ━━ RENDER HOME ━━━━━━━━━━━━━━━━━━━━━━━
@@ -2217,12 +2287,9 @@ function renderHome() {
   // 저축률 sub: 목표 저축률 (예산 기준)
   const targetRate = c.bIncome>0 ? Math.round(savePlan/c.bIncome*100) : 0;
   set('h-rate-ss', targetRate>0 ? '목표 '+targetRate+'%' : '수입 대비');
-  // 다음달 카드값 — 이번달 거래 중 결제수단이 카드인 항목들의 합계
-  // (카드 결제는 보통 다음달 10~14일에 결제통장에서 출금됨)
-  const cardKeywordRe = /카드/;
-  const cardSpend = (c.txs||[])
-    .filter(t => t.type !== 'income' && t.type !== 'transfer' && t.method && cardKeywordRe.test(t.method))
-    .reduce((sum, t) => sum + (t.amt||0), 0);
+  // 다음달 카드값 — 이번달 신용카드 거래 합계 (compute에서 자동 계산됨)
+  // 신용카드 거래는 즉시 결제대금 통장에 모이고, 다음달 10~14일에 한 번에 출금됨
+  const cardSpend = c.cardSpend || 0;
   set('h-card', fmtW(cardSpend));
   // 다음달 1일: 현재 가용현금에서 카드값 출금됨
   const afterCard = c.가용현금 - cardSpend;
@@ -2232,12 +2299,24 @@ function renderHome() {
   const ace=$('h-aftercard');
   if(ace){ ace.textContent=fmtW(afterCard); ace.className='rv '+(afterCard>=0?'cgr':'crd'); }
   const ca=$('h-card-alert');
-  if(ca && cardSpend>0) {
-    ca.innerHTML=afterCard<0
-      ?mkAlert('danger','⚠️','카드값 출금 후 <b>'+fmtW(Math.abs(afterCard))+' 부족</b>. 마통 사용 예정.')
-      :afterCard<300000 ? mkAlert('warn','💡','잔액이 빠듯합니다. <b>'+fmtW(afterCard)+'</b> 남음.')
-      :mkAlert('ok','✅','카드값 출금 후 <b>'+fmtW(afterCard)+'</b> 여유.');
-  } else if(ca) ca.innerHTML='';
+  if (ca) {
+    const alerts = [];
+    // 카드값 알림
+    if (cardSpend > 0) {
+      alerts.push(
+        afterCard<0
+          ? mkAlert('danger','⚠️','카드값 출금 후 <b>'+fmtW(Math.abs(afterCard))+' 부족</b>. 마통 사용 예정.')
+          : afterCard<300000
+            ? mkAlert('warn','💡','잔액이 빠듯해요. <b>'+fmtW(afterCard)+'</b> 남음.')
+            : mkAlert('ok','✅','카드값 출금 후 <b>'+fmtW(afterCard)+'</b> 여유.')
+      );
+    }
+    // 자물쇠 부족 알림
+    if (c.고정자물쇠 < 0) {
+      alerts.push(mkAlert('warn','🔒','고정비 자물쇠를 <b>'+fmtW(Math.abs(c.고정자물쇠))+'</b> 초과해서 썼어요. 월초 자물쇠 금액을 늘리거나 거래를 검토해 주세요.'));
+    }
+    ca.innerHTML = alerts.join('');
+  }
   // 최근 거래
   const recent=[...c.txs].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
   const rw=$('h-recent-tx');
@@ -2374,8 +2453,21 @@ function openTxDrawer() {
     // 메모
     + '<div class="fg"><label>메모 <span style="color:var(--faint);font-weight:400;">(선택)</span></label><input class="fi" id="drw-memo" placeholder="예: 스타벅스 강남역"></div>'
     // 결제수단
-    + '<div class="fg" style="margin-bottom:16px;"><label>결제 수단</label>'
+    + '<div class="fg" id="drw-method-wrap" style="margin-bottom:16px;"><label>결제 수단</label>'
     + '<select class="fsel fi" id="drw-method">'+getPayMethods().map(m=>'<option'+(m==='체크카드'?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
+    // 이체 시 출처/도착 통장 (transfer 유형일 때만 표시)
+    + '<div class="fg2" id="drw-transfer-wrap" style="display:none;margin-bottom:16px;">'
+    + '<div class="fg"><label>출처 통장</label><select class="fsel fi" id="drw-from">'
+    +   '<option value="생활비" selected>생활비 통장</option>'
+    +   '<option value="결제">결제 통장</option>'
+    +   '<option value="신한">도형 신한</option>'
+    + '</select></div>'
+    + '<div class="fg"><label>도착 통장</label><select class="fsel fi" id="drw-to">'
+    +   '<option value="결제" selected>결제 통장</option>'
+    +   '<option value="생활비">생활비 통장</option>'
+    +   '<option value="신한">도형 신한</option>'
+    + '</select></div>'
+    + '</div>'
     + '<button class="btn btn-blue" onclick="submitTxDrawer()">추가하기</button>';
 
   updateDrwCats();
@@ -2389,6 +2481,16 @@ function setDrwType(type, el) {
   document.querySelectorAll('#drw-types .tb').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
   updateDrwCats();
+  // 이체 시 결제수단 숨기고 출처/도착 통장 표시
+  const methodWrap = $('drw-method-wrap');
+  const transferWrap = $('drw-transfer-wrap');
+  if (type === 'transfer') {
+    if (methodWrap) methodWrap.style.display = 'none';
+    if (transferWrap) transferWrap.style.display = 'grid';
+  } else {
+    if (methodWrap) methodWrap.style.display = '';
+    if (transferWrap) transferWrap.style.display = 'none';
+  }
 }
 function updateDrwCats() {
   const s = $('drw-cat'); if(!s) return;
@@ -2399,11 +2501,18 @@ function submitTxDrawer() {
   const amt = parseNum($('drw-amt') ? $('drw-amt').value : '');
   const cat = $('drw-cat') ? $('drw-cat').value : '';
   const memo = $('drw-memo') ? $('drw-memo').value.trim() : '';
-  const method = $('drw-method') ? $('drw-method').value : '';
+  const type = window._recType||'variable';
+  const method = (type === 'transfer') ? '이체' : ($('drw-method') ? $('drw-method').value : '');
   if (!date) { showToast('날짜를 입력해 주세요'); return; }
   if (!amt) { showToast('금액을 입력해 주세요'); return; }
   const mon = date.slice(0,7), state=getState(), md=ensureMonth(state,mon);
-  md.transactions.push({id:Date.now(), date, type:window._recType||'variable', cat, amt, memo, method});
+  const tx = {id:Date.now(), date, type, cat, amt, memo, method};
+  if (type === 'transfer') {
+    tx.fromAcc = $('drw-from')?$('drw-from').value:'생활비';
+    tx.toAcc = $('drw-to')?$('drw-to').value:'결제';
+    if (tx.fromAcc === tx.toAcc) { showToast('출처와 도착이 같아요'); return; }
+  }
+  md.transactions.push(tx);
   setState(state);
   closeDrawer();
   showToast((memo||cat)+' '+fmtW(amt)+' 추가했어요');
@@ -2572,7 +2681,16 @@ function renderRecordPage() {
   if(label) label.textContent=mon.replace('-','년 ')+'월';
   const state=getState(), md=state[mon]||{transactions:[]};
   const typeF=$('rec-filter')?$('rec-filter').value:'';
+  const methodF=$('rec-method-filter')?$('rec-method-filter').value:'';
   const sortBy=$('rec-sort')?$('rec-sort').value:'date_desc';
+  // 결제수단 필터 옵션 동적 생성 (이번달 거래에 등장하는 결제수단들)
+  const methodSel=$('rec-method-filter');
+  if (methodSel) {
+    const methods = [...new Set((md.transactions||[]).map(t=>(t.method||'').trim()).filter(Boolean))].sort();
+    const cur = methodSel.value;
+    methodSel.innerHTML = '<option value="">결제수단</option>'
+      + methods.map(m=>'<option value="'+m+'"'+(m===cur?' selected':'')+'>'+m+'</option>').join('');
+  }
   let txs=[...md.transactions];
   // 정렬
   if (sortBy === 'date_asc') txs.sort((a,b)=>a.date.localeCompare(b.date) || (a.id||0)-(b.id||0));
@@ -2580,6 +2698,7 @@ function renderRecordPage() {
   else if (sortBy === 'amt_asc') txs.sort((a,b)=>(a.amt||0)-(b.amt||0));
   else txs.sort((a,b)=>b.date.localeCompare(a.date) || (b.id||0)-(a.id||0));
   if(typeF) txs=txs.filter(t=>t.type===typeF);
+  if(methodF) txs=txs.filter(t=>(t.method||'').trim()===methodF.trim());
   const wrap=$('rec-tx-list');
   if(wrap) {
     if(txs.length) {
@@ -3163,10 +3282,20 @@ function renderAssetPage() {
   // 현금 섹션
   const ai2=(name,sub,amt,cls,tag)=>'<div class="aitem"><div><div class="ainame">'+name+'</div>'+(sub?'<div class="aisub">'+sub+'</div>':'')+(tag?'<div style="margin-top:2px;">'+tag+'</div>':'')+'</div><div class="aiamt '+cls+'">'+fmtW(amt)+'</div></div>';
   const cashList=$('as-cash-list');
+  // 자물쇠 잔액 (음수 가능)
+  const 자물쇠잔액 = c.고정자물쇠 || 0;
+  const 자물쇠경고 = 자물쇠잔액 < 0 ? ' ⚠️ ' + fmtW(Math.abs(자물쇠잔액)) + ' 초과' : '';
+  const cardSpendNow = c.cardSpend || 0;
   if(cashList) cashList.innerHTML=[
-    ai2('결제 통장','카드값 자물쇠 -'+fmt(sn.카드자물쇠||0)+'원 (다음달 출금)',sn.결제통장||0,'cbl','<span class="bdg bdg-bl">결제</span>'),
-    ai2('생활비 통장','고정비/저축/투자 자물쇠 -'+fmt(sn.고정자물쇠||0)+'원 (이체 예정)',sn.생활비통장||0,'cbl','<span class="bdg bdg-bl">생활</span>'),
-    ai2('도형 신한','',sn.도형신한||0,'cbl','<span class="bdg bdg-bl">신한</span>'),
+    ai2('결제 통장',
+      cardSpendNow>0 ? '카드값 모임 +'+fmtW(cardSpendNow)+'원 (다음달 출금 예정)' : '월급·카드값 통장',
+      c.결제, c.결제>=0?'cbl':'crd', '<span class="bdg bdg-bl">결제</span>'),
+    ai2('생활비 통장',
+      자물쇠잔액>=0
+        ? '고정비 자물쇠 '+fmtW(자물쇠잔액)+' 남음 (이번달 -'+fmtW(c.자물쇠사용)+')'
+        : '고정비 자물쇠'+자물쇠경고+' (이번달 -'+fmtW(c.자물쇠사용)+')',
+      c.생활비, c.생활비>=0?'cbl':'crd', '<span class="bdg bdg-bl">생활</span>'),
+    ai2('도형 신한','',c.신한,'cbl','<span class="bdg bdg-bl">신한</span>'),
   ].join('');
   set('as-cash-total', fmtW(c.가용현금));
   const cashBadge=$('as-cash-badge'); if(cashBadge) cashBadge.textContent=fmtW(c.가용현금);
