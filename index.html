@@ -3871,15 +3871,22 @@ function showImageResults(txList, rawText) {
       const isInc=t.type==='income';
       const amtColor=isInc?'var(--green)':'var(--red)';
       const auto=autoCategorize(t.memo, isInc);
-      const catBadge='<span style="display:inline-block;background:var(--blue-light);color:var(--blue);font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;margin-top:3px;">'+auto.cat+'</span>';
+      // 날짜 (MM.DD)
+      const dParts = (t.date||today).split('-');
+      const dateStr = dParts.length === 3 ? (parseInt(dParts[1],10)+'.'+parseInt(dParts[2],10)) : (t.date||today);
+      // 메타: 날짜 · 카테고리 · 결제수단 (거래 내역과 같은 위계)
+      const metaParts = [];
+      metaParts.push('<span style="color:var(--sub);font-weight:600;">'+dateStr+'</span>');
+      metaParts.push('<span>'+auto.cat+'</span>');
+      metaParts.push('<span>체크카드</span>');
+      const metaHtml = metaParts.join('<span style="color:var(--border2);">·</span>');
       return '<label id="img-row-'+i+'" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border-radius:var(--rsm);margin-bottom:5px;cursor:pointer;transition:background .1s;">'
         +'<input type="checkbox" id="img-chk-'+i+'" checked style="width:18px;height:18px;flex-shrink:0;accent-color:var(--blue);" onchange="imgUpdateCount('+txList.length+')">'
         +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'+(t.memo?'':'color:var(--faint);font-style:italic;')+'">'+(t.memo||'(메모 없음)')+'</div>'
-        +'<div style="font-size:11px;color:var(--faint);margin-top:2px;">'+(t.date||today)+'</div>'
-        +catBadge
+        +'<div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;'+(t.memo?'':'color:var(--faint);font-style:italic;font-weight:600;')+'">'+(t.memo||'(메모 없음)')+'</div>'
+        +'<div style="font-size:12px;color:var(--faint);display:flex;align-items:center;gap:6px;margin-top:3px;">'+metaHtml+'</div>'
         +'</div>'
-        +'<div style="font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:'+amtColor+';flex-shrink:0;">'+(isInc?'+':'-')+fmtW(t.amt)+'</div>'
+        +'<div style="font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-0.3px;color:'+amtColor+';flex-shrink:0;">'+(isInc?'+':'-')+fmtW(t.amt)+'</div>'
         +'</label>';
     }).join('')
     // ── 합계
