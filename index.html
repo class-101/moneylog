@@ -669,7 +669,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     </div>
     <div class="acc-body" id="h-acc-card-body" style="display:none;">
       <div class="acc-body-inner">
-        <div class="rl"><span class="rk">이번달 쓴 카드값 🔒</span><span class="rv crd" id="h-card">—</span></div>
+        <div class="rl"><span class="rk">이번달 쓴 카드값</span><span class="rv crd" id="h-card">—</span></div>
         <div class="rl"><span class="rk">카드값 출금 직후 잔액</span><span class="rv" id="h-aftercard">—</span></div>
         <div class="rl"><span class="rk">카드값 출금 + 월급 입금 후</span><span class="rv cbl" id="h-aftersalary">—</span></div>
         <div id="h-card-alert" style="margin-top:8px;"></div>
@@ -2217,17 +2217,22 @@ function renderHome() {
   // 저축률 sub: 목표 저축률 (예산 기준)
   const targetRate = c.bIncome>0 ? Math.round(savePlan/c.bIncome*100) : 0;
   set('h-rate-ss', targetRate>0 ? '목표 '+targetRate+'%' : '수입 대비');
-  // 다음달 카드값 — 현재 통장잔액 기준 카드 출금 후 잔액
-  set('h-card',fmtW(c.카드자물쇠));
+  // 다음달 카드값 — 이번달 거래 중 결제수단이 카드인 항목들의 합계
+  // (카드 결제는 보통 다음달 10~14일에 결제통장에서 출금됨)
+  const cardKeywordRe = /카드/;
+  const cardSpend = (c.txs||[])
+    .filter(t => t.type !== 'income' && t.type !== 'transfer' && t.method && cardKeywordRe.test(t.method))
+    .reduce((sum, t) => sum + (t.amt||0), 0);
+  set('h-card', fmtW(cardSpend));
   // 다음달 1일: 현재 가용현금에서 카드값 출금됨
-  const afterCard=c.가용현금-c.카드자물쇠;
+  const afterCard = c.가용현금 - cardSpend;
   // 월급 입금 후: 카드값 출금 + 월급 입금
-  const afterSalary=afterCard+c.bIncome;
-  set('h-aftersalary',fmtW(afterSalary));
+  const afterSalary = afterCard + c.bIncome;
+  set('h-aftersalary', fmtW(afterSalary));
   const ace=$('h-aftercard');
   if(ace){ ace.textContent=fmtW(afterCard); ace.className='rv '+(afterCard>=0?'cgr':'crd'); }
   const ca=$('h-card-alert');
-  if(ca&&c.카드자물쇠>0) {
+  if(ca && cardSpend>0) {
     ca.innerHTML=afterCard<0
       ?mkAlert('danger','⚠️','카드값 출금 후 <b>'+fmtW(Math.abs(afterCard))+' 부족</b>. 마통 사용 예정.')
       :afterCard<300000 ? mkAlert('warn','💡','잔액이 빠듯합니다. <b>'+fmtW(afterCard)+'</b> 남음.')
@@ -2256,7 +2261,7 @@ function renderHome() {
       +'<div class="hchip '+(delta>=0?'ok':'warn')+'">'+sign+fmtW(Math.abs(delta))+' 전달比</div>';
   }
   // 아코디언 헤더 요약값
-  const cs=$('h-card-summary'); if(cs){ cs.textContent='-'+fmtW(c.카드자물쇠); cs.className='rv crd'; cs.style.fontSize='13px'; }
+  const cs=$('h-card-summary'); if(cs){ cs.textContent='-'+fmtW(cardSpend); cs.className='rv crd'; cs.style.fontSize='13px'; }
   const ns=$('h-net-summary'); if(ns){ ns.textContent=fmtW(c.순자산); ns.className='rv '+(c.순자산>=0?'cbl':'crd'); ns.style.fontSize='14px'; ns.style.fontWeight='800'; }
   // 예산 초과 알림
   renderOverBudgetAlert(c);
