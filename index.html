@@ -2361,7 +2361,7 @@ function openTxDrawer() {
     + '<input class="fi" id="drw-amt" placeholder="0" inputmode="numeric" oninput="fmtInput(this)" style="font-size:20px;font-weight:700;text-align:right;" autofocus>'
     + '</div>'
     // 날짜
-    + '<div class="fg2"><div class="fg"><label>날짜</label><input class="fi" type="date" id="drw-date" value="'+todayStr+'"></div>'
+    + '<div class="fg2"><div class="fg"><label>날짜</label><input class="fi" type="date" id="drw-date" data-no-fp value="'+todayStr+'"></div>'
     // 카테고리 (이름 겸용)
     + '<div class="fg"><label>카테고리</label><select class="fsel fi" id="drw-cat"></select></div></div>'
     // 메모
@@ -2736,7 +2736,7 @@ function openEditTx(mon, id) {
   const catOpts=curCats.map(cat=>'<option value="'+cat+'"'+(cat===tx.cat?' selected':'')+'>'+cat+'</option>').join('');
   $('dbody').innerHTML=
     '<div class="fg2">'
-    +'<div class="fg"><label>날짜</label><input class="fi" type="date" id="et-date" value="'+tx.date+'"></div>'
+    +'<div class="fg"><label>날짜</label><input class="fi" type="date" id="et-date" data-no-fp value="'+tx.date+'"></div>'
     +'<div class="fg"><label>금액</label><input class="fi" id="et-amt" value="'+fmt(tx.amt)+'" inputmode="numeric"></div>'
     +'</div>'
     +'<div class="fg"><label>유형</label><select class="fsel fi" id="et-type" onchange="updateEditCats()">'+typeOpts+'</select></div>'
@@ -3594,11 +3594,19 @@ function parseTransactionsFromOCR(text, todayStr) {
   // 단독 잔액 줄 (관대 — OCR 오인식 원/윈/읜 허용)
   const balanceOnlyLine = /^\s*[\d][\d,\s.]*\s*[원윈읜]?\s*$/;
   // 날짜 패턴
-  const dateRe = /(?:(\d{2,4})[.\-\/년]\s*)?(\d{1,2})[.\-\/월]\s*(\d{1,2})\s*(?:일)?/;
+  const dateRe = /(?:(\d{2,4})\s*[.\-\/년]\s*)?(\d{1,2})\s*[.\-\/월]\s*(\d{1,2})\s*(?:일)?/;
   // 시간 패턴
   const timeOnlyLine = /^\d{1,2}:\d{2}(:\d{2})?$/;
-  // 날짜 헤더 줄 (예: "5월 3일 일요일")
-  const dateHeaderRe = /^\s*(?:\d{2,4}[.\-\/년]\s*)?\d{1,2}[.\-\/월]\s*\d{1,2}\s*일?\s*(?:[가-힣]요일)?\s*$/;
+  // 날짜 헤더 줄 (관대 — OCR 노이즈 허용)
+  // 매칭: "5월 3일", "5월 3일 일요일", "5.3", "5/3", "2026.5.3", "5 월 3 일"
+  // 뒤에 한글(요일류)이 와도 OK
+  const dateHeaderRe = /^\s*(?:\d{2,4}\s*[.\-\/년]\s*)?\d{1,2}\s*[.\-\/월]\s*\d{1,2}\s*(?:일)?\s*[가-힣\s]{0,10}\s*$/;
+  // 라인 안에 날짜 키워드만 있고 금액/시간 없는 줄 (엄격한 거래 행과 분리)
+  const looksLikeDateHeader = (l) => {
+    if (!dateHeaderRe.test(l)) return false;
+    // 금액 매치가 없어야 헤더 (거래 행 아님)
+    return !/[+\-−]\s*\d/.test(l) && !/\d{3,}\s*원/.test(l);
+  };
 
   // 잔액 줄 마킹 (3중)
   const isBalanceOnly = lines.map(l => balanceOnlyLine.test(l));
@@ -3630,7 +3638,7 @@ function parseTransactionsFromOCR(text, todayStr) {
     if (!line) continue;
 
     // 날짜 헤더 줄 → currentDate 갱신, 거래 아님
-    if (dateHeaderRe.test(line)) {
+    if (looksLikeDateHeader(line)) {
       const dm = line.match(dateRe);
       if (dm) {
         let yr = dm[1] ? parseInt(dm[1],10) : new Date().getFullYear();
