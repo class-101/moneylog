@@ -176,12 +176,21 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   border-bottom:1px solid var(--border2);
 }
 .bank-card:last-of-type{border-bottom:none;}
+.bank-card-nextmonth .bank-amt{
+  /* 다음달용 통장은 잔액 색 회색조로 (이번달 자유분 아님 시각적 차별화) */
+  opacity:.85;
+}
 .bank-row1{
   display:flex;justify-content:space-between;align-items:center;
   margin-bottom:6px;
 }
 .bank-name{
   font-size:13px;color:var(--sub);font-weight:600;letter-spacing:-.2px;
+}
+.bank-role{
+  font-size:11px;color:var(--faint);
+  letter-spacing:-.1px;line-height:1.4;
+  margin-top:2px;margin-bottom:4px;
 }
 .bank-amt{
   font-size:28px;font-weight:800;
@@ -1286,15 +1295,15 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <div class="asset-cs-row">
         <div class="asset-cs-icon">💧</div>
         <div class="asset-cs-text">
-          <div class="asset-cs-lbl">지금 자유롭게 쓸 수 있는 돈</div>
+          <div class="asset-cs-lbl">이번달 자유롭게 쓸 수 있는 돈</div>
           <div class="asset-cs-amt cgr" id="as-free-cash">—</div>
         </div>
       </div>
       <div class="asset-cs-divider"></div>
       <div class="asset-cs-row asset-cs-row-sm" id="as-locked-row">
-        <div class="asset-cs-icon-sm">🔒</div>
+        <div class="asset-cs-icon-sm">📥</div>
         <div class="asset-cs-text">
-          <div class="asset-cs-lbl-sm">보관 중 (카드값 + 자물쇠)</div>
+          <div class="asset-cs-lbl-sm">다음달용 보관 (결제통장 + 자물쇠)</div>
           <div class="asset-cs-amt-sm csb" id="as-locked-cash">—</div>
         </div>
       </div>
@@ -2521,12 +2530,15 @@ function compute(mon) {
   const 고정자물쇠 = 고정자물쇠초 - 자물쇠사용; // 음수 가능
   const 신한_now = 신한 + 신한델타;
   const 가용현금 = 결제 + 생활비 + 신한_now;
-  // 자유잔액 = 통장 잔액 - 자물쇠로 보관된 부분 (지금 자유롭게 쓸 수 있는 돈)
-  const 결제자유 = 결제 - cardSpend;            // 카드값 모임 분 제외
-  const 생활비자유 = 생활비 - Math.max(고정자물쇠, 0); // 자물쇠 보관 분 제외 (음수면 0 취급)
+  // 자유잔액 = 이번달 자유롭게 쓸 수 있는 돈
+  // - 결제대금 통장: 다음달 카드값 + 다음달 생활비 이체용 → 이번달 자유잔액에서 제외
+  // - 생활비 통장: 자물쇠(다음달 나갈 고정/저축/투자) 빼고 자유잔액
+  // - 신한: 비상금 → 그대로 자유잔액 (필요 시 사용)
+  const 결제자유 = 0;                            // 결제대금 통장은 전체가 다음달용
+  const 생활비자유 = 생활비 - Math.max(고정자물쇠, 0);
   const 신한자유 = 신한_now;
   const 자유잔액 = 결제자유 + 생활비자유 + 신한자유;
-  const 보관중 = cardSpend + Math.max(고정자물쇠, 0);
+  const 보관중 = 결제 + Math.max(고정자물쇠, 0); // 결제 통장 전체 + 생활비 자물쇠
   const 저축=(sn.도형청약||0)+(sn.예진청약||0)+(sn.도형청도계||0)+(sn.예진청도계||0);
   const 투자=(sn.월드컵평가||0)+(sn.퇴직연금평가||0)+(sn.CMA||0)+(sn.Abbott||0)+(sn.Medtronic||0)+(sn.도형ISA평가||0)+(sn.예진ISA평가||0);
   const 변동대출=(sn.도형마통||0)+(sn.예진마통||0)+(sn.청약대출||0)+(sn.학자금||0);
@@ -2551,19 +2563,21 @@ function compute(mon) {
 // ━━ RENDER HOME ━━━━━━━━━━━━━━━━━━━━━━━
 function renderHome() {
   const c=compute(currentMonth());
-  // 히어로 — 토스 스타일: 자유잔액(지금 자유롭게 쓸 수 있는 돈) 강조
+  // 히어로 — 토스 스타일: 자유잔액(이번달 자유롭게 쓸 수 있는 돈) 강조
   set('h-cash',fmtW(c.자유잔액)); $('h-cash').style.color=c.자유잔액>=0?'#fff':'#fca5a5';
   const subEl = $('h-cash-sub');
   if (subEl) {
+    // 자유잔액 = 생활비(자물쇠 제외) + 신한
+    // 보관중 = 결제통장 전체 + 생활비 자물쇠
     if (c.보관중 > 0) {
-      subEl.textContent = '통장 '+fmtW(c.가용현금)+' − 보관중 '+fmtW(c.보관중);
+      subEl.textContent = '생활비 자유분 + 신한 (결제통장 '+fmtW(c.결제)+'은 다음달용)';
     } else {
-      subEl.textContent = '결제 + 생활비 + 도형 신한';
+      subEl.textContent = '생활비 + 도형 신한';
     }
   }
   const chips=$('h-chips');
   let chipsHtml = '';
-  if (c.cardSpend > 0) chipsHtml += '<div class="hchip">💳 카드값 '+fmtW(c.cardSpend)+'</div>';
+  if (c.cardSpend > 0) chipsHtml += '<div class="hchip">💳 이번달 카드 '+fmtW(c.cardSpend)+'</div>';
   if (c.고정자물쇠 > 0) chipsHtml += '<div class="hchip">🔒 자물쇠 '+fmtW(c.고정자물쇠)+'</div>';
   else if (c.고정자물쇠 < 0) chipsHtml += '<div class="hchip warn">🔒 자물쇠 초과 '+fmtW(Math.abs(c.고정자물쇠))+'</div>';
   chipsHtml += '<div class="hchip">🏆 순자산 '+fmtW(c.순자산)+'</div>';
@@ -2633,7 +2647,7 @@ function renderHome() {
   if(chips2 && prevNet!==0 && delta!==0) {
     const sign = delta>=0 ? '▲ +' : '▼ ';
     let html = '';
-    if (c.cardSpend > 0) html += '<div class="hchip">💳 카드값 '+fmtW(c.cardSpend)+'</div>';
+    if (c.cardSpend > 0) html += '<div class="hchip">💳 이번달 카드 '+fmtW(c.cardSpend)+'</div>';
     if (c.고정자물쇠 > 0) html += '<div class="hchip">🔒 자물쇠 '+fmtW(c.고정자물쇠)+'</div>';
     else if (c.고정자물쇠 < 0) html += '<div class="hchip warn">🔒 초과 '+fmtW(Math.abs(c.고정자물쇠))+'</div>';
     html += '<div class="hchip '+(delta>=0?'ok':'warn')+'">'+sign+fmtW(Math.abs(delta))+' 전달比</div>';
@@ -3621,26 +3635,26 @@ function renderAssetPage() {
   const 자물쇠잔액 = c.고정자물쇠 || 0;          // 생활비 통장 안의 자물쇠 (양수: 남음, 음수: 초과)
   const cardSpendNow = c.cardSpend || 0;        // 이번달 쓴 카드값 (결제통장 안에 모인 금액)
   const 자물쇠사용액 = c.자물쇠사용 || 0;
-  // 자유잔액 = 통장 잔액 - 자물쇠로 보관 중인 부분 (실제 자유롭게 쓸 수 있는 돈)
-  const 결제자유 = c.결제 - cardSpendNow;        // 결제대금 통장에서 카드값 분 빼고 자유 분
-  const 생활비자유 = c.생활비 - Math.max(자물쇠잔액, 0); // 생활비에서 자물쇠 보관분 빼고
-  const 신한자유 = c.신한;
-  const 자유합계 = 결제자유 + 생활비자유 + 신한자유;
-  const 보관합계 = cardSpendNow + Math.max(자물쇠잔액, 0);
+  // 자유잔액 = compute()의 정의 사용 (결제대금 전체 = 다음달용 보관)
+  const 자유합계 = c.자유잔액;
+  const 보관합계 = c.보관중;
 
   // 토스/네이버 스타일 통장 카드 빌더
-  const acctCard = (name, balance, badge, lockTitle, lockAmt, lockTone, dirty) => {
-    const balCls = balance>=0 ? 'cbl' : 'crd';
+  const acctCard = (name, balance, badge, lockTitle, lockAmt, lockTone, dirty, role, variant) => {
+    const balCls = balance>=0 ? (variant==='nextmonth'?'csb':'cbl') : 'crd';
+    const cardCls = 'bank-card' + (variant==='nextmonth' ? ' bank-card-nextmonth' : '');
     // dirty: 사용자 입력 잔액과 거래 합산값 차이 (있으면 노란 안내)
     const diffBox = dirty ? '<div style="margin-top:8px;padding:8px 10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:11px;color:#92400e;line-height:1.5;">'
       + '⚠️ 토스 실잔액과 ' + fmtW(Math.abs(dirty)) + ' 차이. <a onclick="reconcileBank(\''+name+'\')" style="color:#b45309;font-weight:700;text-decoration:underline;cursor:pointer;">잔액 보정</a>'
       + '</div>' : '';
-    return '<div class="bank-card">'
+    return '<div class="'+cardCls+'">'
       // 1행: 이름 + 배지
       + '<div class="bank-row1">'
       +   '<div class="bank-name">'+name+'</div>'
       +   (badge||'')
       + '</div>'
+      // 통장 역할 (있을 때만) — 잔액 위 sub 라벨
+      + (role ? '<div class="bank-role">'+role+'</div>' : '')
       // 2행: 큰 잔액 (자유 잔액 강조)
       + '<div class="bank-amt '+balCls+'">'+fmtW(balance)+'</div>'
       // 3행: 자물쇠 보관 영역 (있을 때만)
@@ -3664,9 +3678,13 @@ function renderAssetPage() {
     const diff생활비 = 토스생활비실잔 != null ? (c.생활비 - 토스생활비실잔) : 0;
     const diff신한 = 토스신한실잔 != null ? (c.신한 - 토스신한실잔) : 0;
 
-    const 결제Lock = cardSpendNow > 0
-      ? { title: '이번달 쓴 카드값 (다음달 출금 예정)', amt: cardSpendNow, tone: 'tone-red' }
-      : null;
+    // 결제 통장: 자물쇠 박스 제거 — 통장 자체가 "다음달 카드값 모음" 역할
+    // 카드값이 있으면 통장 설명에만 표시 (별도 보관 박스 X)
+    const 결제역할 = cardSpendNow > 0
+      ? '다음달 나갈 카드값 ' + fmtW(cardSpendNow) + ' 모임 중'
+      : '다음달 나갈 카드값 모음';
+
+    // 생활비 통장: 자물쇠 박스 유지 (사용자 운영 흐름 그대로)
     const 자물쇠경고문구 = 자물쇠잔액 < 0
       ? '⚠️ 고정비 자물쇠 ' + fmtW(Math.abs(자물쇠잔액)) + ' 초과 사용'
       : '이번달 나갈 고정비/저축/투자';
@@ -3676,20 +3694,24 @@ function renderAssetPage() {
 
     cashList.innerHTML =
       acctCard('결제 통장', c.결제, '<span class="bdg bdg-bl">결제</span>',
-               결제Lock?결제Lock.title:null, 결제Lock?결제Lock.amt:0, 결제Lock?결제Lock.tone:'', diff결제)
+               null, 0, '', diff결제, 결제역할, 'nextmonth')
       + acctCard('생활비 통장', c.생활비, '<span class="bdg bdg-tl">생활</span>',
-                 생활비Lock?생활비Lock.title:null, 생활비Lock?생활비Lock.amt:0, 생활비Lock?생활비Lock.tone:'', diff생활비)
-      + acctCard('도형 신한', c.신한, '<span class="bdg bdg-gy">신한</span>', null, 0, '', diff신한);
+                 생활비Lock?생활비Lock.title:null, 생활비Lock?생활비Lock.amt:0, 생활비Lock?생활비Lock.tone:'', diff생활비, '변동지출 · 자물쇠 안 고정/저축/투자')
+      + acctCard('도형 신한', c.신한, '<span class="bdg bdg-gy">신한</span>', null, 0, '', diff신한, '비상금 · 별도 보관');
 
     // ── 자유잔액 / 보관 분리 합계 (토스 스타일)
     cashList.innerHTML += '<div class="cash-summary">'
       + '<div class="cash-summary-row">'
-      +   '<div class="cash-summary-label">💧 지금 자유롭게 쓸 수 있는 돈</div>'
+      +   '<div class="cash-summary-label">💧 이번달 자유롭게 쓸 수 있는 돈</div>'
       +   '<div class="cash-summary-amt cgr">'+fmtW(자유합계)+'</div>'
       + '</div>'
-      + (보관합계>0 ? '<div class="cash-summary-row">'
-          +   '<div class="cash-summary-label">🔒 보관 중 (카드값+자물쇠)</div>'
-          +   '<div class="cash-summary-amt csb">'+fmtW(보관합계)+'</div>'
+      + (c.결제>0 ? '<div class="cash-summary-row">'
+          +   '<div class="cash-summary-label">📥 결제 통장 (다음달용)</div>'
+          +   '<div class="cash-summary-amt csb">'+fmtW(c.결제)+'</div>'
+          + '</div>' : '')
+      + (자물쇠잔액>0 ? '<div class="cash-summary-row">'
+          +   '<div class="cash-summary-label">🔒 자물쇠 (이번달 나갈 고정/저축/투자)</div>'
+          +   '<div class="cash-summary-amt csb">'+fmtW(자물쇠잔액)+'</div>'
           + '</div>' : '')
       + '<div class="cash-summary-row total">'
       +   '<div class="cash-summary-label-total">통장 총잔액</div>'
@@ -4588,8 +4610,10 @@ function openReconcileSheet() {
   $('dtitle').textContent = '💱 토스 실잔액과 맞추기';
   $('dbody').innerHTML =
     '<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:14px;padding:11px 13px;background:var(--blue-light);border-radius:10px;">'
-    + '💡 토스 앱의 <b>실제 잔액</b>을 입력하면 차이를 표시하고, [보정 거래 추가] 버튼으로 차액을 자동 반영합니다. <br>'
-    + '입력하지 않은 통장은 보정하지 않습니다.'
+    + '💡 토스 앱의 <b>실제 잔액</b>을 입력하면 차이를 표시하고, 차액을 자동 반영합니다. 입력하지 않은 통장은 보정하지 않습니다.'
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--sub);line-height:1.5;margin-bottom:14px;padding:9px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">'
+    + '<b>📥 결제 통장</b>은 다음달 나갈 카드값을 모아두는 통장입니다.'
     + '</div>'
 
     // 결제 통장
