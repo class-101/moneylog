@@ -782,25 +782,25 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         <h3>이달 내역</h3>
         <span id="rec-mon-label" style="font-size:12px;color:var(--faint);"></span>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <select class="fsel" id="rec-sort" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <select class="fsel" id="rec-sort" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;" title="정렬">
           <option value="date_desc">최신순</option>
           <option value="date_asc">오래된순</option>
           <option value="amt_desc">금액 높은순</option>
           <option value="amt_asc">금액 낮은순</option>
         </select>
-        <select class="fsel" id="rec-filter" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;">
-          <option value="">전체</option>
-          <option value="income">수입</option>
-          <option value="fixed">고정</option>
-          <option value="variable">변동</option>
-          <option value="saving">저축</option>
-          <option value="invest">투자</option>
-          <option value="card">카드</option>
-          <option value="transfer">이체</option>
+        <select class="fsel" id="rec-filter" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;" title="유형 필터">
+          <option value="">유형 전체</option>
+          <option value="income">💰 수입만</option>
+          <option value="fixed">🏠 고정만</option>
+          <option value="variable">🛒 변동만</option>
+          <option value="saving">🏦 저축만</option>
+          <option value="invest">📈 투자만</option>
+          <option value="card">💳 카드만</option>
+          <option value="transfer">🔄 이체만</option>
         </select>
-        <select class="fsel" id="rec-method-filter" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;">
-          <option value="">결제수단</option>
+        <select class="fsel" id="rec-method-filter" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;" title="결제수단 필터">
+          <option value="">결제수단 전체</option>
         </select>
         <button id="tx-select-toggle" onclick="toggleTxSelectMode()" style="border:1.5px solid var(--border);background:var(--white);color:var(--sub);font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">선택</button>
         <a onclick="exportCSV()" style="font-size:12px;color:var(--blue);font-weight:600;cursor:pointer;">CSV</a>
@@ -2222,20 +2222,21 @@ function compute(mon) {
       if (to === '결제') 결제델타 += amt;
       else if (to === '생활비') 생활비델타 += amt;
       else if (to === '신한') 신한델타 += amt;
+    } else if (t.type === 'fixed' || t.type === 'saving' || t.type === 'invest') {
+      // 고정/저축/투자: 자물쇠만 차감, 통장 잔액은 건드리지 않음
+      // (월초 입력 시점에 이미 자물쇠 분이 포함된 통장 잔액을 입력했으므로,
+      //  자동이체로 외부 이전되어도 통장 추적과 별개)
+      자물쇠사용 += amt;
     } else {
-      // 지출 (fixed/variable/saving/invest/card)
+      // 변동지출 / 카드 거래
       if (_isCardCredit(t.method)) {
-        // 신용카드: 생활비 -, 결제대금 + (외상)
+        // 신용카드: 생활비 -, 결제대금 + (외상이지만 즉시 결제대금에 모임)
         생활비델타 -= amt;
         결제델타 += amt;
         cardSpend += amt;
       } else {
-        // 체크카드/현금/자동이체/페이: 생활비 -
+        // 체크카드/현금/페이/자동이체(변동): 생활비 -
         생활비델타 -= amt;
-      }
-      // 자물쇠 차감 (음수 허용)
-      if (t.type === 'fixed' || t.type === 'saving' || t.type === 'invest') {
-        자물쇠사용 += amt;
       }
     }
   });
@@ -2703,14 +2704,14 @@ function renderRecordPage() {
   if(wrap) {
     if(txs.length) {
       const totalIn=txs.filter(t=>t.type==='income').reduce((a,t)=>a+t.amt,0);
-      const totalOut=txs.filter(t=>t.type!=='income'&&t.type!=='transfer').reduce((a,t)=>a+t.amt,0);
-      const totalTransfer=txs.filter(t=>t.type==='transfer').reduce((a,t)=>a+t.amt,0);
+      // 지출만: fixed + variable + card (저축/투자/이체 제외)
+      const totalSpend=txs.filter(t=>t.type==='fixed'||t.type==='variable'||t.type==='card').reduce((a,t)=>a+t.amt,0);
       const summary='<div style="display:flex;gap:8px;padding:0 0 12px;margin-bottom:4px;border-bottom:2px solid var(--border);">'
         +'<div style="flex:1;text-align:center;"><div style="font-size:11px;color:var(--sub);">수입</div><div style="font-size:14px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums;">+'+fmtW(totalIn)+'</div></div>'
         +'<div style="width:1px;background:var(--border2);"></div>'
-        +'<div style="flex:1;text-align:center;"><div style="font-size:11px;color:var(--sub);">지출·저축</div><div style="font-size:14px;font-weight:700;color:var(--red);font-variant-numeric:tabular-nums;">-'+fmtW(totalOut)+'</div></div>'
+        +'<div style="flex:1;text-align:center;"><div style="font-size:11px;color:var(--sub);">지출</div><div style="font-size:14px;font-weight:700;color:var(--red);font-variant-numeric:tabular-nums;">-'+fmtW(totalSpend)+'</div></div>'
         +'<div style="width:1px;background:var(--border2);"></div>'
-        +'<div style="flex:1;text-align:center;"><div style="font-size:11px;color:var(--sub);">잔액</div><div style="font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:'+(totalIn-totalOut>=0?'var(--blue)':'var(--red)')+'">'+(totalIn-totalOut>=0?'+':'')+fmtW(totalIn-totalOut)+'</div></div>'
+        +'<div style="flex:1;text-align:center;"><div style="font-size:11px;color:var(--sub);">잔액</div><div style="font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:'+(totalIn-totalSpend>=0?'var(--blue)':'var(--red)')+'">'+(totalIn-totalSpend>=0?'+':'')+fmtW(totalIn-totalSpend)+'</div></div>'
         +'</div>';
       wrap.innerHTML = summary + txs.map(t=>txRow(t,mon,true)).join('');
     } else {
@@ -3292,8 +3293,8 @@ function renderAssetPage() {
       c.결제, c.결제>=0?'cbl':'crd', '<span class="bdg bdg-bl">결제</span>'),
     ai2('생활비 통장',
       자물쇠잔액>=0
-        ? '고정비 자물쇠 '+fmtW(자물쇠잔액)+' 남음 (이번달 -'+fmtW(c.자물쇠사용)+')'
-        : '고정비 자물쇠'+자물쇠경고+' (이번달 -'+fmtW(c.자물쇠사용)+')',
+        ? '고정비 자물쇠 '+fmtW(자물쇠잔액)+' 남음 · 이번달 자동이체 '+fmtW(c.자물쇠사용)
+        : '고정비 자물쇠'+자물쇠경고+' · 이번달 자동이체 '+fmtW(c.자물쇠사용),
       c.생활비, c.생활비>=0?'cbl':'crd', '<span class="bdg bdg-bl">생활</span>'),
     ai2('도형 신한','',c.신한,'cbl','<span class="bdg bdg-bl">신한</span>'),
   ].join('');
