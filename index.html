@@ -112,6 +112,34 @@ body.snap-save-active .scroll{padding-bottom:210px;}
 .hchip.warn{background:rgba(220,38,38,.35);border-color:rgba(220,38,38,.3);}
 .hchip.ok{background:rgba(5,150,105,.35);border-color:rgba(5,150,105,.3);}
 
+/* ── HERO TOSS STYLE (정제된 토스/네이버 풍) */
+.hero.hero-toss{
+  background:linear-gradient(135deg,#1d4ed8 0%,#2563eb 45%,#3b82f6 100%);
+  border-radius:18px;
+  padding:22px 22px 20px;
+  box-shadow:0 8px 28px rgba(37,99,235,.32),0 2px 8px rgba(37,99,235,.08);
+}
+.hero-toss-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:8px;
+}
+.hero-toss-head .hero-lbl{
+  margin-bottom:0;font-size:12px;letter-spacing:-.1px;font-weight:600;opacity:.92;
+}
+.hero-toss-info{
+  font-size:11px;color:#fff;opacity:.7;cursor:pointer;
+  letter-spacing:-.2px;font-weight:500;
+  transition:opacity .15s;
+}
+.hero-toss-info:hover{opacity:1;}
+.hero.hero-toss .hero-num{
+  font-size:34px;font-weight:900;letter-spacing:-1.2px;
+  margin-top:2px;
+}
+.hero.hero-toss .hero-sub{
+  font-size:11.5px;opacity:.62;margin-top:5px;letter-spacing:-.1px;
+}
+
 /* ── STATS GRID */
 .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .sbox{background:var(--white);border-radius:var(--rsm);padding:14px 12px;border:1px solid var(--border);box-shadow:var(--sh0);}
@@ -141,6 +169,212 @@ body.snap-save-active .scroll{padding-bottom:210px;}
 .bdg-yl{background:var(--yellow-light);color:var(--yellow);}
 .bdg-pr{background:var(--purple-light);color:var(--purple);}
 .bdg-gy{background:var(--border);color:var(--sub);}
+
+/* ── BANK CARD (토스/네이버 스타일 통장 카드) */
+.bank-card{
+  padding:18px 0;
+  border-bottom:1px solid var(--border2);
+}
+.bank-card:last-of-type{border-bottom:none;}
+.bank-row1{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:6px;
+}
+.bank-name{
+  font-size:13px;color:var(--sub);font-weight:600;letter-spacing:-.2px;
+}
+.bank-amt{
+  font-size:28px;font-weight:800;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.7px;line-height:1.1;
+}
+.bank-lock{
+  display:flex;align-items:center;gap:10px;
+  margin-top:12px;padding:11px 13px;
+  background:var(--bg);
+  border-radius:10px;
+  transition:background .15s;
+}
+.bank-lock.tone-red{background:#fef2f2;}
+.bank-lock.tone-blue{background:var(--blue-light);}
+.bank-lock-icon{
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,.85);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:13px;
+  box-shadow:0 1px 2px rgba(0,0,0,.05);
+}
+.bank-lock-text{flex:1;min-width:0;}
+.bank-lock-label{
+  font-size:11px;color:var(--sub);
+  letter-spacing:-.2px;line-height:1.3;
+}
+.bank-lock-amt{
+  font-size:14px;font-weight:700;
+  color:var(--text);
+  font-variant-numeric:tabular-nums;
+  margin-top:1px;
+}
+
+/* ── CASH SUMMARY (자유 잔액 / 보관 분리 합계) */
+.cash-summary{
+  margin-top:14px;
+  padding:14px;
+  background:linear-gradient(135deg,#f0f9ff 0%,#eff6ff 100%);
+  border:1px solid #bfdbfe;
+  border-radius:12px;
+}
+.cash-summary-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;
+}
+.cash-summary-row.total{
+  margin-top:6px;padding-top:10px;
+  border-top:1.5px dashed #bfdbfe;
+}
+.cash-summary-label{
+  font-size:12px;color:var(--sub);font-weight:600;letter-spacing:-.2px;
+}
+.cash-summary-label-total{
+  font-size:13px;color:var(--text);font-weight:800;
+}
+.cash-summary-amt{
+  font-size:14px;font-weight:700;
+  font-variant-numeric:tabular-nums;
+}
+.cash-summary-amt-total{
+  font-size:18px;font-weight:900;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.4px;
+}
+.reconcile-btn{
+  width:100%;margin-top:12px;
+  padding:11px;
+  background:var(--white);
+  border:1.5px solid var(--blue);
+  color:var(--blue);
+  border-radius:10px;
+  font-size:13px;font-weight:700;
+  font-family:inherit;
+  cursor:pointer;
+  transition:all .15s;
+  letter-spacing:-.2px;
+}
+.reconcile-btn:hover{background:var(--blue);color:#fff;}
+.reconcile-btn:active{transform:scale(.98);}
+
+/* ── RECONCILE SHEET (잔액 보정) */
+.rec-row{
+  margin-bottom:14px;padding:12px;
+  background:var(--bg);border-radius:12px;
+  border:1px solid var(--border);
+}
+.rec-row-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.rec-row-name{font-size:13px;font-weight:700;color:var(--text);}
+.rec-row-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.rec-cell{display:flex;flex-direction:column;gap:4px;}
+.rec-cell-lbl{font-size:10px;color:var(--faint);font-weight:600;letter-spacing:-.2px;}
+.rec-cell-val{
+  font-size:13px;font-weight:700;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.3px;
+  padding:7px 0;
+}
+.rec-cell-in{
+  height:36px;font-size:13px!important;
+  text-align:right;font-weight:700;
+  font-variant-numeric:tabular-nums;
+  padding:0 9px!important;
+}
+.btn-primary{
+  height:48px;background:var(--blue);color:#fff;
+  border:none;border-radius:12px;
+  font-size:14px;font-weight:800;
+  font-family:inherit;cursor:pointer;
+  transition:all .15s;letter-spacing:-.2px;
+}
+.btn-primary:hover{background:#1d4ed8;}
+.btn-primary:active{transform:scale(.98);}
+.btn-secondary{
+  height:48px;background:var(--bg);color:var(--text);
+  border:1px solid var(--border);border-radius:12px;
+  font-size:14px;font-weight:700;
+  font-family:inherit;cursor:pointer;
+  transition:all .15s;letter-spacing:-.2px;
+}
+.btn-secondary:hover{background:var(--border);}
+
+/* ── ASSET HERO (토스 스타일 자산 헤더) */
+.asset-hero{
+  background:linear-gradient(135deg,#f8fafc 0%,#eff6ff 100%);
+  border:1px solid #dbeafe;
+  border-radius:16px;
+  padding:18px 20px;
+  box-shadow:0 1px 2px rgba(37,99,235,.04);
+}
+.asset-hero-row{display:flex;align-items:center;gap:16px;}
+.asset-hero-lbl{
+  font-size:11.5px;color:var(--sub);
+  font-weight:600;margin-bottom:4px;letter-spacing:-.1px;
+}
+.asset-hero-num{
+  font-size:28px;font-weight:900;
+  font-variant-numeric:tabular-nums;letter-spacing:-.7px;
+  color:var(--text);line-height:1.1;
+}
+.asset-hero-sub{
+  font-size:11px;color:var(--faint);
+  margin-top:5px;letter-spacing:-.1px;
+}
+.asset-hero-legend{
+  display:flex;gap:12px;flex-wrap:wrap;
+  margin-top:14px;padding-top:12px;
+  border-top:1px dashed #bfdbfe;
+}
+
+/* ── ASSET CASH SUMMARY (자유 / 보관 분리 카드) */
+.asset-cash-summary{
+  background:linear-gradient(135deg,#ecfdf5 0%,#f0fdf4 100%);
+  border-color:#a7f3d0;
+}
+.asset-cs-row{display:flex;align-items:center;gap:13px;padding:6px 0;}
+.asset-cs-row-sm{padding:0;}
+.asset-cs-icon{
+  width:42px;height:42px;border-radius:50%;
+  background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+  box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.asset-cs-icon-sm{
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,.7);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.asset-cs-text{flex:1;min-width:0;}
+.asset-cs-lbl{
+  font-size:11.5px;color:var(--sub);font-weight:600;
+  letter-spacing:-.1px;margin-bottom:2px;
+}
+.asset-cs-amt{
+  font-size:22px;font-weight:900;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.5px;line-height:1.1;
+}
+.asset-cs-divider{
+  margin:12px 0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,#a7f3d0,transparent);
+}
+.asset-cs-lbl-sm{
+  font-size:11px;color:var(--sub);font-weight:500;letter-spacing:-.1px;
+}
+.asset-cs-amt-sm{
+  font-size:14px;font-weight:700;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.2px;
+}
 /* ── PROGRESS */
 .pitem{margin-bottom:12px;}
 .pitem:last-child{margin-bottom:0;}
@@ -331,9 +565,9 @@ svg.chart{display:block;width:100%;}
 .rbtn-start{background:var(--green-light);color:var(--green);}
 .rbtn-del{background:var(--border);color:var(--sub);}
 /* ── DONUT */
-.donut-wrap{position:relative;width:110px;height:110px;flex-shrink:0;}
-.donut-wrap svg{transform:rotate(-90deg);}
-.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+.donut-wrap{position:relative;width:120px;height:120px;flex-shrink:0;}
+.donut-wrap svg{transform:rotate(-90deg);width:100%;height:100%;}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:1px;}
 /* ── SYNC CARD */
 .sync-card{background:linear-gradient(135deg,#eff5ff,#e8f2fe);border:1.5px solid #bfdbfe;border-radius:var(--r);}
 /* ── IMAGE UPLOAD */
@@ -641,11 +875,14 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
   <div id="onboarding-wrap"></div>
   <!-- 예산 초과 알림 -->
   <div id="overbudget-wrap"></div>
-  <!-- 가용현금 히어로 -->
-  <div class="hero">
-    <div class="hero-lbl">가용 현금</div>
+  <!-- 가용현금 히어로 (토스 스타일) -->
+  <div class="hero hero-toss">
+    <div class="hero-toss-head">
+      <div class="hero-lbl">💧 자유롭게 쓸 수 있는 돈</div>
+      <div class="hero-toss-info" onclick="goPage('asset')" title="자산 탭에서 자세히 보기">자세히 ›</div>
+    </div>
     <div class="hero-num" id="h-cash">—</div>
-    <div class="hero-sub">결제통장 + 생활비통장 + 도형 신한</div>
+    <div class="hero-sub" id="h-cash-sub">통장 잔액 — 카드값 — 자물쇠</div>
     <div class="hero-row" id="h-chips"></div>
   </div>
   <!-- 이달 요약 -->
@@ -1028,21 +1265,41 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
 <div class="pg" id="pg-asset">
   <!-- 만기/경보 -->
   <div id="as-maturity-alerts"></div>
-  <!-- 순자산 + 도넛 -->
-  <div class="card"><div class="cp">
-    <div style="display:flex;align-items:center;gap:16px;">
+  <!-- 순자산 헤더 — 토스 스타일 -->
+  <div class="asset-hero">
+    <div class="asset-hero-row">
       <div style="flex:1;">
-        <div style="font-size:11px;color:var(--sub);margin-bottom:3px;">총 순자산</div>
-        <div style="font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.5px;" id="as-net-total">—</div>
-        <div style="font-size:11px;color:var(--faint);margin-top:2px;">현금+저축+투자 − 변동대출</div>
+        <div class="asset-hero-lbl">총 순자산</div>
+        <div class="asset-hero-num" id="as-net-total">—</div>
+        <div class="asset-hero-sub">현금 + 저축 + 투자 − 변동 대출</div>
       </div>
       <div class="donut-wrap">
         <svg id="as-donut" viewBox="0 0 100 100" width="110" height="110"></svg>
         <div class="donut-center" id="as-donut-center"></div>
       </div>
     </div>
-    <div id="as-legend" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;"></div>
-  </div></div>
+    <div id="as-legend" class="asset-hero-legend"></div>
+  </div>
+  <!-- 자유잔액 분리 카드 (토스 스타일) -->
+  <div class="card asset-cash-summary">
+    <div class="cp">
+      <div class="asset-cs-row">
+        <div class="asset-cs-icon">💧</div>
+        <div class="asset-cs-text">
+          <div class="asset-cs-lbl">지금 자유롭게 쓸 수 있는 돈</div>
+          <div class="asset-cs-amt cgr" id="as-free-cash">—</div>
+        </div>
+      </div>
+      <div class="asset-cs-divider"></div>
+      <div class="asset-cs-row asset-cs-row-sm" id="as-locked-row">
+        <div class="asset-cs-icon-sm">🔒</div>
+        <div class="asset-cs-text">
+          <div class="asset-cs-lbl-sm">보관 중 (카드값 + 자물쇠)</div>
+          <div class="asset-cs-amt-sm csb" id="as-locked-cash">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- 구성비 바 -->
   <div class="card"><div class="cp">
     <div class="ctitle">자산 구성 비율</div>
@@ -1053,7 +1310,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     <div class="acc-header" id="as-acc-cash-hd" onclick="toggleAcc('as-acc-cash')">
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:16px;">💵</span>
-        <span style="font-size:14px;font-weight:700;">현금 (통장)</span>
+        <span style="font-size:14px;font-weight:700;">현금 통장 상세</span>
         <span class="bdg bdg-bl" id="as-cash-badge">—</span>
       </div>
       <span class="acc-arrow" id="as-acc-cash-arr">▼</span>
@@ -1061,7 +1318,6 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     <div class="acc-body" id="as-acc-cash-body" style="display:none;">
       <div class="acc-body-inner">
         <div id="as-cash-list"></div>
-        <div class="rltotal"><span class="rk">가용 현금 합계</span><span class="rv cbl" id="as-cash-total">—</span></div>
       </div>
     </div>
   </div>
@@ -1707,6 +1963,8 @@ const FIXED_LOANS = {
   오피스텔:{amt:170000000,rate:4.7,mInt:Math.round(170000000*.047/12)},
 };
 const SNAP_KEYS=['결제통장','카드자물쇠','생활비통장','고정자물쇠','도형신한',
+  // 토스 실잔액 (보정용)
+  '실잔_결제','실잔_생활비','실잔_신한',
   // 대출
   '도형마통','도형마통금리','도형마통한도','도형마통기관',
   '예진마통','예진마통금리','예진마통한도','예진마통기관',
@@ -2263,6 +2521,12 @@ function compute(mon) {
   const 고정자물쇠 = 고정자물쇠초 - 자물쇠사용; // 음수 가능
   const 신한_now = 신한 + 신한델타;
   const 가용현금 = 결제 + 생활비 + 신한_now;
+  // 자유잔액 = 통장 잔액 - 자물쇠로 보관된 부분 (지금 자유롭게 쓸 수 있는 돈)
+  const 결제자유 = 결제 - cardSpend;            // 카드값 모임 분 제외
+  const 생활비자유 = 생활비 - Math.max(고정자물쇠, 0); // 자물쇠 보관 분 제외 (음수면 0 취급)
+  const 신한자유 = 신한_now;
+  const 자유잔액 = 결제자유 + 생활비자유 + 신한자유;
+  const 보관중 = cardSpend + Math.max(고정자물쇠, 0);
   const 저축=(sn.도형청약||0)+(sn.예진청약||0)+(sn.도형청도계||0)+(sn.예진청도계||0);
   const 투자=(sn.월드컵평가||0)+(sn.퇴직연금평가||0)+(sn.CMA||0)+(sn.Abbott||0)+(sn.Medtronic||0)+(sn.도형ISA평가||0)+(sn.예진ISA평가||0);
   const 변동대출=(sn.도형마통||0)+(sn.예진마통||0)+(sn.청약대출||0)+(sn.학자금||0);
@@ -2278,6 +2542,7 @@ function compute(mon) {
     가용현금, 저축, 투자, 변동대출, 순자산,
     결제, 카드자물쇠, 생활비, 고정자물쇠, 신한: 신한_now,
     결제초, 생활비초, 고정자물쇠초, 자물쇠사용, cardSpend,
+    자유잔액, 보관중, 결제자유, 생활비자유, 신한자유,
     income, fixed, variable, saving, invest, card, totalExp, saveRate, bIncome,
     bgt, sn, txs, catActual
   };
@@ -2286,11 +2551,23 @@ function compute(mon) {
 // ━━ RENDER HOME ━━━━━━━━━━━━━━━━━━━━━━━
 function renderHome() {
   const c=compute(currentMonth());
-  // 히어로
-  set('h-cash',fmtW(c.가용현금)); $('h-cash').style.color=c.가용현금>=0?'#fff':'#fca5a5';
+  // 히어로 — 토스 스타일: 자유잔액(지금 자유롭게 쓸 수 있는 돈) 강조
+  set('h-cash',fmtW(c.자유잔액)); $('h-cash').style.color=c.자유잔액>=0?'#fff':'#fca5a5';
+  const subEl = $('h-cash-sub');
+  if (subEl) {
+    if (c.보관중 > 0) {
+      subEl.textContent = '통장 '+fmtW(c.가용현금)+' − 보관중 '+fmtW(c.보관중);
+    } else {
+      subEl.textContent = '결제 + 생활비 + 도형 신한';
+    }
+  }
   const chips=$('h-chips');
-  chips.innerHTML='<div class="hchip">💳 카드자물쇠 '+fmtW(c.카드자물쇠)+'</div>'
-    +'<div class="hchip">🏆 순자산 '+fmtW(c.순자산)+'</div>';
+  let chipsHtml = '';
+  if (c.cardSpend > 0) chipsHtml += '<div class="hchip">💳 카드값 '+fmtW(c.cardSpend)+'</div>';
+  if (c.고정자물쇠 > 0) chipsHtml += '<div class="hchip">🔒 자물쇠 '+fmtW(c.고정자물쇠)+'</div>';
+  else if (c.고정자물쇠 < 0) chipsHtml += '<div class="hchip warn">🔒 자물쇠 초과 '+fmtW(Math.abs(c.고정자물쇠))+'</div>';
+  chipsHtml += '<div class="hchip">🏆 순자산 '+fmtW(c.순자산)+'</div>';
+  chips.innerHTML = chipsHtml;
   // stats
   set('h-income',fmtW(c.income)); set('h-income-ss',c.bIncome?'예산 '+fmtW(c.bIncome):'거래 기준');
   set('h-expense',fmtW(c.fixed+c.variable+c.card));
@@ -2353,10 +2630,14 @@ function renderHome() {
     -(prevSn.도형마통||0)-(prevSn.예진마통||0)-(prevSn.청약대출||0)-(prevSn.학자금||0);
   const delta=c.순자산-prevNet;
   const chips2=$('h-chips');
-  if(chips2&&prevNet!==0&&delta!==0) {
-    const sign=delta>=0?'▲ +':'▼ ';
-    chips2.innerHTML='<div class="hchip">💳 카드자물쇠 '+fmtW(c.카드자물쇠)+'</div>'
-      +'<div class="hchip '+(delta>=0?'ok':'warn')+'">'+sign+fmtW(Math.abs(delta))+' 전달比</div>';
+  if(chips2 && prevNet!==0 && delta!==0) {
+    const sign = delta>=0 ? '▲ +' : '▼ ';
+    let html = '';
+    if (c.cardSpend > 0) html += '<div class="hchip">💳 카드값 '+fmtW(c.cardSpend)+'</div>';
+    if (c.고정자물쇠 > 0) html += '<div class="hchip">🔒 자물쇠 '+fmtW(c.고정자물쇠)+'</div>';
+    else if (c.고정자물쇠 < 0) html += '<div class="hchip warn">🔒 초과 '+fmtW(Math.abs(c.고정자물쇠))+'</div>';
+    html += '<div class="hchip '+(delta>=0?'ok':'warn')+'">'+sign+fmtW(Math.abs(delta))+' 전달比</div>';
+    chips2.innerHTML = html;
   }
   // 아코디언 헤더 요약값
   const cs=$('h-card-summary'); if(cs){ cs.textContent='-'+fmtW(cardSpend); cs.className='rv crd'; cs.style.fontSize='13px'; }
@@ -3293,7 +3574,23 @@ function drawDonut(svgId, segs) {
 function renderAssetPage() {
   const c=compute(currentMonth()), sn=c.sn;
   const ne=$('as-net-total');
-  if(ne){ ne.textContent=fmtW(c.순자산); ne.style.color=c.순자산>=0?'var(--blue)':'var(--red)'; }
+  if(ne){ ne.textContent=fmtW(c.순자산); ne.style.color=c.순자산>=0?'var(--text)':'var(--red)'; }
+  // 자유잔액 / 보관중 카드
+  const freeEl = $('as-free-cash');
+  if (freeEl) {
+    freeEl.textContent = fmtW(c.자유잔액);
+    freeEl.className = 'asset-cs-amt ' + (c.자유잔액>=0?'cgr':'crd');
+  }
+  const lockedEl = $('as-locked-cash');
+  const lockedRow = $('as-locked-row');
+  if (lockedEl && lockedRow) {
+    if (c.보관중 > 0) {
+      lockedEl.textContent = fmtW(c.보관중);
+      lockedRow.style.display = 'flex';
+    } else {
+      lockedRow.style.display = 'none';
+    }
+  }
 
   // 만기 경보
   const matAlerts=renderMaturityAlerts(sn);
@@ -3312,56 +3609,94 @@ function renderAssetPage() {
   const segs=[{v:c.투자,c:'#8b5cf6',l:'투자'},{v:c.저축,c:'#10b981',l:'저축'},{v:Math.max(c.가용현금,0),c:'#3b7ef8',l:'현금'}].filter(s=>s.v>0);
   drawDonut('as-donut',segs);
   const dc=$('as-donut-center');
-  if(dc) dc.innerHTML='<span style="font-size:9px;color:var(--faint);">자산</span><span style="font-size:11px;font-weight:800;">'+(tot?fmt(tot):'—')+'</span>';
+  if(dc) dc.innerHTML='<span style="font-size:10px;color:var(--faint);font-weight:600;letter-spacing:-.2px;">자산</span><span style="font-size:13px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.4px;">'+(tot?fmt(tot):'—')+'</span>';
   const leg=$('as-legend');
   if(leg) leg.innerHTML=segs.map(s=>{const p=tot?Math.round(s.v/tot*100):0;return '<div style="display:flex;align-items:center;gap:4px;"><div style="width:8px;height:8px;border-radius:50%;background:'+s.c+';"></div><span style="font-size:11px;color:var(--sub);">'+s.l+' '+p+'%</span></div>';}).join('');
   const rb=$('as-ratio');
   if(rb&&tot) rb.innerHTML=[{l:'투자',v:c.투자,c:'#8b5cf6'},{l:'저축',v:c.저축,c:'#10b981'},{l:'현금',v:Math.max(c.가용현금,0),c:'#3b7ef8'}].map(i=>{const p=Math.round(i.v/tot*100);return '<div class="pitem"><div class="phd"><span class="pname">'+i.l+' <span style="font-weight:400;color:var(--faint);">('+p+'%)</span></span><span class="pamt">'+fmtW(i.v)+'</span></div><div class="ptrack"><div class="pfill" style="width:'+p+'%;background:'+i.c+'"></div></div></div>';}).join('');
   else if(rb) rb.innerHTML='<div class="empty"><p>잔액 입력 후 표시됩니다</p></div>';
   const ai=(name,sub,amt,cls,tag)=>'<div class="aitem"><div><div class="ainame">'+name+'</div>'+(sub?'<div class="aisub">'+sub+'</div>':'')+(tag?'<div style="margin-top:2px;">'+tag+'</div>':'')+'</div><div class="aiamt '+cls+'">'+fmtW(amt)+'</div></div>';
-  // 현금 섹션 — 토스 스타일 통장 카드
+  // ━━ 현금 섹션 — 토스/네이버 스타일 통장 카드 ━━━━━━━━━━━━━━━━━━━━━━━━
   const cashList=$('as-cash-list');
-  const 자물쇠잔액 = c.고정자물쇠 || 0;
-  const cardSpendNow = c.cardSpend || 0;
+  const 자물쇠잔액 = c.고정자물쇠 || 0;          // 생활비 통장 안의 자물쇠 (양수: 남음, 음수: 초과)
+  const cardSpendNow = c.cardSpend || 0;        // 이번달 쓴 카드값 (결제통장 안에 모인 금액)
   const 자물쇠사용액 = c.자물쇠사용 || 0;
+  // 자유잔액 = 통장 잔액 - 자물쇠로 보관 중인 부분 (실제 자유롭게 쓸 수 있는 돈)
+  const 결제자유 = c.결제 - cardSpendNow;        // 결제대금 통장에서 카드값 분 빼고 자유 분
+  const 생활비자유 = c.생활비 - Math.max(자물쇠잔액, 0); // 생활비에서 자물쇠 보관분 빼고
+  const 신한자유 = c.신한;
+  const 자유합계 = 결제자유 + 생활비자유 + 신한자유;
+  const 보관합계 = cardSpendNow + Math.max(자물쇠잔액, 0);
 
-  // 통장 카드 빌더 — 토스/네이버 스타일
-  const acctCard = (name, balance, lockTitle, lockAmt, lockColor, badge) => {
+  // 토스/네이버 스타일 통장 카드 빌더
+  const acctCard = (name, balance, badge, lockTitle, lockAmt, lockTone, dirty) => {
     const balCls = balance>=0 ? 'cbl' : 'crd';
-    return '<div style="padding:14px 0;border-bottom:1px solid var(--border);">'
+    // dirty: 사용자 입력 잔액과 거래 합산값 차이 (있으면 노란 안내)
+    const diffBox = dirty ? '<div style="margin-top:8px;padding:8px 10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:11px;color:#92400e;line-height:1.5;">'
+      + '⚠️ 토스 실잔액과 ' + fmtW(Math.abs(dirty)) + ' 차이. <a onclick="reconcileBank(\''+name+'\')" style="color:#b45309;font-weight:700;text-decoration:underline;cursor:pointer;">잔액 보정</a>'
+      + '</div>' : '';
+    return '<div class="bank-card">'
       // 1행: 이름 + 배지
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
-      +   '<div style="font-size:13px;color:var(--sub);font-weight:600;">'+name+'</div>'
+      + '<div class="bank-row1">'
+      +   '<div class="bank-name">'+name+'</div>'
       +   (badge||'')
       + '</div>'
-      // 2행: 큰 잔액
-      + '<div class="'+balCls+'" style="font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-0.5px;line-height:1.1;">'+fmtW(balance)+'</div>'
-      // 3행: 자물쇠 영역 (있을 때만)
-      + (lockTitle ? '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:var(--rxs);">'
-          +   '<div style="width:28px;height:28px;border-radius:50%;background:'+lockColor+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;">🔒</div>'
-          +   '<div style="flex:1;min-width:0;">'
-          +     '<div style="font-size:11px;color:var(--sub);">'+lockTitle+'</div>'
-          +     '<div style="font-size:14px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;">'+fmtW(lockAmt)+' 보관중</div>'
+      // 2행: 큰 잔액 (자유 잔액 강조)
+      + '<div class="bank-amt '+balCls+'">'+fmtW(balance)+'</div>'
+      // 3행: 자물쇠 보관 영역 (있을 때만)
+      + (lockTitle ? '<div class="bank-lock '+lockTone+'">'
+          +   '<div class="bank-lock-icon">🔒</div>'
+          +   '<div class="bank-lock-text">'
+          +     '<div class="bank-lock-label">'+lockTitle+'</div>'
+          +     '<div class="bank-lock-amt">'+fmtW(lockAmt)+' 보관중</div>'
           +   '</div>'
           + '</div>' : '')
+      + diffBox
       + '</div>';
   };
 
   if(cashList) {
+    // 통장별 토스 실잔액 입력값 (보정용) — sn에 저장
+    const 토스결제실잔 = (sn.실잔_결제 != null) ? sn.실잔_결제 : null;
+    const 토스생활비실잔 = (sn.실잔_생활비 != null) ? sn.실잔_생활비 : null;
+    const 토스신한실잔 = (sn.실잔_신한 != null) ? sn.실잔_신한 : null;
+    const diff결제 = 토스결제실잔 != null ? (c.결제 - 토스결제실잔) : 0;
+    const diff생활비 = 토스생활비실잔 != null ? (c.생활비 - 토스생활비실잔) : 0;
+    const diff신한 = 토스신한실잔 != null ? (c.신한 - 토스신한실잔) : 0;
+
     const 결제Lock = cardSpendNow > 0
-      ? { title: '이번달 쓴 카드값 (다음달 출금 예정)', amt: cardSpendNow, color: '#fee2e2' }
+      ? { title: '이번달 쓴 카드값 (다음달 출금 예정)', amt: cardSpendNow, tone: 'tone-red' }
       : null;
     const 자물쇠경고문구 = 자물쇠잔액 < 0
-      ? '⚠️ 고정비 자물쇠를 '+fmtW(Math.abs(자물쇠잔액))+' 초과 사용'
-      : '이번달 나갈 고정비/저축/투자 (자물쇠 보관중)';
+      ? '⚠️ 고정비 자물쇠 ' + fmtW(Math.abs(자물쇠잔액)) + ' 초과 사용'
+      : '이번달 나갈 고정비/저축/투자';
     const 생활비Lock = (자물쇠잔액 !== 0 || 자물쇠사용액 > 0)
-      ? { title: 자물쇠경고문구, amt: 자물쇠잔액, color: 자물쇠잔액<0 ? '#fee2e2' : '#dbeafe' }
+      ? { title: 자물쇠경고문구, amt: 자물쇠잔액, tone: 자물쇠잔액<0 ? 'tone-red' : 'tone-blue' }
       : null;
 
     cashList.innerHTML =
-      acctCard('결제 통장', c.결제, 결제Lock?결제Lock.title:null, 결제Lock?결제Lock.amt:0, 결제Lock?결제Lock.color:'', '<span class="bdg bdg-bl">결제</span>')
-      + acctCard('생활비 통장', c.생활비, 생활비Lock?생활비Lock.title:null, 생활비Lock?생활비Lock.amt:0, 생활비Lock?생활비Lock.color:'', '<span class="bdg bdg-bl">생활</span>')
-      + acctCard('도형 신한', c.신한, null, 0, '', '<span class="bdg bdg-bl">신한</span>');
+      acctCard('결제 통장', c.결제, '<span class="bdg bdg-bl">결제</span>',
+               결제Lock?결제Lock.title:null, 결제Lock?결제Lock.amt:0, 결제Lock?결제Lock.tone:'', diff결제)
+      + acctCard('생활비 통장', c.생활비, '<span class="bdg bdg-tl">생활</span>',
+                 생활비Lock?생활비Lock.title:null, 생활비Lock?생활비Lock.amt:0, 생활비Lock?생활비Lock.tone:'', diff생활비)
+      + acctCard('도형 신한', c.신한, '<span class="bdg bdg-gy">신한</span>', null, 0, '', diff신한);
+
+    // ── 자유잔액 / 보관 분리 합계 (토스 스타일)
+    cashList.innerHTML += '<div class="cash-summary">'
+      + '<div class="cash-summary-row">'
+      +   '<div class="cash-summary-label">💧 지금 자유롭게 쓸 수 있는 돈</div>'
+      +   '<div class="cash-summary-amt cgr">'+fmtW(자유합계)+'</div>'
+      + '</div>'
+      + (보관합계>0 ? '<div class="cash-summary-row">'
+          +   '<div class="cash-summary-label">🔒 보관 중 (카드값+자물쇠)</div>'
+          +   '<div class="cash-summary-amt csb">'+fmtW(보관합계)+'</div>'
+          + '</div>' : '')
+      + '<div class="cash-summary-row total">'
+      +   '<div class="cash-summary-label-total">통장 총잔액</div>'
+      +   '<div class="cash-summary-amt-total cbl">'+fmtW(c.가용현금)+'</div>'
+      + '</div>'
+      + '<button class="reconcile-btn" onclick="openReconcileSheet()">💱 토스 실잔액과 맞추기</button>'
+      + '</div>';
   }
   set('as-cash-total', fmtW(c.가용현금));
   const cashBadge=$('as-cash-badge'); if(cashBadge) cashBadge.textContent=fmtW(c.가용현금);
@@ -4239,6 +4574,165 @@ function closeDrawer() {
     destroyFlatpickrInside($('dbody'));
   }
   $('doverlay').classList.remove('on'); $('drawer').classList.remove('on');
+}
+
+// ━━ 잔액 보정 시트 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 토스 실잔액 ↔ 화면 잔액 차이를 한눈에 보여주고 한 번에 보정
+function openReconcileSheet() {
+  const c = compute(currentMonth());
+  const sn = (getState()[currentMonth()]||{}).snapshot||{};
+  const toss결제 = sn.실잔_결제 != null ? sn.실잔_결제 : '';
+  const toss생활비 = sn.실잔_생활비 != null ? sn.실잔_생활비 : '';
+  const toss신한 = sn.실잔_신한 != null ? sn.실잔_신한 : '';
+
+  $('dtitle').textContent = '💱 토스 실잔액과 맞추기';
+  $('dbody').innerHTML =
+    '<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:14px;padding:11px 13px;background:var(--blue-light);border-radius:10px;">'
+    + '💡 토스 앱의 <b>실제 잔액</b>을 입력하면 차이를 표시하고, [보정 거래 추가] 버튼으로 차액을 자동 반영합니다. <br>'
+    + '입력하지 않은 통장은 보정하지 않습니다.'
+    + '</div>'
+
+    // 결제 통장
+    + '<div class="rec-row">'
+    +   '<div class="rec-row-head"><span class="bdg bdg-bl">결제</span><span class="rec-row-name">결제 통장</span></div>'
+    +   '<div class="rec-row-grid">'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val cbl">'+fmtW(c.결제)+'</div></div>'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">토스 실잔액</div><input class="fi rec-cell-in" id="rec-결제" placeholder="260,747" inputmode="numeric" value="'+(toss결제!==''?Number(toss결제).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-결제">—</div></div>'
+    +   '</div>'
+    + '</div>'
+
+    // 생활비 통장
+    + '<div class="rec-row">'
+    +   '<div class="rec-row-head"><span class="bdg bdg-tl">생활</span><span class="rec-row-name">생활비 통장</span></div>'
+    +   '<div class="rec-row-grid">'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val cbl">'+fmtW(c.생활비)+'</div></div>'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">토스 실잔액</div><input class="fi rec-cell-in" id="rec-생활비" placeholder="213,261" inputmode="numeric" value="'+(toss생활비!==''?Number(toss생활비).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-생활비">—</div></div>'
+    +   '</div>'
+    + '</div>'
+
+    // 도형 신한
+    + '<div class="rec-row">'
+    +   '<div class="rec-row-head"><span class="bdg bdg-gy">신한</span><span class="rec-row-name">도형 신한</span></div>'
+    +   '<div class="rec-row-grid">'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val cbl">'+fmtW(c.신한)+'</div></div>'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">실잔액</div><input class="fi rec-cell-in" id="rec-신한" placeholder="0" inputmode="numeric" value="'+(toss신한!==''?Number(toss신한).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-신한">—</div></div>'
+    +   '</div>'
+    + '</div>'
+
+    // 보정 옵션
+    + '<div style="margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:10px;font-size:12px;color:var(--sub);line-height:1.6;">'
+    +   '<b style="color:var(--text);">차액 보정 방식 선택</b><br>'
+    +   '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer;">'
+    +     '<input type="radio" name="rec-mode" value="adjust" checked> '
+    +     '<span><b>월초 잔액 조정</b> (snapshot 보정 — 거래 안 만들고 잔액만 맞춤)</span>'
+    +   '</label>'
+    +   '<label style="display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer;">'
+    +     '<input type="radio" name="rec-mode" value="tx"> '
+    +     '<span><b>보정 거래 자동 추가</b> (차이만큼 변동지출/수입 거래 1건 자동 생성)</span>'
+    +   '</label>'
+    + '</div>'
+
+    + '<div style="margin-top:14px;display:flex;gap:8px;">'
+    +   '<button class="btn-secondary" style="flex:1;" onclick="closeDrawer()">취소</button>'
+    +   '<button class="btn-primary" style="flex:2;" onclick="applyReconcile()">실잔액 저장 + 보정 적용</button>'
+    + '</div>';
+
+  openDrawer();
+  setTimeout(recalcReconcileDiff, 100);
+}
+
+function recalcReconcileDiff() {
+  const c = compute(currentMonth());
+  ['결제','생활비','신한'].forEach(name => {
+    const screen = name==='결제' ? c.결제 : name==='생활비' ? c.생활비 : c.신한;
+    const inp = $('rec-'+name);
+    const out = $('rec-diff-'+name);
+    if (!inp || !out) return;
+    const v = inp.value.replace(/,/g,'').trim();
+    if (!v) { out.textContent='—'; out.className='rec-cell-val csb'; return; }
+    const real = parseInt(v) || 0;
+    const diff = screen - real; // 화면이 더 크면 양수 (지출 누락 의심)
+    if (diff === 0) { out.textContent='✅ 일치'; out.className='rec-cell-val cgr'; }
+    else {
+      out.textContent = (diff>0?'+':'')+fmtW(diff);
+      out.className = 'rec-cell-val ' + (Math.abs(diff)<1000?'cyl':'crd');
+    }
+  });
+}
+
+function applyReconcile() {
+  const mode = document.querySelector('input[name="rec-mode"]:checked').value;
+  const mon = currentMonth();
+  const state = getState();
+  if (!state[mon]) state[mon] = {snapshot:{}, budget:{}, transactions:[]};
+  const md = state[mon];
+  const sn = md.snapshot;
+  const c = compute(mon);
+
+  let touched = 0;
+  ['결제','생활비','신한'].forEach(name => {
+    const inp = $('rec-'+name);
+    if (!inp) return;
+    const v = inp.value.replace(/,/g,'').trim();
+    if (!v) return;
+    const real = parseInt(v) || 0;
+    sn['실잔_'+name] = real; // 토스 실잔액 저장 (참고용)
+    const screen = name==='결제' ? c.결제 : name==='생활비' ? c.생활비 : c.신한;
+    const diff = screen - real;
+    if (diff === 0) return;
+
+    if (mode === 'adjust') {
+      // 월초 스냅샷 직접 조정
+      const snKey = name==='결제' ? '결제통장' : name==='생활비' ? '생활비통장' : '도형신한';
+      sn[snKey] = (sn[snKey] || 0) - diff;
+      touched++;
+    } else {
+      // 보정 거래 자동 생성
+      const today = new Date();
+      const pad = n => String(n).padStart(2,'0');
+      const dateStr = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
+      const id = 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+      if (diff > 0) {
+        // 화면이 실제보다 많음 → 지출 누락 → 변동지출 거래 추가
+        const method = name==='결제' ? '이체' : (name==='신한' ? '이체' : '체크카드');
+        md.transactions.push({
+          id, date: dateStr, type:'variable', cat:'기타',
+          amt: Math.abs(diff), method,
+          memo: '['+name+'] 잔액 보정 (토스 실잔액 일치)'
+        });
+      } else {
+        // 화면이 실제보다 적음 → 수입 누락 → 수입 거래 추가
+        md.transactions.push({
+          id, date: dateStr, type:'income', cat:'부수입',
+          amt: Math.abs(diff), method:'이체',
+          memo: '['+name+'] 잔액 보정 (토스 실잔액 일치)'
+        });
+      }
+      touched++;
+    }
+  });
+
+  setState(state);
+  closeDrawer();
+  if (touched > 0) {
+    showToast('✅ '+touched+'개 통장 보정 완료');
+    renderAll();
+  } else {
+    showToast('보정할 통장이 없습니다');
+  }
+}
+
+function reconcileBank(name) {
+  // 자산카드 안 "잔액 보정" 링크 클릭 시 — 모달 열고 해당 통장으로 포커스
+  openReconcileSheet();
+  setTimeout(() => {
+    const map = {'결제 통장':'결제','생활비 통장':'생활비','도형 신한':'신한'};
+    const id = map[name];
+    if (id && $('rec-'+id)) $('rec-'+id).focus();
+  }, 350);
 }
 
 // ━━ REMINDER ━━━━━━━━━━━━━━━━━━━━━━━━━
