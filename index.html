@@ -747,9 +747,9 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         <span style="font-size:14px;font-weight:700;">고정 지출</span>
         <span class="bdg bdg-gy" id="fixed-acc-badge">0건</span>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:12px;color:var(--blue);font-weight:700;" id="fixed-acc-btn-apply" onclick="event.stopPropagation();applyRecurring()">이번달 적용</span>
-        <span class="acc-arrow" id="fixed-acc-arr">▼</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button id="fixed-acc-btn-apply" onclick="event.stopPropagation();applyRecurring()" style="background:var(--blue-light);color:var(--blue);border:1.5px solid var(--blue-mid);border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">이번달 적용</button>
+        <span class="acc-arrow" id="fixed-acc-arr" style="font-size:14px;color:var(--sub);padding:4px 6px;">▼</span>
       </div>
     </div>
     <div class="acc-body" id="fixed-acc-body" style="display:none;">
@@ -777,33 +777,51 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
 
   <!-- ③ 이달 내역 -->
   <div>
-    <div class="sechead">
+    <div class="sechead" style="flex-wrap:wrap;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px;">
         <h3>이달 내역</h3>
         <span id="rec-mon-label" style="font-size:12px;color:var(--faint);"></span>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-        <select class="fsel" id="rec-sort" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;" title="정렬">
+      <div style="display:flex;gap:6px;align-items:center;">
+        <select class="fsel" id="rec-sort" onchange="renderRecordPage()" style="width:auto;padding:6px 10px;font-size:12px;border-radius:99px;" title="정렬">
           <option value="date_desc">최신순</option>
           <option value="date_asc">오래된순</option>
           <option value="amt_desc">금액 높은순</option>
           <option value="amt_asc">금액 낮은순</option>
         </select>
-        <select class="fsel" id="rec-filter" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;" title="유형 필터">
-          <option value="">유형 전체</option>
-          <option value="income">💰 수입만</option>
-          <option value="fixed">🏠 고정만</option>
-          <option value="variable">🛒 변동만</option>
-          <option value="saving">🏦 저축만</option>
-          <option value="invest">📈 투자만</option>
-          <option value="card">💳 카드만</option>
-          <option value="transfer">🔄 이체만</option>
-        </select>
-        <select class="fsel" id="rec-method-filter" onchange="renderRecordPage()" style="width:auto;padding:5px 10px;font-size:12px;" title="결제수단 필터">
-          <option value="">결제수단 전체</option>
-        </select>
-        <button id="tx-select-toggle" onclick="toggleTxSelectMode()" style="border:1.5px solid var(--border);background:var(--white);color:var(--sub);font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">선택</button>
-        <a onclick="exportCSV()" style="font-size:12px;color:var(--blue);font-weight:600;cursor:pointer;">CSV</a>
+        <button id="rec-filter-toggle" onclick="toggleRecFilters()" style="border:1.5px solid var(--border);background:var(--white);color:var(--sub);font-size:12px;font-weight:600;padding:6px 12px;border-radius:99px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;display:inline-flex;align-items:center;gap:4px;">
+          🔎 <span>필터</span>
+          <span id="rec-filter-count" style="display:none;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:99px;min-width:14px;text-align:center;">0</span>
+        </button>
+        <button id="tx-select-toggle" onclick="toggleTxSelectMode()" style="border:1.5px solid var(--border);background:var(--white);color:var(--sub);font-size:12px;font-weight:600;padding:6px 12px;border-radius:99px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">선택</button>
+        <a onclick="exportCSV()" style="font-size:12px;color:var(--blue);font-weight:600;cursor:pointer;padding:0 4px;">CSV</a>
+      </div>
+    </div>
+    <!-- 필터 패널 (열림 시만 표시) -->
+    <div id="rec-filter-panel" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:var(--rsm);padding:10px 12px;margin-bottom:8px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div style="font-size:11px;color:var(--sub);margin-bottom:4px;font-weight:600;">유형</div>
+          <select class="fsel fi" id="rec-filter" onchange="onRecFilterChange()">
+            <option value="">전체</option>
+            <option value="income">💰 수입만</option>
+            <option value="fixed">🏠 고정만</option>
+            <option value="variable">🛒 변동만</option>
+            <option value="saving">🏦 저축만</option>
+            <option value="invest">📈 투자만</option>
+            <option value="card">💳 카드만</option>
+            <option value="transfer">🔄 이체만</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--sub);margin-bottom:4px;font-weight:600;">결제수단</div>
+          <select class="fsel fi" id="rec-method-filter" onchange="onRecFilterChange()">
+            <option value="">전체</option>
+          </select>
+        </div>
+      </div>
+      <div style="text-align:right;margin-top:8px;">
+        <button onclick="resetRecFilters()" style="border:none;background:transparent;color:var(--sub);font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">필터 초기화</button>
       </div>
     </div>
     <!-- 선택 모드 툴바 (선택 시만 표시, 스크롤 시 상단 고정) -->
@@ -2726,6 +2744,27 @@ function renderRecordPage() {
 window._txSelectMode = false;
 window._txSelected = new Set();
 
+function toggleRecFilters() {
+  const p = $('rec-filter-panel');
+  if (!p) return;
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+function onRecFilterChange() {
+  // 필터 카운트 갱신 + 재렌더
+  const cnt = (($('rec-filter')&&$('rec-filter').value?1:0) + ($('rec-method-filter')&&$('rec-method-filter').value?1:0));
+  const cntEl = $('rec-filter-count');
+  if (cntEl) {
+    if (cnt>0) { cntEl.textContent = cnt; cntEl.style.display = 'inline-block'; }
+    else cntEl.style.display = 'none';
+  }
+  renderRecordPage();
+}
+function resetRecFilters() {
+  if ($('rec-filter')) $('rec-filter').value = '';
+  if ($('rec-method-filter')) $('rec-method-filter').value = '';
+  onRecFilterChange();
+}
+
 function toggleTxSelectMode() {
   window._txSelectMode = !window._txSelectMode;
   window._txSelected.clear();
@@ -3280,24 +3319,50 @@ function renderAssetPage() {
   if(rb&&tot) rb.innerHTML=[{l:'투자',v:c.투자,c:'#8b5cf6'},{l:'저축',v:c.저축,c:'#10b981'},{l:'현금',v:Math.max(c.가용현금,0),c:'#3b7ef8'}].map(i=>{const p=Math.round(i.v/tot*100);return '<div class="pitem"><div class="phd"><span class="pname">'+i.l+' <span style="font-weight:400;color:var(--faint);">('+p+'%)</span></span><span class="pamt">'+fmtW(i.v)+'</span></div><div class="ptrack"><div class="pfill" style="width:'+p+'%;background:'+i.c+'"></div></div></div>';}).join('');
   else if(rb) rb.innerHTML='<div class="empty"><p>잔액 입력 후 표시됩니다</p></div>';
   const ai=(name,sub,amt,cls,tag)=>'<div class="aitem"><div><div class="ainame">'+name+'</div>'+(sub?'<div class="aisub">'+sub+'</div>':'')+(tag?'<div style="margin-top:2px;">'+tag+'</div>':'')+'</div><div class="aiamt '+cls+'">'+fmtW(amt)+'</div></div>';
-  // 현금 섹션
-  const ai2=(name,sub,amt,cls,tag)=>'<div class="aitem"><div><div class="ainame">'+name+'</div>'+(sub?'<div class="aisub">'+sub+'</div>':'')+(tag?'<div style="margin-top:2px;">'+tag+'</div>':'')+'</div><div class="aiamt '+cls+'">'+fmtW(amt)+'</div></div>';
+  // 현금 섹션 — 토스 스타일 통장 카드
   const cashList=$('as-cash-list');
-  // 자물쇠 잔액 (음수 가능)
   const 자물쇠잔액 = c.고정자물쇠 || 0;
-  const 자물쇠경고 = 자물쇠잔액 < 0 ? ' ⚠️ ' + fmtW(Math.abs(자물쇠잔액)) + ' 초과' : '';
   const cardSpendNow = c.cardSpend || 0;
-  if(cashList) cashList.innerHTML=[
-    ai2('결제 통장',
-      cardSpendNow>0 ? '카드값 모임 +'+fmtW(cardSpendNow)+'원 (다음달 출금 예정)' : '월급·카드값 통장',
-      c.결제, c.결제>=0?'cbl':'crd', '<span class="bdg bdg-bl">결제</span>'),
-    ai2('생활비 통장',
-      자물쇠잔액>=0
-        ? '고정비 자물쇠 '+fmtW(자물쇠잔액)+' 남음 · 이번달 자동이체 '+fmtW(c.자물쇠사용)
-        : '고정비 자물쇠'+자물쇠경고+' · 이번달 자동이체 '+fmtW(c.자물쇠사용),
-      c.생활비, c.생활비>=0?'cbl':'crd', '<span class="bdg bdg-bl">생활</span>'),
-    ai2('도형 신한','',c.신한,'cbl','<span class="bdg bdg-bl">신한</span>'),
-  ].join('');
+  const 자물쇠사용액 = c.자물쇠사용 || 0;
+
+  // 통장 카드 빌더 — 토스/네이버 스타일
+  const acctCard = (name, balance, lockTitle, lockAmt, lockColor, badge) => {
+    const balCls = balance>=0 ? 'cbl' : 'crd';
+    return '<div style="padding:14px 0;border-bottom:1px solid var(--border);">'
+      // 1행: 이름 + 배지
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+      +   '<div style="font-size:13px;color:var(--sub);font-weight:600;">'+name+'</div>'
+      +   (badge||'')
+      + '</div>'
+      // 2행: 큰 잔액
+      + '<div class="'+balCls+'" style="font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-0.5px;line-height:1.1;">'+fmtW(balance)+'</div>'
+      // 3행: 자물쇠 영역 (있을 때만)
+      + (lockTitle ? '<div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:var(--rxs);">'
+          +   '<div style="width:28px;height:28px;border-radius:50%;background:'+lockColor+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;">🔒</div>'
+          +   '<div style="flex:1;min-width:0;">'
+          +     '<div style="font-size:11px;color:var(--sub);">'+lockTitle+'</div>'
+          +     '<div style="font-size:14px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;">'+fmtW(lockAmt)+' 보관중</div>'
+          +   '</div>'
+          + '</div>' : '')
+      + '</div>';
+  };
+
+  if(cashList) {
+    const 결제Lock = cardSpendNow > 0
+      ? { title: '이번달 쓴 카드값 (다음달 출금 예정)', amt: cardSpendNow, color: '#fee2e2' }
+      : null;
+    const 자물쇠경고문구 = 자물쇠잔액 < 0
+      ? '⚠️ 고정비 자물쇠를 '+fmtW(Math.abs(자물쇠잔액))+' 초과 사용'
+      : '이번달 나갈 고정비/저축/투자 (자물쇠 보관중)';
+    const 생활비Lock = (자물쇠잔액 !== 0 || 자물쇠사용액 > 0)
+      ? { title: 자물쇠경고문구, amt: 자물쇠잔액, color: 자물쇠잔액<0 ? '#fee2e2' : '#dbeafe' }
+      : null;
+
+    cashList.innerHTML =
+      acctCard('결제 통장', c.결제, 결제Lock?결제Lock.title:null, 결제Lock?결제Lock.amt:0, 결제Lock?결제Lock.color:'', '<span class="bdg bdg-bl">결제</span>')
+      + acctCard('생활비 통장', c.생활비, 생활비Lock?생활비Lock.title:null, 생활비Lock?생활비Lock.amt:0, 생활비Lock?생활비Lock.color:'', '<span class="bdg bdg-bl">생활</span>')
+      + acctCard('도형 신한', c.신한, null, 0, '', '<span class="bdg bdg-bl">신한</span>');
+  }
   set('as-cash-total', fmtW(c.가용현금));
   const cashBadge=$('as-cash-badge'); if(cashBadge) cashBadge.textContent=fmtW(c.가용현금);
 
