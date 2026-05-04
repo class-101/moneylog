@@ -3573,7 +3573,9 @@ async function handleImageUpload(evt) {
       + '</div>';
     return;
   }
-  showImageResults(txList);
+  // 디버깅용: raw text를 window에 보관
+  window._lastOcrRawText = rawText;
+  showImageResults(txList, rawText);
 }
 
 // 다시 시도 (마지막 파일 그대로)
@@ -3663,6 +3665,29 @@ function parseTransactionsFromOCR(text, todayStr) {
         }
       }
       continue;
+    }
+
+    // ⭐ 폴백: 헤더 매처 통과 못해도 줄 안에 명확한 "X월 Y일" 키워드 있으면 currentDate 갱신
+    // (OCR이 헤더와 다른 텍스트를 한 줄로 합쳐 읽은 경우 대응)
+    // 단, 키워드가 거래액 뒤에 위치하면 → 다음 거래부터 적용 (현재 거래는 이전 날짜 유지)
+    const headerKeywordMatch = line.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/);
+    let pendingDateUpdate = null; // 거래 처리 후 적용할 날짜
+    if (headerKeywordMatch) {
+      const mo = parseInt(headerKeywordMatch[1],10);
+      const dy = parseInt(headerKeywordMatch[2],10);
+      const yr = new Date().getFullYear();
+      if (mo >= 1 && mo <= 12 && dy >= 1 && dy <= 31) {
+        const newDate = yr + '-' + String(mo).padStart(2,'0') + '-' + String(dy).padStart(2,'0');
+        // 줄에 부호 있는 금액 매치가 있는지 확인 (거래 행)
+        const signedMatch = line.match(/[+\-−]\s*\d{2,}/);
+        if (signedMatch && headerKeywordMatch.index > signedMatch.index) {
+          // 거래액이 키워드보다 앞 → 다음 거래부터 적용
+          pendingDateUpdate = newDate;
+        } else {
+          // 키워드가 앞이면 즉시 적용 (현재 거래도 새 날짜)
+          currentDate = newDate;
+        }
+      }
     }
 
     if (isBalanceOnly[i]) continue;
@@ -3764,17 +3789,27 @@ function parseTransactionsFromOCR(text, todayStr) {
     let date = currentDate;
     const inlineDm = line.match(dateRe);
     if (inlineDm) {
-      let yr = inlineDm[1] ? parseInt(inlineDm[1],10) : new Date().getFullYear();
-      if (yr < 100) yr += 2000;
-      const mo = parseInt(inlineDm[2],10), dy = parseInt(inlineDm[3],10);
-      if (mo >= 1 && mo <= 12 && dy >= 1 && dy <= 31) {
-        date = yr + '-' + String(mo).padStart(2,'0') + '-' + String(dy).padStart(2,'0');
+      // 인라인 날짜가 거래액보다 뒤에 있으면 무시 (다음 거래의 헤더로 처리)
+      const validInline = inlineDm.index < chosen.index;
+      if (validInline) {
+        let yr = inlineDm[1] ? parseInt(inlineDm[1],10) : new Date().getFullYear();
+        if (yr < 100) yr += 2000;
+        const mo = parseInt(inlineDm[2],10), dy = parseInt(inlineDm[3],10);
+        if (mo >= 1 && mo <= 12 && dy >= 1 && dy <= 31) {
+          date = yr + '-' + String(mo).padStart(2,'0') + '-' + String(dy).padStart(2,'0');
+        }
       }
     }
 
     // 중복 제거
     if (txs.some(t => t.memo === memo && t.amt === amt && t.date === date)) continue;
     txs.push({ date, memo, amt, type });
+
+    // 거래 후처리: 줄 끝에 헤더가 있었으면 다음 거래부터 적용
+    if (pendingDateUpdate) {
+      currentDate = pendingDateUpdate;
+      pendingDateUpdate = null;
+    }
   }
 
   // 후처리 — 잔액 패턴 거래 제거
@@ -3797,11 +3832,12 @@ function parseTransactionsFromOCR(text, todayStr) {
 }
 // 이미지 분석 결과 편집 폼으로 표시
 // ─── 이미지 AI 분석 결과: 심플 체크박스 리스트 (편집은 내역 탭에서)
-function showImageResults(txList) {
+function showImageResults(txList, rawText) {
   const res=$('img-result'); if(!res) return;
   res.style.display='block';
   const today=currentMonth()+'-'+String(new Date().getDate()).padStart(2,'0');
   const totalAmt=txList.reduce((a,t)=>a+(t.type==='income'?t.amt:-t.amt),0);
+  if (!rawText) rawText = window._lastOcrRawText || '';
 
   res.innerHTML=
     // ── 헤더: 건수 + 전체선택
@@ -3833,6 +3869,11 @@ function showImageResults(txList) {
     +'<span style="font-size:12px;color:var(--sub);" id="img-sel-summary"><span id="img-sel-cnt">'+txList.length+'</span>건 선택됨</span>'
     +'<span style="font-size:13px;font-weight:700;color:var(--sub);">추가 후 내역에서 수정 가능</span>'
     +'</div>'
+    // ── 디버깅: OCR 원본 텍스트 (날짜 인식 디버깅용)
+    + (rawText ? '<details style="margin-bottom:10px;font-size:11px;color:var(--sub);">'
+        +'<summary style="cursor:pointer;font-weight:600;padding:4px 0;">OCR 원본 텍스트 보기 (디버깅)</summary>'
+        +'<pre style="margin-top:4px;padding:8px;background:var(--bg);border-radius:6px;font-size:10px;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow:auto;font-family:monospace;">'+rawText.slice(0,2000).replace(/</g,'&lt;')+'</pre>'
+        +'</details>' : '')
     // ── 버튼
     +'<div style="display:flex;gap:8px;">'
     +'<button class="btn btn-blue" onclick="applyImageTxs('+JSON.stringify(txList).replace(/"/g,'&quot;')+')" style="flex:1;" id="img-add-btn">추가하기</button>'
