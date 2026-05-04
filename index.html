@@ -2443,6 +2443,7 @@ function openRecEdit(id) {
     + '<div class="fg"><label>출금일 (매달)</label><input class="fi" id="rta-day" value="'+r.day+'" inputmode="numeric" placeholder="1"></div>'
     + '</div>'
     + '<div class="fg"><label>결제 수단</label><select class="fsel fi" id="rta-method">'+getPayMethods().map(m=>'<option'+(m===r.method?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
+    + '<div class="fg"><label>메모 (선택)</label><input class="fi" id="rta-memo" value="'+(r.memo||'').replace(/"/g,'&quot;')+'" placeholder="예: 청년도약, 주차비 등"></div>'
     + '<div class="btnrow"><button class="btn btn-blue" onclick="submitRecEdit()">수정 완료</button>'
     + '<button onclick="deleteRecFromEdit('+id+')" style="flex:0 0 auto;height:44px;padding:0 16px;border:1.5px solid #fecaca;background:var(--red-light);color:var(--red);border-radius:var(--rsm);font-size:13px;font-weight:700;cursor:pointer;">삭제</button></div>';
 
@@ -2466,7 +2467,8 @@ function submitRecEdit() {
   const amt = parseNum($('rta-amt') ? $('rta-amt').value : String(r.amt));
   const day = parseInt($('rta-day') ? $('rta-day').value || '1' : '1');
   const method = $('rta-method') ? $('rta-method').value : r.method;
-  Object.assign(r, { name: cat, cat, type: window._curRT||r.type, amt, day, method });
+  const memo = $('rta-memo') ? $('rta-memo').value.trim() : (r.memo||'');
+  Object.assign(r, { name: cat, cat, type: window._curRT||r.type, amt, day, method, memo });
   saveRecurring(list);
   closeDrawer();
   renderRecurringList();
@@ -2509,8 +2511,8 @@ function renderRecurringList() {
       + '<div onclick="openRecEdit('+r.id+')" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;">'
       + '<div class="fi-item-icon">'+TI[r.type]+'</div>'
       + '<div class="fi-item-body">'
-      + '<div class="fi-item-name">'+r.cat+'</div>'
-      + '<div class="fi-item-meta">매달 '+r.day+'일 · '+r.method+'</div>'
+      + '<div class="fi-item-name">'+(r.memo||r.cat)+'</div>'
+      + '<div class="fi-item-meta">매달 '+r.day+'일 · '+(r.memo?r.cat+' · ':'')+r.method+'</div>'
       + '</div>'
       + '<div class="fi-item-right">'
       + '<div class="fi-item-amt '+ac+'">'+sign+fmtW(r.amt)+'</div>'
@@ -2553,6 +2555,7 @@ function openRecAdd() {
     + '<div class="fg"><label>출금일 (매달)</label><input class="fi" id="rta-day" inputmode="numeric" placeholder="1"></div>'
     + '</div>'
     + '<div class="fg"><label>결제 수단</label><select class="fsel fi" id="rta-method">'+getPayMethods().map(m=>'<option'+(m==='체크카드'?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
+    + '<div class="fg"><label>메모 (선택)</label><input class="fi" id="rta-memo" placeholder="예: 청년도약, 주차비 등"></div>'
     + '<button class="btn btn-blue" onclick="submitRec()">추가하기</button>';
   updateRTCats();
   openDrawer();
@@ -2707,10 +2710,12 @@ function txRow(t,mon,showDel) {
   // 날짜 (MM.DD)
   const dParts = (t.date||'').split('-');
   const dateStr = dParts.length === 3 ? (parseInt(dParts[1],10)+'.'+parseInt(dParts[2],10)) : '';
-  // 메타: 날짜 · 카테고리 (배지 제거 — 좌측 아이콘 색상이 type 표현)
+  // 메타: 날짜 · 카테고리 · 결제수단 (메모가 이름에 있을 때) / 날짜 · 결제수단 (메모 없을 때 카테고리는 이름으로)
   const metaItems = [];
   if (dateStr) metaItems.push('<span class="txmeta-date">'+dateStr+'</span>');
-  if (t.cat) metaItems.push('<span>'+t.cat+'</span>');
+  // 메모가 있으면 카테고리도 메타에 (이름이 메모이므로)
+  if (t.memo && t.cat) metaItems.push('<span>'+t.cat+'</span>');
+  if (t.method) metaItems.push('<span>'+t.method+'</span>');
   const metaHtml = metaItems.join('<span class="txmeta-dot">·</span>');
   // 부호
   const signStr = t.type==='income'?'+':t.type==='transfer'?'':'-';
@@ -3290,10 +3295,11 @@ function submitRec() {
   const amt=parseNum($('rta-amt')?$('rta-amt').value:'');
   const day=parseInt($('rta-day')?$('rta-day').value||'1':'1');
   const method=$('rta-method')?$('rta-method').value:'';
+  const memo=$('rta-memo')?$('rta-memo').value.trim():'';
   if(!cat){showToast('카테고리를 선택해 주세요');return;}
   if(!amt){showToast('금액을 입력해 주세요');return;}
   const list=getRecurring();
-  list.push({id:Date.now(),name:cat,type:window._curRT||'fixed',cat,amt,day,method,active:true});
+  list.push({id:Date.now(),name:cat,type:window._curRT||'fixed',cat,amt,day,method,memo,active:true});
   saveRecurring(list); closeDrawer(); renderRecurringList(); showToast('추가했어요');
 }
 
@@ -3384,7 +3390,7 @@ function applyRecurring() {
     const ds=mon+'-'+String(d).padStart(2,'0');
     const isDup = md.transactions.some(t=>t.cat===r.cat&&t.amt===r.amt&&t.date.startsWith(mon)&&!t._sample);
     if(!isDup) {
-      md.transactions.push({id:Date.now()+added,date:ds,type:r.type,cat:r.cat,amt:r.amt,memo:r.name,method:r.method});
+      md.transactions.push({id:Date.now()+added,date:ds,type:r.type,cat:r.cat,amt:r.amt,memo:(r.memo||r.name||''),method:r.method});
       added++;
     }
   });
@@ -3621,6 +3627,9 @@ function parseTransactionsFromOCR(text, todayStr) {
     if (/\d{1,2}\s*월\s*\d{1,2}\s*일?/.test(l)) return true;
     if (/^\s*(?:\d{2,4}\s*[.\-\/]\s*)?\d{1,2}\s*[.\-\/]\s*\d{1,2}\s*$/.test(l)) return true;
     if (/^\s*\d{2,4}\s*년\s*\d{1,2}\s*월\s*\d{1,2}\s*일?/.test(l)) return true;
+    // ⭐ "월" OCR 오인식 대응 (월→훨/을/원/뭘 등)
+    // 패턴: 1~2자리 숫자 + 한글 1자 + 공백 + 1~2자리 숫자 + 일 (요일 텍스트)
+    if (/^\s*\d{1,2}\s*[가-힣]\s*\d{1,2}\s*[가-힣]?\s*[가-힣\s]{0,15}$/.test(l) && /일/.test(l)) return true;
     return false;
   };
 
@@ -3655,14 +3664,23 @@ function parseTransactionsFromOCR(text, todayStr) {
 
     // 날짜 헤더 줄 → currentDate 갱신, 거래 아님
     if (looksLikeDateHeader(line)) {
+      let mo = null, dy = null, yr = new Date().getFullYear();
       const dm = line.match(dateRe);
       if (dm) {
-        let yr = dm[1] ? parseInt(dm[1],10) : new Date().getFullYear();
+        if (dm[1]) yr = parseInt(dm[1],10);
         if (yr < 100) yr += 2000;
-        const mo = parseInt(dm[2],10), dy = parseInt(dm[3],10);
-        if (mo >= 1 && mo <= 12 && dy >= 1 && dy <= 31) {
-          currentDate = yr + '-' + String(mo).padStart(2,'0') + '-' + String(dy).padStart(2,'0');
+        mo = parseInt(dm[2],10);
+        dy = parseInt(dm[3],10);
+      } else {
+        // ⭐ dateRe가 매칭 못한 경우 (월 OCR 오인식) — 줄에서 숫자 2개 직접 추출
+        const nums = line.match(/\d{1,2}/g);
+        if (nums && nums.length >= 2) {
+          mo = parseInt(nums[0],10);
+          dy = parseInt(nums[1],10);
         }
+      }
+      if (mo !== null && dy !== null && mo >= 1 && mo <= 12 && dy >= 1 && dy <= 31) {
+        currentDate = yr + '-' + String(mo).padStart(2,'0') + '-' + String(dy).padStart(2,'0');
       }
       continue;
     }
