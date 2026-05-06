@@ -2734,11 +2734,18 @@ function loadSnapshotForm() {
 // - 이체: t.fromAcc / t.toAcc 가 있으면 양쪽 반영, 없으면 변화 없음
 // 자물쇠: 거래 유형이 fixed/saving/invest 면 고정자물쇠 - (음수 허용, 경고만)
 function _isCardCredit(method) {
-  // "카드" (신용) — '체크카드', '신용카드', '카드' 모두 카드 키워드 포함하지만
-  // 신용 식별: '신용' 포함하거나 단순히 '카드'와 정확히 같은 경우
+  // 신용카드 식별:
+  // - '체크' 포함 → 체크카드 (X)
+  // - '신용' 또는 '신한카드/국민카드' 등 카드사명 → 신용카드 (O)
+  // - 단순 '카드' → 신용카드 (O)
+  // - '현금/이체/페이/자동이체' → X
   if (!method) return false;
   const m = String(method).trim();
-  return m === '카드' || m === '신용카드' || /신용/.test(m);
+  // 명시적 제외
+  if (/체크|현금|이체|페이/.test(m)) return false;
+  // 명시적 포함
+  if (/신용|카드/.test(m)) return true;
+  return false;
 }
 function _outflowAcc(t) {
   // 거래의 출금 통장 결정
@@ -2816,13 +2823,23 @@ function compute(mon) {
   const income=sumT('income'),fixed=sumT('fixed'),variable=sumT('variable'),saving=sumT('saving'),invest=sumT('invest'),card=sumT('card'),transfer=sumT('transfer');
   const totalExp=fixed+variable+saving+invest+card; // transfer는 내부이동, 지출 아님
   const bIncome=(bgt.도형월급||0)+(bgt.예진월급||0)+(bgt.인센||0)+(bgt.부수입||0);
-  const saveRate=income>0?((saving+invest)/income*100).toFixed(1):0;
+  // 저축률: 수입 대비 저축+투자
+  // 수입이 너무 작아 비율이 폭발하는 케이스 방지 (월급 미입력 등)
+  let saveRate = 0;
+  let saveRateAbnormal = false;
+  if (income > 0) {
+    saveRate = ((saving + invest) / income * 100);
+    if (saveRate > 200) {
+      saveRateAbnormal = true; // 200% 초과 = 수입 누락 의심
+    }
+    saveRate = saveRate.toFixed(1);
+  }
   return {
     가용현금, 저축, 투자, 변동대출, 순자산,
     결제, 카드자물쇠, 생활비, 고정자물쇠, 신한: 신한_now,
     결제초, 생활비초, 고정자물쇠초, 자물쇠사용, cardSpend,
     자유잔액, 다음달용, 이번달예정, 자물쇠초과, 결제자유, 생활비자유, 신한자유,
-    income, fixed, variable, saving, invest, card, totalExp, saveRate, bIncome,
+    income, fixed, variable, saving, invest, card, totalExp, saveRate, saveRateAbnormal, bIncome,
     bgt, sn, txs, catActual
   };
 }
@@ -2842,7 +2859,8 @@ function renderHome() {
   chips.innerHTML = chipsHtml;
   // stats
   set('h-income',fmtW(c.income)); set('h-income-ss',c.bIncome?'예산 '+fmtW(c.bIncome):'거래 기준');
-  set('h-expense',fmtW(c.fixed+c.variable+c.card));
+  set('h-expense', fmtW(c.fixed + c.variable));
+  // 이달 지출 = 고정지출 + 변동지출 (card 타입은 카드대금 결제로 이중집계)
   // 이달 지출 예산 = 예산 탭의 고정+변동 합 (이체/저축/투자 제외)
   const _b = c.bgt||{};
   const expBudget = (_b.월세||0)+(_b.관리비||0)+(_b.전세이자||0)+(_b.식자재||0)+(_b.교통||0)+(_b.통신||0)+(_b.인터넷||0)+(_b.도형운동||0)+(_b.예진운동||0)
@@ -2851,10 +2869,15 @@ function renderHome() {
   set('h-save',fmtW(c.saving+c.invest));
   const savePlan=Object.entries(c.bgt).filter(([k])=>['도형청도계','예진청도계','비상금','IRP','ISA','CMA주식'].includes(k)).reduce((a,[,v])=>a+v,0);
   set('h-save-ss',savePlan?'예산 '+fmtW(savePlan):'거래 기준');
-  set('h-rate',c.saveRate+'%');
-  // 저축률 sub: 목표 저축률 (예산 기준)
-  const targetRate = c.bIncome>0 ? Math.round(savePlan/c.bIncome*100) : 0;
-  set('h-rate-ss', targetRate>0 ? '목표 '+targetRate+'%' : '수입 대비');
+  // 저축률 표시: 비정상값(200% 초과)이면 "—" + 경고
+  if (c.saveRateAbnormal) {
+    set('h-rate', '—');
+    set('h-rate-ss', '수입 누락 의심');
+  } else {
+    set('h-rate', c.saveRate + '%');
+    const targetRate = c.bIncome>0 ? Math.round(savePlan/c.bIncome*100) : 0;
+    set('h-rate-ss', targetRate>0 ? '목표 '+targetRate+'%' : '수입 대비');
+  }
   // 다음달 카드값 — 이번달 신용카드 거래 합계 (compute에서 자동 계산됨)
   // 신용카드 거래는 즉시 결제대금 통장에 모이고, 다음달 10~14일에 한 번에 출금됨
   const cardSpend = c.cardSpend || 0;
