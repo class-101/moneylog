@@ -242,9 +242,12 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   padding:14px 4px;
   border-bottom:1px solid var(--border2);
 }
-.uni-row:last-of-type{border-bottom:none;}
+.uni-row:last-child{border-bottom:none;}
+.uni-row.uni-row-last{border-bottom:none;}
+/* 직전 형제가 uni-row인 경우 = 마지막 row 위에는 라인 1개만 */
+.uni-row:has(+ .uni-cta){border-bottom:none;}
 .uni-row.uni-sub{
-  margin:6px 0 6px 16px;
+  margin:8px 0 8px 16px;
   padding:11px 13px;
   border:none;
   border-radius:10px;
@@ -1586,7 +1589,6 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
   <div id="as-acc-cash">
     <div class="acc-header" id="as-acc-cash-hd" onclick="toggleAcc('as-acc-cash')">
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:16px;">💵</span>
         <span style="font-size:14px;font-weight:700;">현금</span>
         <span class="bdg bdg-bl" id="as-cash-badge">—</span>
       </div>
@@ -1664,7 +1666,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
   </div>
   <!-- 동기화 -->
   <div class="sync-card card"><div class="cp">
-    <div class="ctitle" style="color:var(--blue);">📡 동기화 · 백업</div>
+    <div class="ctitle" style="color:var(--blue);">동기화 · 백업</div>
     <p style="font-size:12px;color:var(--sub);margin-bottom:14px;">도형↔예진 이번달 데이터 공유, 또는 전체 백업</p>
     <div class="btnrow" style="margin-bottom:10px;">
       <button class="btn btn-blue" onclick="copyShareCode()">코드 복사 (내보내기)</button>
@@ -2728,9 +2730,9 @@ function loadSnapshotForm() {
 
 // ━━ COMPUTE ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 거래의 결제수단 → 통장 자동 매핑
-// - 신용카드("카드"): 생활비 통장 -, 결제대금 통장 + (외상이지만 즉시 결제대금에 모임)
+// - 신용카드("카드"): 생활비 통장 -, 결제 통장 + (외상이지만 즉시 결제대금에 모임)
 // - 체크카드/현금/페이/자동이체/그 외: 생활비 통장 -
-// - 수입: 결제대금 통장 +
+// - 수입: 결제 통장 +
 // - 이체: t.fromAcc / t.toAcc 가 있으면 양쪽 반영, 없으면 변화 없음
 // 자물쇠: 거래 유형이 fixed/saving/invest 면 고정자물쇠 - (음수 허용, 경고만)
 function _isCardCredit(method) {
@@ -2748,11 +2750,11 @@ function _isCardCredit(method) {
   return false;
 }
 function _outflowAcc(t) {
-  // 거래의 출금 통장 결정
-  if (t.type === 'income') return null; // 수입은 입금만
-  if (t.type === 'transfer') return null; // 이체는 별도 처리
-  if (_isCardCredit(t.method)) return '생활비'; // 신용카드: 생활비에서 즉시 빠짐 (결제대금으로 모임)
-  return '생활비'; // 체크카드/현금/자동이체/페이 등 모두 생활비
+  // 거래의 출금 통장 결정 — 신용카드든 체크카드든 모두 생활비 통장에서 차감
+  // 카드값 수동 이체는 별도 transfer 거래로 입력 (생활비 → 결제대금)
+  if (t.type === 'income') return null;
+  if (t.type === 'transfer') return null;
+  return '생활비';
 }
 
 function compute(mon) {
@@ -2785,15 +2787,21 @@ function compute(mon) {
       // (월초 입력 시점에 이미 자물쇠 분이 포함된 통장 잔액을 입력했으므로,
       //  자동이체로 외부 이전되어도 통장 추적과 별개)
       자물쇠사용 += amt;
+    } else if (t.type === 'card') {
+      // 카드대금 결제: 다음달 10~14일 카드사가 결제 통장에서 자동 출금하는 거래
+      결제델타 -= amt;
     } else {
       // 변동지출 / 카드 거래
+      // ⚠️ FLOW: 실제 잔액과 100% 일치시키기
+      // - 신용카드 결제 = 외상 → 결제 시점에 통장 잔액 변동 X
+      //   사용자가 카드값만큼 생활비→결제대금으로 수동 이체할 때만 잔액 변동 (transfer 거래)
+      //   다음달 카드사 자동 출금은 'card' 타입 거래로 별도 입력
+      // - 체크카드/현금/페이/자동이체 = 즉시 출금 → 생활비 −
       if (_isCardCredit(t.method)) {
-        // 신용카드: 생활비 -, 결제대금 + (외상이지만 즉시 결제대금에 모임)
-        생활비델타 -= amt;
-        결제델타 += amt;
+        // 신용카드: 잔액 변동 없음, cardSpend만 누적 (다음달 나갈 카드값 추적)
         cardSpend += amt;
       } else {
-        // 체크카드/현금/페이/자동이체(변동): 생활비 -
+        // 체크카드/현금/페이/자동이체: 생활비 −
         생활비델타 -= amt;
       }
     }
@@ -2804,16 +2812,21 @@ function compute(mon) {
   const 신한_now = 신한 + 신한델타;
   const 가용현금 = 결제 + 생활비 + 신한_now;
   // ━━━━━ 이번달 자유잔액 정의 ━━━━━
-  // = 생활비(자물쇠 제외) + 신한
-  //   결제대금 = 다음달용, 자물쇠 = 따로 보관해 둔 고정/저축/투자 → 자유 X
+  // = 생활비 - 자물쇠(보관분) - 다음달 나갈 카드값(외상) + 신한
+  //   결제대금 = 다음달용
+  //   자물쇠 = 따로 보관해 둔 고정/저축/투자
+  //   카드값 = 외상이지만 다음달 카드사로 빠질 예정이라 미리 차감
   const 결제자유 = 0;
-  // 자물쇠가 비현실적으로 큰 경우(통장 잔액 초과) — 사용자 입력 오류로 간주하고 무시
   const 자물쇠유효 = (고정자물쇠 > 0 && 고정자물쇠 <= 생활비) ? 고정자물쇠 : 0;
-  const 생활비자유 = 생활비 - 자물쇠유효;
+  const 생활비자유_원본 = 생활비 - 자물쇠유효;
+  // 신용카드 미결제분 = cardSpend - 결제 통장 안에 모인 금액(수동이체된 부분)
+  // 결제 통장에 카드값 모임이 충분하면 자유잔액 안 깎고, 부족분만 깎음
+  const 카드미결제 = Math.max(0, cardSpend - 결제);
+  const 생활비자유 = Math.max(0, 생활비자유_원본 - 카드미결제);
   const 신한자유 = 신한_now;
   const 자유잔액 = 결제자유 + 생활비자유 + 신한자유;
   const 자물쇠초과 = (고정자물쇠 > 생활비) && (고정자물쇠 > 0);
-  const 다음달용 = 결제;                            // 결제대금 통장만
+  const 다음달용 = 결제;                            // 결제 통장만
   const 이번달예정 = Math.max(고정자물쇠, 0);       // 자물쇠 (이번달 나갈 분)
   const 저축=(sn.도형청약||0)+(sn.예진청약||0)+(sn.도형청도계||0)+(sn.예진청도계||0);
   const 투자=(sn.월드컵평가||0)+(sn.퇴직연금평가||0)+(sn.CMA||0)+(sn.Abbott||0)+(sn.Medtronic||0)+(sn.도형ISA평가||0)+(sn.예진ISA평가||0);
@@ -2880,13 +2893,14 @@ function renderHome() {
     const targetRate = c.bIncome>0 ? Math.round(savePlan/c.bIncome*100) : 0;
     set('h-rate-ss', targetRate>0 ? '목표 '+targetRate+'%' : '수입 대비');
   }
-  // 다음달 카드값 — 이번달 신용카드 거래 합계 (compute에서 자동 계산됨)
-  // 신용카드 거래는 즉시 결제대금 통장에 모이고, 다음달 10~14일에 한 번에 출금됨
+  // 다음달 카드값 — 이번달 신용카드 거래 합계 (compute에서 cardSpend로 집계)
+  // ⚠️ 신용카드 결제 시 통장 자동 이체 X — 사용자가 카드값만큼 생활비→결제대금 수동 이체 (transfer 거래)
+  // 다음달 10~14일에 카드사가 결제 통장에서 자동 출금
   const cardSpend = c.cardSpend || 0;
   set('h-card', fmtW(cardSpend));
-  // 다음달 1일: 현재 가용현금에서 카드값 출금됨
+  // 카드값 출금 직후 잔액 = 현재 가용현금 − 다음달 나갈 카드값
   const afterCard = c.가용현금 - cardSpend;
-  // 월급 입금 후: 카드값 출금 + 월급 입금
+  // 월급 입금 후: afterCard + 예산상 월급 (도형+예진+인센+부수입)
   const afterSalary = afterCard + c.bIncome;
   set('h-aftersalary', fmtW(afterSalary));
   const ace=$('h-aftercard');
@@ -3890,10 +3904,13 @@ function renderAssetPage() {
     let html = '';
     html += '<div class="free-formula-title">계산식</div>';
     html += '<div class="formula-row"><span class="fk">생활비 통장</span><span class="fv">'+fmtW(c.생활비)+'</span></div>';
-    // 자물쇠 = 유효값(통장 잔액 이하)만 차감
     const 자물쇠유효 = (c.고정자물쇠 > 0 && c.고정자물쇠 <= c.생활비) ? c.고정자물쇠 : 0;
     if (자물쇠유효 > 0) {
-      html += '<div class="formula-row op"><span class="fk">− 자물쇠 (따로 보관 중)</span><span class="fv">'+fmtW(자물쇠유효)+'</span></div>';
+      html += '<div class="formula-row op"><span class="fk">− 자물쇠 (따로 보관)</span><span class="fv">'+fmtW(자물쇠유효)+'</span></div>';
+    }
+    const 카드미결제 = Math.max(0, (c.cardSpend||0) - c.결제);
+    if (카드미결제 > 0) {
+      html += '<div class="formula-row op"><span class="fk">− 카드값 (다음달 나갈 분)</span><span class="fv">'+fmtW(카드미결제)+'</span></div>';
     }
     html += '<div class="formula-row op"><span class="fk">+ 신한 통장</span><span class="fv">'+fmtW(c.신한자유)+'</span></div>';
     html += '<div class="formula-row eq"><span class="fk">자유잔액</span><span class="fv">'+fmtW(c.자유잔액)+'</span></div>';
@@ -3901,7 +3918,7 @@ function renderAssetPage() {
       html += '<div style="margin-top:12px;padding:9px 11px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:11.5px;color:#991b1b;line-height:1.5;">자물쇠 입력값('+fmtW(c.고정자물쇠)+')이 생활비 통장 잔액보다 커서 무시했습니다. 자물쇠는 <b>실제 통장 안에 따로 보관 중인 금액</b>만 입력하세요.</div>';
     }
     if (c.다음달용 > 0) {
-      html += '<div style="margin-top:12px;padding:9px 11px;background:var(--bg);border-radius:8px;font-size:11.5px;color:var(--sub);line-height:1.5;">결제 통장 '+fmtW(c.다음달용)+'은 다음달 카드값이라 자유잔액에서 제외</div>';
+      html += '<div style="margin-top:12px;padding:9px 11px;background:var(--bg);border-radius:8px;font-size:11.5px;color:var(--sub);line-height:1.5;">결제 통장 '+fmtW(c.다음달용)+'은 카드값 결제용이라 자유잔액에서 제외</div>';
     }
     formulaBody.innerHTML = html;
   }
@@ -3927,9 +3944,9 @@ function renderAssetPage() {
   if(rb&&tot) rb.innerHTML=[{l:'투자',v:c.투자,c:'#8b5cf6'},{l:'저축',v:c.저축,c:'#10b981'},{l:'현금',v:Math.max(c.가용현금,0),c:'#3b7ef8'}].map(i=>{const p=Math.round(i.v/tot*100);return '<div class="pitem"><div class="phd"><span class="pname">'+i.l+' <span style="font-weight:400;color:var(--faint);">('+p+'%)</span></span><span class="pamt">'+fmtW(i.v)+'</span></div><div class="ptrack"><div class="pfill" style="width:'+p+'%;background:'+i.c+'"></div></div></div>';}).join('');
   else if(rb) rb.innerHTML='<div class="empty"><p>잔액 입력 후 표시됩니다</p></div>';
   // ━━━━━ 통일 row 빌더 (모든 자산 종류 동일 디자인) ━━━━━
-  // unirow(이름, 보조설명, 금액, 우측액션, 금액 색상클래스)
-  const unirow = (name, meta, amt, action, amtCls) => {
-    return '<div class="uni-row">'
+  // unirow(이름, 보조설명, 금액, 우측액션, 금액 색상클래스, 추가 row 클래스)
+  const unirow = (name, meta, amt, action, amtCls, rowCls) => {
+    return '<div class="uni-row '+(rowCls||'')+'">'
       + '<div class="uni-left">'
       +   '<div class="uni-name">'+name+'</div>'
       +   (meta ? '<div class="uni-meta">'+meta+'</div>' : '')
@@ -3959,7 +3976,9 @@ function renderAssetPage() {
       : '';
 
     let html = '';
-    const 결제meta = cardSpendNow>0 ? '카드값 '+fmtW(cardSpendNow)+' 모임' : '다음달 카드값 통장';
+    const 결제meta = cardSpendNow>0
+      ? '카드값 ' + fmtW(cardSpendNow) + ' 모임 중'
+      : '카드값용 통장';
     html += unirow('결제 통장', 결제meta, c.결제, diffPill('결제 통장', diff결제), 'csb');
     html += unirow('생활비 통장', null, c.생활비, diffPill('생활비 통장', diff생활비), '');
     if (자물쇠잔액 !== 0) {
@@ -3975,8 +3994,8 @@ function renderAssetPage() {
         + '<div class="uni-amt csb">'+fmtW(자물쇠잔액)+'</div>'
         + '</div>';
     }
-    html += unirow('도형 신한', null, c.신한, diffPill('도형 신한', diff신한), '');
-    html += '<div class="uni-cta"><button onclick="openReconcileSheet()">토스 실잔액과 맞추기</button></div>';
+    html += unirow('도형 신한', null, c.신한, diffPill('도형 신한', diff신한), '', 'uni-row-last');
+    html += '<div class="uni-cta"><button onclick="openReconcileSheet()">잔액 편집</button></div>';
     cashList.innerHTML = html;
   }
   const cashBadge=$('as-cash-badge'); if(cashBadge) cashBadge.textContent=fmtW(c.가용현금);
@@ -4893,11 +4912,11 @@ function openReconcileSheet() {
   const toss자물쇠 = sn.실잔_자물쇠 != null ? sn.실잔_자물쇠 : '';
   const toss신한 = sn.실잔_신한 != null ? sn.실잔_신한 : '';
 
-  $('dtitle').textContent = '토스 실잔액과 맞추기';
+  $('dtitle').textContent = '잔액 편집';
   $('dbody').innerHTML =
     '<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:14px;padding:12px 14px;background:var(--bg);border-radius:10px;">'
-    + '토스 앱의 실제 잔액을 입력하면 차이를 자동 반영합니다.<br>'
-    + '<b>생활비</b>는 토스 통장 전체 잔액(자물쇠 포함), <b>자물쇠</b>는 토스 보관중 금액을 입력하세요.'
+    + '실제 통장 잔액을 입력하면 화면 잔액과 차이를 자동 보정합니다.<br>'
+    + '<b>생활비</b>는 통장 전체 잔액(자물쇠 포함), <b>자물쇠</b>는 따로 보관 중인 금액을 입력하세요.'
     + '</div>'
 
     // 결제 통장
@@ -4905,7 +4924,7 @@ function openReconcileSheet() {
     +   '<div class="rec-row-head"><span class="bdg bdg-bl">결제</span><span class="rec-row-name">결제 통장</span></div>'
     +   '<div class="rec-row-grid">'
     +     '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val cbl">'+fmtW(c.결제)+'</div></div>'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">토스 실잔액</div><input class="fi rec-cell-in" id="rec-결제" placeholder="0" inputmode="numeric" value="'+(toss결제!==''?Number(toss결제).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">실제 잔액</div><input class="fi rec-cell-in" id="rec-결제" placeholder="0" inputmode="numeric" value="'+(toss결제!==''?Number(toss결제).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
     +     '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-결제">—</div></div>'
     +   '</div>'
     + '</div>'
@@ -4915,7 +4934,7 @@ function openReconcileSheet() {
     +   '<div class="rec-row-head"><span class="bdg bdg-tl">생활</span><span class="rec-row-name">생활비 통장</span></div>'
     +   '<div class="rec-row-grid">'
     +     '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val cbl">'+fmtW(c.생활비)+'</div></div>'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">토스 실잔액</div><input class="fi rec-cell-in" id="rec-생활비" placeholder="0" inputmode="numeric" value="'+(toss생활비!==''?Number(toss생활비).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">실제 잔액</div><input class="fi rec-cell-in" id="rec-생활비" placeholder="0" inputmode="numeric" value="'+(toss생활비!==''?Number(toss생활비).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
     +     '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-생활비">—</div></div>'
     +   '</div>'
 
@@ -4924,7 +4943,7 @@ function openReconcileSheet() {
     +     '<div class="rec-row-head"><span class="rec-sub-icon">🔒</span><span class="rec-row-name-sub">└ 자물쇠 (이번달 나갈 고정/저축/투자)</span></div>'
     +     '<div class="rec-row-grid">'
     +       '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val csb">'+fmtW(c.고정자물쇠)+'</div></div>'
-    +       '<div class="rec-cell"><div class="rec-cell-lbl">토스 보관액</div><input class="fi rec-cell-in" id="rec-자물쇠" placeholder="0" inputmode="numeric" value="'+(toss자물쇠!==''?Number(toss자물쇠).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
+    +       '<div class="rec-cell"><div class="rec-cell-lbl">실제 보관액</div><input class="fi rec-cell-in" id="rec-자물쇠" placeholder="0" inputmode="numeric" value="'+(toss자물쇠!==''?Number(toss자물쇠).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
     +       '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-자물쇠">—</div></div>'
     +     '</div>'
     +   '</div>'
@@ -5032,14 +5051,14 @@ function applyReconcile() {
         md.transactions.push({
           id, date: dateStr, type:'variable', cat:'기타',
           amt: Math.abs(diff), method,
-          memo: '['+name+'] 잔액 보정 (토스 실잔액 일치)'
+          memo: '['+name+'] 잔액 편집 보정'
         });
       } else {
         // 화면이 실제보다 적음 → 수입 누락 → 수입 거래 추가
         md.transactions.push({
           id, date: dateStr, type:'income', cat:'부수입',
           amt: Math.abs(diff), method:'이체',
-          memo: '['+name+'] 잔액 보정 (토스 실잔액 일치)'
+          memo: '['+name+'] 잔액 편집 보정'
         });
       }
       touched++;
