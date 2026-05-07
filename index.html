@@ -2268,8 +2268,8 @@ function getCatMap() { return LS('ml_cats') || {
   income:['도형 월급','예진 월급','인센티브/상여','부수입','기타 수입'],
   fixed:['월세','관리비','전세대출이자','오피스텔이자','식자재','교통','통신','인터넷','도형 운동','예진 운동','보험료','정수기','학자금대출','기타 고정'],
   variable:['외식비','간식/음료','예진 점심','생활소모품','꾸밈비/쇼핑','꾸밈비/미용','유니','경조사','각자 용돈','문화생활','취미','여행','배달','기타 변동'],
-  saving:['청년도약(도형)','청년도약(예진)','비상금','자기계발비','IRP(도형)','경조사 비상금','기타 저축'],
-  invest:['ISA','CMA 주식','퇴직연금 추가납입','기타 투자'],
+  saving:['청약(도형)','청약(예진)','청년도약(도형)','청년도약(예진)','가족모임(도형)','가족모임(예진)','비상금','자기계발비','경조사 비상금','기타 저축'],
+  invest:['토스CMA','퇴직연금(IRP)','나무CMA','회사주식(Abbott)','회사주식(Medtronic)','ISA(도형)','ISA(예진)','기타 투자'],
   card:['카드지출(도형)','카드지출(예진)','창업비용','기타 카드'],
   transfer:['저축 이체','투자 이체','가족 이체','개인 이체','환급','기타 이체'],
 }; }
@@ -2759,6 +2759,8 @@ function compute(mon) {
   let 결제델타=0, 생활비델타=0, 신한델타=0;
   let 자물쇠사용=0; // fixed/saving/invest 거래 합계 (자물쇠에서 차감)
   let cardSpend=0;
+  // 카테고리별 거래 누적 (저축/투자 자산값에 합산)
+  const savInvDelta = {};
   txs.forEach(t=>{
     const amt = t.amt||0;
     if (t.type === 'income') {
@@ -2775,9 +2777,13 @@ function compute(mon) {
       else if (to === '신한') 신한델타 += amt;
     } else if (t.type === 'fixed' || t.type === 'saving' || t.type === 'invest') {
       // 고정/저축/투자: 자물쇠만 차감, 통장 잔액은 건드리지 않음
-      // (월초 입력 시점에 이미 자물쇠 분이 포함된 통장 잔액을 입력했으므로,
-      //  자동이체로 외부 이전되어도 통장 추적과 별개)
       자물쇠사용 += amt;
+      // 카테고리별 자산 누적 (자산 탭에서 snapshot + 거래 합산)
+      if (t.type === 'saving' || t.type === 'invest') {
+        const cat = t.cat || '';
+        if (!savInvDelta[cat]) savInvDelta[cat] = 0;
+        savInvDelta[cat] += amt;
+      }
     } else if (t.type === 'card') {
       // 카드대금 결제: 다음달 10~14일 카드사가 결제 통장에서 자동 출금하는 거래
       결제델타 -= amt;
@@ -2819,8 +2825,28 @@ function compute(mon) {
   const 자물쇠초과 = (고정자물쇠 > 생활비) && (고정자물쇠 > 0);
   const 다음달용 = 결제;                            // 결제 통장만
   const 이번달예정 = Math.max(고정자물쇠, 0);       // 자물쇠 (이번달 나갈 분)
-  const 저축=(sn.도형청약||0)+(sn.예진청약||0)+(sn.도형청도계||0)+(sn.예진청도계||0);
-  const 투자=(sn.월드컵평가||0)+(sn.퇴직연금평가||0)+(sn.CMA||0)+(sn.Abbott||0)+(sn.Medtronic||0)+(sn.도형ISA평가||0)+(sn.예진ISA평가||0);
+  // 카테고리 → 자산 키 매핑 (거래로 자산값 자동 갱신)
+  const sd = savInvDelta;
+  const sav = (cat) => sd[cat] || 0;
+  // 저축
+  const 도형청약자산   = (sn.도형청약||0)   + sav('청약(도형)');
+  const 예진청약자산   = (sn.예진청약||0)   + sav('청약(예진)');
+  const 도형청도계자산 = (sn.도형청도계||0) + sav('청년도약(도형)');
+  const 예진청도계자산 = (sn.예진청도계||0) + sav('청년도약(예진)');
+  const 도형가족자산   = (sn.도형가족모임||0) + sav('가족모임(도형)');
+  const 예진가족자산   = (sn.예진가족모임||0) + sav('가족모임(예진)');
+  const 저축 = 도형청약자산 + 예진청약자산 + 도형청도계자산 + 예진청도계자산;
+  // (가족모임은 자산 제외 — 합산 안 함)
+
+  // 투자
+  const 토스CMA자산   = (sn.월드컵평가||0)    + sav('토스CMA');
+  const IRP자산       = (sn.퇴직연금평가||0)  + sav('퇴직연금(IRP)');
+  const 나무CMA자산   = (sn.CMA||0)           + sav('나무CMA');
+  const Abbott자산    = (sn.Abbott||0)        + sav('회사주식(Abbott)');
+  const Medtronic자산 = (sn.Medtronic||0)     + sav('회사주식(Medtronic)');
+  const 도형ISA자산   = (sn.도형ISA평가||0)   + sav('ISA(도형)');
+  const 예진ISA자산   = (sn.예진ISA평가||0)   + sav('ISA(예진)');
+  const 투자 = 토스CMA자산 + IRP자산 + 나무CMA자산 + Abbott자산 + Medtronic자산 + 도형ISA자산 + 예진ISA자산;
   const 변동대출=(sn.도형마통||0)+(sn.예진마통||0)+(sn.청약대출||0)+(sn.학자금||0);
   const 순자산=가용현금+저축+투자-변동대출;
   const catActual={};
@@ -2846,6 +2872,15 @@ function compute(mon) {
     결제초, 생활비초, 고정자물쇠초, 자물쇠사용, cardSpend,
     자유잔액, 다음달용, 이번달예정, 자물쇠초과, 결제자유, 생활비자유, 신한자유,
     income, fixed, variable, saving, invest, card, totalExp, saveRate, saveRateAbnormal, bIncome,
+    // 자산별 계산값 (snapshot + 거래 합산)
+    자산: {
+      도형청약: 도형청약자산, 예진청약: 예진청약자산,
+      도형청도계: 도형청도계자산, 예진청도계: 예진청도계자산,
+      도형가족: 도형가족자산, 예진가족: 예진가족자산,
+      토스CMA: 토스CMA자산, IRP: IRP자산, 나무CMA: 나무CMA자산,
+      Abbott: Abbott자산, Medtronic: Medtronic자산,
+      도형ISA: 도형ISA자산, 예진ISA: 예진ISA자산,
+    },
     bgt, sn, txs, catActual
   };
 }
@@ -4017,33 +4052,36 @@ function renderAssetPage() {
   }
   set('as-loan-badge',fmtW(c.변동대출));
 
-  // ━━━━━ 저축 ━━━━━
+  // ━━━━━ 저축 (snapshot + 이번달 거래 합산) ━━━━━
   const svs=$('as-saves');
   if(svs) {
+    const a = c.자산;
     const rows = [];
     rows.push(unirow('도형 청약통장',
       '납입 '+(sn.도형청약횟수||0)+'회'+(sn.도형청약횟수>=24?' · 1순위':''),
-      sn.도형청약||0, '', ''));
+      a.도형청약, '', ''));
     rows.push(unirow('예진 청약통장',
       '납입 '+(sn.예진청약횟수||0)+'회'+(sn.예진청약횟수>=24?' · 1순위':''),
-      sn.예진청약||0, '', ''));
+      a.예진청약, '', ''));
     rows.push(unirow('도형 청도계',
       '월 '+fmt(sn.도형청도계납입||300000)+'원'+(sn.도형청도계만기?' · 만기 '+sn.도형청도계만기:''),
-      sn.도형청도계||0, '', ''));
+      a.도형청도계, '', ''));
     rows.push(unirow('예진 청도계',
       '월 '+fmt(sn.예진청도계납입||700000)+'원'+(sn.예진청도계만기?' · 만기 '+sn.예진청도계만기:''),
-      sn.예진청도계||0, '', ''));
-    if (sn.도형가족모임) rows.push(unirow('도형 가족모임', '자산 제외', sn.도형가족모임, '', 'csb'));
-    if (sn.예진가족모임) rows.push(unirow('예진 가족모임', '자산 제외', sn.예진가족모임, '', 'csb'));
+      a.예진청도계, '', ''));
+    if (a.도형가족 > 0) rows.push(unirow('도형 가족모임', '자산 제외', a.도형가족, '', 'csb'));
+    if (a.예진가족 > 0) rows.push(unirow('예진 가족모임', '자산 제외', a.예진가족, '', 'csb'));
     svs.innerHTML = rows.join('');
   }
   set('as-save-badge',fmtW(c.저축));
 
-  // ━━━━━ 투자 ━━━━━
+  // ━━━━━ 투자 (snapshot + 이번달 거래 합산) ━━━━━
   const inv=$('as-invests');
   if(inv) {
-    const mkInvRow = (name, costKey, valKey) => {
-      const cost = sn[costKey]||0, val = sn[valKey]||0;
+    const a = c.자산;
+    const mkInvRow = (name, costKey, valOverride) => {
+      const cost = sn[costKey]||0;
+      const val = valOverride;
       const g = val - cost;
       const rate = cost>0 ? (g/cost*100).toFixed(1) : null;
       const meta = rate !== null
@@ -4052,16 +4090,16 @@ function renderAssetPage() {
       return unirow(name, meta, val, '', '');
     };
     const rendererByKey = {
-      '월드컵':   () => mkInvRow('토스 CMA','월드컵납입','월드컵평가'),
-      '퇴직연금': () => mkInvRow('퇴직연금(IRP)','퇴직연금납입','퇴직연금평가'),
-      'CMA':      () => mkInvRow('나무 CMA','CMA납입','CMA'),
+      '월드컵':   () => mkInvRow('토스 CMA','월드컵납입', a.토스CMA),
+      '퇴직연금': () => mkInvRow('퇴직연금(IRP)','퇴직연금납입', a.IRP),
+      'CMA':      () => mkInvRow('나무 CMA','CMA납입', a.나무CMA),
       '회사주식': () => [
-        mkInvRow('Abbott 주식','Abbott납입','Abbott'),
-        mkInvRow('Medtronic 주식','Medtronic납입','Medtronic'),
+        mkInvRow('Abbott 주식','Abbott납입', a.Abbott),
+        mkInvRow('Medtronic 주식','Medtronic납입', a.Medtronic),
       ].join(''),
       'ISA':      () => [
-        mkInvRow('도형 ISA','도형ISA납입','도형ISA평가'),
-        mkInvRow('예진 ISA','예진ISA납입','예진ISA평가'),
+        mkInvRow('도형 ISA','도형ISA납입', a.도형ISA),
+        mkInvRow('예진 ISA','예진ISA납입', a.예진ISA),
       ].join(''),
     };
     const order = (typeof getInvestOrder === 'function') ? getInvestOrder() : ['월드컵','퇴직연금','CMA','회사주식','ISA'];
