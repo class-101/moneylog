@@ -2098,7 +2098,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div data-pkey="월드컵" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">토스 CMA</span><span id="sinvest-wk" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
           <div data-pkey="퇴직연금" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">퇴직연금(IRP)</span><span id="sinvest-re" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
           <div data-pkey="CMA" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">나무 CMA</span><span id="sinvest-cm" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
-          <div data-pkey="회사주식" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">회사주식 (Abbott+MDT)</span><span id="sinvest-sk" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+          <div data-pkey="회사주식" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">회사 주식</span><span id="sinvest-sk" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
           <div data-pkey="ISA" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">ISA (도형+예진)</span><span id="sinvest-isa" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
         </div>
         <div style="display:flex;justify-content:space-between;padding:8px 0 2px;border-top:1.5px solid #ddd6fe;margin-top:4px;">
@@ -2396,13 +2396,13 @@ const TC={income:'var(--green)',fixed:'var(--blue)',variable:'var(--orange)',sav
 const TI={income:'💰',fixed:'🏠',variable:'🛒',saving:'🏦',invest:'📈',card:'💳',transfer:'🔄'};
 const TB={income:'bdg-gr',fixed:'bdg-bl',variable:'bdg-gy',saving:'bdg-yl',invest:'bdg-pr',card:'bdg-rd',transfer:'bdg-tl'};
 // 거래 type별 라벨 (코드 전체 분기에 사용)
-const CAT_TYPE_LABELS={income:'수입',fixed:'고정지출',variable:'변동지출',saving:'저축',invest:'투자',card:'카드',transfer:'이체'};
+const CAT_TYPE_LABELS={income:'수입',fixed:'고정지출',variable:'변동지출',saving:'저축',invest:'투자',card:'카드대금',transfer:'이체'};
 // 카테고리 편집 UI에 표시할 type만 (card/transfer는 결제수단으로 대체됨)
 const CAT_EDITABLE_TYPES={income:'수입',fixed:'고정지출',variable:'변동지출',saving:'저축',invest:'투자'};
 // 시스템 카테고리 (자산 매핑에 사용 — 삭제 불가)
 const SYSTEM_CATS = {
-  saving: ['청약(도형)','청약(예진)','청년도약(도형)','청년도약(예진)','가족모임(도형)','가족모임(예진)'],
-  invest: ['토스CMA','퇴직연금(IRP)','나무CMA','회사주식(Abbott)','회사주식(Medtronic)','ISA(도형)','ISA(예진)'],
+  saving: ['도형 청약','예진 청약','도형 청도계','예진 청도계','도형 가족모임','예진 가족모임'],
+  invest: ['토스 CMA','나무 CMA','퇴직연금(IRP)','Abbott 주식','Medtronic 주식','도형 ISA','예진 ISA'],
 };
 
 // ━━ STORAGE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2417,8 +2417,8 @@ function getCatMap() {
     income:['도형 월급','예진 월급','인센티브/상여','부수입','기타 수입'],
     fixed:['월세','관리비','전세대출이자','오피스텔이자','식자재','교통','통신','인터넷','도형 운동','예진 운동','보험료','정수기','학자금대출','기타 고정'],
     variable:['외식비','간식/음료','예진 점심','생활소모품','꾸밈비/쇼핑','꾸밈비/미용','유니','경조사','각자 용돈','문화생활','취미','여행','배달','기타 변동'],
-    saving:['청약(도형)','청약(예진)','청년도약(도형)','청년도약(예진)','가족모임(도형)','가족모임(예진)','비상금','자기계발비','경조사 비상금','기타 저축'],
-    invest:['토스CMA','퇴직연금(IRP)','나무CMA','회사주식(Abbott)','회사주식(Medtronic)','ISA(도형)','ISA(예진)','기타 투자'],
+    saving:['도형 청약','예진 청약','도형 청도계','예진 청도계','도형 가족모임','예진 가족모임','비상금','자기계발비','경조사 비상금','기타 저축'],
+    invest:['토스 CMA','나무 CMA','퇴직연금(IRP)','Abbott 주식','Medtronic 주식','도형 ISA','예진 ISA','기타 투자'],
     card:['카드지출(도형)','카드지출(예진)','창업비용','기타 카드'],
     transfer:['저축 이체','투자 이체','가족 이체','개인 이체','환급','기타 이체'],
   };
@@ -4135,8 +4135,8 @@ function renderSavingPlan() {
     {l:'청년도약(예진)', bk:'예진청도계', cats:['청년도약(예진)']},
     {l:'비상금',         bk:'비상금',     cats:['비상금']},
     {l:'IRP(도형)',      bk:'IRP',        cats:['퇴직연금(IRP)','IRP(도형)']},
-    {l:'ISA',            bk:'ISA',        cats:['ISA(도형)','ISA(예진)','ISA']},
-    {l:'CMA 주식',       bk:'CMA주식',    cats:['토스CMA','나무CMA','CMA 주식']},
+    {l:'ISA',            bk:'ISA',        cats:['도형 ISA','예진 ISA','ISA(도형)','ISA(예진)','ISA']},
+    {l:'CMA 주식',       bk:'CMA주식',    cats:['토스 CMA','나무 CMA','토스CMA','나무CMA','CMA 주식']},
   ];
   const sumActual = (cats) => c.txs
     .filter(t => cats.includes(t.cat))
@@ -4325,10 +4325,10 @@ function renderAssetPage() {
   if(svs) {
     const a = c.자산;
     const rows = [];
-    rows.push(unirow('도형 청약통장',
+    rows.push(unirow('도형 청약',
       '납입 '+(sn.도형청약횟수||0)+'회'+(sn.도형청약횟수>=24?' · 1순위':''),
       a.도형청약, '', ''));
-    rows.push(unirow('예진 청약통장',
+    rows.push(unirow('예진 청약',
       '납입 '+(sn.예진청약횟수||0)+'회'+(sn.예진청약횟수>=24?' · 1순위':''),
       a.예진청약, '', ''));
     rows.push(unirow('도형 청도계',
@@ -6990,6 +6990,84 @@ function migrateISA() {
   if (changed) console.log('[migration] ISA 연간 → 월간 변환 완료');
 }
 
+// 카테고리 중복/옛이름 정리 (시스템 카테고리 명명 통일 후 1회 실행)
+function migrateCats() {
+  if (localStorage.getItem('ml_migrated_cats_v2')) return;
+  const raw = LS('ml_cats');
+  if (!raw) {
+    localStorage.setItem('ml_migrated_cats_v2', '1');
+    return;
+  }
+  // 옛 → 새 라벨 매핑 (중복 제거)
+  const renameMap = {
+    saving: {
+      '청약(도형)': '도형 청약', '청약 (도형)': '도형 청약',
+      '청약(예진)': '예진 청약', '청약 (예진)': '예진 청약',
+      '청년도약(도형)': '도형 청도계', '청년도약 (도형)': '도형 청도계',
+      '청년도약(예진)': '예진 청도계', '청년도약 (예진)': '예진 청도계',
+      '가족모임(도형)': '도형 가족모임', '가족모임 (도형)': '도형 가족모임',
+      '가족모임(예진)': '예진 가족모임', '가족모임 (예진)': '예진 가족모임',
+      'IRP(도형)': '도형 IRP', // 옛 카테고리 — 호환성 위해 보존
+    },
+    invest: {
+      '토스CMA': '토스 CMA',
+      '나무CMA': '나무 CMA',
+      'CMA': '나무 CMA', // 옛 카테고리
+      '회사주식(Abbott)': 'Abbott 주식', '회사주식 (Abbott)': 'Abbott 주식',
+      '회사주식(Medtronic)': 'Medtronic 주식', '회사주식 (Medtronic)': 'Medtronic 주식',
+      'ISA(도형)': '도형 ISA', 'ISA (도형)': '도형 ISA',
+      'ISA(예진)': '예진 ISA', 'ISA (예진)': '예진 ISA',
+      '토스 월드컵': '토스 CMA', // 옛 카테고리
+      '퇴직연금': '퇴직연금(IRP)', // 옛 카테고리
+    },
+  };
+
+  let changed = false;
+  Object.keys(renameMap).forEach(type => {
+    if (!Array.isArray(raw[type])) return;
+    const seen = new Set();
+    const newList = [];
+    raw[type].forEach(cat => {
+      const renamed = renameMap[type][cat] || cat;
+      if (!seen.has(renamed)) {
+        seen.add(renamed);
+        newList.push(renamed);
+      } else {
+        changed = true;
+      }
+      if (renamed !== cat) changed = true;
+    });
+    raw[type] = newList;
+  });
+
+  if (changed) {
+    saveCatMap(raw);
+    console.log('[migration] 카테고리 명명 통일 + 중복 제거 완료');
+  }
+
+  // 거래의 카테고리도 통일
+  const state = getState();
+  let txChanged = false;
+  Object.keys(state).forEach(mon => {
+    const txs = state[mon] && state[mon].transactions;
+    if (!Array.isArray(txs)) return;
+    txs.forEach(t => {
+      Object.values(renameMap).forEach(map => {
+        if (map[t.cat]) {
+          t.cat = map[t.cat];
+          txChanged = true;
+        }
+      });
+    });
+  });
+  if (txChanged) {
+    setState(state);
+    console.log('[migration] 거래 카테고리 명명 통일 완료');
+  }
+
+  localStorage.setItem('ml_migrated_cats_v2', '1');
+}
+
 // ━━ FX (환율 자동 계산) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 무료 API: fawazahmed0/exchange-api (CORS 허용, 무제한, API key 불필요)
 // 1차: jsdelivr CDN, 2차: pages.dev fallback
@@ -7288,6 +7366,7 @@ function init() {
   buildMonthOptions();
   // 🔄 데이터 마이그레이션 (ISA 연간 → 월간)
   migrateISA();
+  migrateCats();
   // 기본 데이터
   const state=getState();
   if(!Object.keys(state).length) {
