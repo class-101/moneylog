@@ -355,8 +355,8 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   min-height:36px;
 }
 .cat-chip{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:8px 12px 8px 8px;
+  display:inline-flex;align-items:center;gap:0;
+  padding:8px 12px 8px 10px;
   background:var(--bg);
   border:1px solid var(--border);
   border-radius:99px;
@@ -366,14 +366,28 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   transition:transform .15s, box-shadow .15s, opacity .15s;
   cursor:grab;
   user-select:none;
+  -webkit-user-select:none;
+  touch-action:none;
 }
 .cat-chip:active{cursor:grabbing;}
 .cat-chip-grip{
-  font-size:10px;
-  color:var(--faint);
-  letter-spacing:-2px;
-  margin-right:2px;
+  display:inline-flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  width:14px;height:14px;
+  gap:2px;
+  margin-right:4px;
   pointer-events:none;
+  opacity:.4;
+}
+.cat-chip-grip::before,
+.cat-chip-grip::after{
+  content:'';
+  width:10px;
+  height:1.5px;
+  background:currentColor;
+  border-radius:1px;
 }
 .cat-chip.cat-chip-dragging{
   opacity:.4;
@@ -384,15 +398,10 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   box-shadow:0 0 0 2px var(--blue-light);
   transform:scale(1.05);
 }
-.cat-chip.system{
-  background:#f0f9ff;
-  border-color:#bae6fd;
-  color:#0c4a6e;
-}
 .cat-chip.system .cat-chip-x{display:none;}
 .cat-chip-x{
   display:inline-flex;align-items:center;justify-content:center;
-  width:16px;height:16px;
+  width:20px;height:20px;
   border:none;background:transparent;
   color:var(--faint);
   cursor:pointer;
@@ -400,8 +409,10 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   border-radius:50%;
   font-family:inherit;
   padding:0;
-  margin-left:2px;
+  margin-left:6px;
   transition:all .15s;
+  touch-action:auto;
+  pointer-events:auto;
 }
 .cat-chip-x:hover{background:var(--border);color:var(--red);}
 .cat-add{
@@ -5430,8 +5441,11 @@ function renderCatList() {
       + 'ondragover="dragCatOver(event)" '
       + 'ondragleave="dragCatLeave(event)" '
       + 'ondrop="dragCatDrop(event)" '
-      + 'ondragend="dragCatEnd(event)">'
-      + '<span class="cat-chip-grip">⋮⋮</span>'
+      + 'ondragend="dragCatEnd(event)" '
+      + 'ontouchstart="touchCatStart(event)" '
+      + 'ontouchmove="touchCatMove(event)" '
+      + 'ontouchend="touchCatEnd(event)">'
+      + '<span class="cat-chip-grip"></span>'
       + cat
       + (isSystem ? '' : '<button class="cat-chip-x" onclick="removeCat(\''+cat.replace(/'/g,"\\'")+'\')">×</button>')
       + '</span>';
@@ -5456,8 +5470,11 @@ function renderMethodList() {
       + 'ondragover="dragMethodOver(event)" '
       + 'ondragleave="dragCatLeave(event)" '
       + 'ondrop="dragMethodDrop(event)" '
-      + 'ondragend="dragCatEnd(event)">'
-      + '<span class="cat-chip-grip">⋮⋮</span>'
+      + 'ondragend="dragCatEnd(event)" '
+      + 'ontouchstart="touchCatStart(event)" '
+      + 'ontouchmove="touchCatMove(event)" '
+      + 'ontouchend="touchCatEnd(event)">'
+      + '<span class="cat-chip-grip"></span>'
       + m
       + '<button class="cat-chip-x" onclick="removeMethod(\''+m.replace(/'/g,"\\'")+'\')">×</button>'
       + '</span>';
@@ -5591,13 +5608,84 @@ function dragMethodDrop(e) {
 }
 
 function dragCatEnd(e) {
-  // 모든 chip의 dragging/over 클래스 제거
   document.querySelectorAll('.cat-chip').forEach(el => {
     el.classList.remove('cat-chip-dragging');
     el.classList.remove('cat-chip-over');
   });
   _dragCatIdx = null;
   _dragMethodIdx = null;
+}
+
+// ━━ TOUCH DRAG (모바일 지원) ━━━━━━━━━━━━━━━━━━
+let _touchDrag = null;
+
+function touchCatStart(e) {
+  // × 버튼 위에서는 드래그 시작 X (삭제 클릭 우선)
+  if (e.target.closest('.cat-chip-x')) return;
+  const t = e.touches[0];
+  const target = e.currentTarget;
+  _touchDrag = {
+    type: target.dataset.cat ? 'cat' : 'method',
+    fromIdx: parseInt(target.dataset.idx, 10),
+    el: target,
+    startX: t.clientX,
+    startY: t.clientY,
+    moved: false,
+  };
+  target.classList.add('cat-chip-dragging');
+}
+
+function touchCatMove(e) {
+  if (!_touchDrag) return;
+  const t = e.touches[0];
+  const dx = t.clientX - _touchDrag.startX;
+  const dy = t.clientY - _touchDrag.startY;
+  // 5px 이상 움직이면 드래그 시작 (스크롤 방지)
+  if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+    _touchDrag.moved = true;
+    e.preventDefault();
+    // 손가락 아래 칩 찾기
+    const elBelow = document.elementFromPoint(t.clientX, t.clientY);
+    const chipBelow = elBelow ? elBelow.closest('.cat-chip') : null;
+    // 모든 over 클래스 제거
+    document.querySelectorAll('.cat-chip-over').forEach(el => el.classList.remove('cat-chip-over'));
+    if (chipBelow && chipBelow !== _touchDrag.el) {
+      chipBelow.classList.add('cat-chip-over');
+    }
+  }
+}
+
+function touchCatEnd(e) {
+  if (!_touchDrag) return;
+  const drag = _touchDrag;
+  _touchDrag = null;
+  drag.el.classList.remove('cat-chip-dragging');
+  if (!drag.moved) return;
+  // 마지막 터치 지점에서 칩 찾기
+  const t = e.changedTouches[0];
+  const elBelow = document.elementFromPoint(t.clientX, t.clientY);
+  const chipBelow = elBelow ? elBelow.closest('.cat-chip') : null;
+  document.querySelectorAll('.cat-chip-over').forEach(el => el.classList.remove('cat-chip-over'));
+  if (!chipBelow || chipBelow === drag.el) return;
+  const dropIdx = parseInt(chipBelow.dataset.idx, 10);
+  if (isNaN(dropIdx)) return;
+  if (drag.type === 'cat') {
+    const map = getCatMap();
+    const cats = map[_curCatType] || [];
+    const moved = cats.splice(drag.fromIdx, 1)[0];
+    cats.splice(dropIdx, 0, moved);
+    map[_curCatType] = cats;
+    saveCatMap(map);
+    renderCatList();
+    updateRecCats();
+  } else if (drag.type === 'method') {
+    const methods = getPayMethods();
+    const moved = methods.splice(drag.fromIdx, 1)[0];
+    methods.splice(dropIdx, 0, moved);
+    savePayMethods(methods);
+    renderMethodList();
+    updateRecMethods();
+  }
 }
 
 // 호환성: saveCatEdit는 더 이상 안 쓰지만 외부 호출 대비 빈 함수로 남겨둠
