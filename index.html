@@ -326,6 +326,31 @@ body.snap-save-active .scroll{padding-bottom:210px;}
 
 /* ━━━━━ 카테고리·결제수단 편집 (토스/네이버 풍) ━━━━━ */
 .cat-section{}
+.cat-section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+.cat-edit-toggle{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--sub);
+  font-size:12px;
+  font-weight:600;
+  padding:5px 12px;
+  border-radius:99px;
+  cursor:pointer;
+  font-family:inherit;
+  letter-spacing:-.2px;
+  transition:all .15s;
+}
+.cat-edit-toggle:hover{background:var(--bg);}
+.cat-edit-toggle.active{
+  background:var(--blue);
+  border-color:var(--blue);
+  color:#fff;
+}
 .cat-tabs{
   display:flex;gap:4px;
   overflow-x:auto;
@@ -356,7 +381,6 @@ body.snap-save-active .scroll{padding-bottom:210px;}
 }
 .cat-chip{
   display:inline-flex;align-items:center;gap:0;
-  padding:8px 12px 8px 10px;
   background:var(--bg);
   border:1px solid var(--border);
   border-radius:99px;
@@ -364,12 +388,21 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   color:var(--text);
   letter-spacing:-.2px;
   transition:transform .15s, box-shadow .15s, opacity .15s;
-  cursor:grab;
   user-select:none;
   -webkit-user-select:none;
+}
+/* 일반 모드: 칩만 깔끔하게 표시 */
+.cat-chip-readonly{
+  padding:8px 14px;
+  cursor:default;
+}
+/* 편집 모드: 그립 + 라벨 + × 버튼 */
+.cat-chip-editable{
+  padding:6px 8px 6px 8px;
+  cursor:grab;
   touch-action:none;
 }
-.cat-chip:active{cursor:grabbing;}
+.cat-chip-editable:active{cursor:grabbing;}
 .cat-chip-grip{
   display:inline-flex;
   flex-direction:column;
@@ -389,6 +422,13 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   background:currentColor;
   border-radius:1px;
 }
+.cat-chip-label{
+  cursor:pointer;
+  padding:2px 4px;
+  border-radius:4px;
+  transition:background .15s;
+}
+.cat-chip-label:hover{background:var(--white);}
 .cat-chip.cat-chip-dragging{
   opacity:.4;
   transform:scale(.95);
@@ -398,7 +438,6 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   box-shadow:0 0 0 2px var(--blue-light);
   transform:scale(1.05);
 }
-.cat-chip.system .cat-chip-x{display:none;}
 .cat-chip-x{
   display:inline-flex;align-items:center;justify-content:center;
   width:20px;height:20px;
@@ -409,7 +448,7 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   border-radius:50%;
   font-family:inherit;
   padding:0;
-  margin-left:6px;
+  margin-left:4px;
   transition:all .15s;
   touch-action:auto;
   pointer-events:auto;
@@ -1967,8 +2006,8 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <!-- 저축 합계 미리보기 -->
       <div id="snap-save-preview" style="display:none;background:var(--green-light);border:1px solid #a7f3d0;border-radius:var(--rsm);padding:12px;margin-top:12px;">
         <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;">저축 합계</div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">청약 (도형+예진)</span><span id="ssave-chungak" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">청년도약계좌 (도형+예진)</span><span id="ssave-chung" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">청약</span><span id="ssave-chungak" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">청도계</span><span id="ssave-chung" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
         <div style="display:flex;justify-content:space-between;padding:8px 0 2px;border-top:1.5px solid #a7f3d0;margin-top:4px;">
           <span style="font-size:14px;font-weight:800;">저축 합계</span>
           <span id="ssave-total" style="font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--green);">—</span>
@@ -2099,7 +2138,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div data-pkey="퇴직연금" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">퇴직연금(IRP)</span><span id="sinvest-re" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
           <div data-pkey="CMA" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">나무 CMA</span><span id="sinvest-cm" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
           <div data-pkey="회사주식" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">회사 주식</span><span id="sinvest-sk" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
-          <div data-pkey="ISA" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">ISA (도형+예진)</span><span id="sinvest-isa" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
+          <div data-pkey="ISA" style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--sub);">ISA</span><span id="sinvest-isa" style="font-variant-numeric:tabular-nums;font-weight:600;">—</span></div>
         </div>
         <div style="display:flex;justify-content:space-between;padding:8px 0 2px;border-top:1.5px solid #ddd6fe;margin-top:4px;">
           <span style="font-size:14px;font-weight:800;">투자 합계 (평가)</span>
@@ -2254,7 +2293,10 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <div class="acc-body-inner">
         <!-- 거래 카테고리 -->
         <div class="cat-section">
-          <div class="sub-label" style="margin-bottom:10px;">거래 카테고리</div>
+          <div class="cat-section-head">
+            <span class="sub-label">거래 카테고리</span>
+            <button class="cat-edit-toggle" id="cat-edit-toggle" onclick="toggleEditMode()">편집</button>
+          </div>
           <div class="cat-tabs" id="cat-tabs"></div>
           <div class="cat-list" id="cat-list"></div>
           <div class="cat-add">
@@ -2265,7 +2307,9 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
 
         <!-- 결제수단 -->
         <div class="cat-section" style="margin-top:28px;">
-          <div class="sub-label" style="margin-bottom:10px;">결제수단</div>
+          <div class="cat-section-head">
+            <span class="sub-label">결제수단</span>
+          </div>
           <div class="cat-list" id="method-list"></div>
           <div class="cat-add">
             <input class="fi cat-add-input" id="method-add-input" placeholder="새 결제수단 추가" onkeydown="if(event.key==='Enter')addMethod()">
@@ -3355,6 +3399,13 @@ function openTxDrawer() {
     // 결제수단
     + '<div class="fg" id="drw-method-wrap" style="margin-bottom:16px;"><label>결제 수단</label>'
     + '<select class="fsel fi" id="drw-method">'+getPayMethods().map(m=>'<option'+(m==='체크카드'?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
+    // 출금 통장 (변동/고정지출 시) — 기본 생활비, 사용자가 신한/결제 직접 출금 시 선택
+    + '<div class="fg" id="drw-fromacc-wrap" style="margin-bottom:16px;display:none;"><label>출금 통장 <span style="color:var(--faint);font-weight:400;">(체크카드/현금/이체일 때만)</span></label>'
+    + '<select class="fsel fi" id="drw-fromacc">'
+    +   '<option value="생활비" selected>생활비 통장</option>'
+    +   '<option value="결제">결제 통장</option>'
+    +   '<option value="신한">도형 신한</option>'
+    + '</select></div>'
     // 이체 시 출처/도착 통장 (transfer 유형일 때만 표시)
     + '<div class="fg2" id="drw-transfer-wrap" style="display:none;margin-bottom:16px;">'
     + '<div class="fg"><label>출처 통장</label><select class="fsel fi" id="drw-from">'
@@ -3384,12 +3435,16 @@ function setDrwType(type, el) {
   // 이체 시 결제수단 숨기고 출처/도착 통장 표시
   const methodWrap = $('drw-method-wrap');
   const transferWrap = $('drw-transfer-wrap');
+  const fromAccWrap = $('drw-fromacc-wrap');
   if (type === 'transfer') {
     if (methodWrap) methodWrap.style.display = 'none';
+    if (fromAccWrap) fromAccWrap.style.display = 'none';
     if (transferWrap) transferWrap.style.display = 'grid';
   } else {
     if (methodWrap) methodWrap.style.display = '';
     if (transferWrap) transferWrap.style.display = 'none';
+    // 변동/고정지출일 때만 출금 통장 노출 (수입/저축/투자/카드는 자동 처리됨)
+    if (fromAccWrap) fromAccWrap.style.display = (type === 'variable' || type === 'fixed') ? '' : 'none';
   }
 }
 function updateDrwCats() {
@@ -3407,6 +3462,11 @@ function submitTxDrawer() {
   if (!amt) { showToast('금액을 입력해 주세요'); return; }
   const mon = date.slice(0,7), state=getState(), md=ensureMonth(state,mon);
   const tx = {id:Date.now(), date, type, cat, amt, memo, method};
+  // 변동/고정지출에서 출금 통장 명시 (생활비 외)
+  if ((type === 'variable' || type === 'fixed') && $('drw-fromacc')) {
+    const fromAcc = $('drw-fromacc').value;
+    if (fromAcc && fromAcc !== '생활비') tx.fromAcc = fromAcc;
+  }
   if (type === 'transfer') {
     tx.fromAcc = $('drw-from')?$('drw-from').value:'생활비';
     tx.toAcc = $('drw-to')?$('drw-to').value:'결제';
@@ -3478,7 +3538,7 @@ function submitRecEdit() {
   const list = getRecurring();
   const r = list.find(r => r.id === id); if (!r) return;
   const cat = $('rta-cat') ? $('rta-cat').value : r.cat;
-  const amt = parseNum($('rta-amt') ? $('rta-amt').value : String(r.amt));
+  const amt = Math.abs(parseNum($('rta-amt') ? $('rta-amt').value : String(r.amt)));
   const day = parseInt($('rta-day') ? $('rta-day').value || '1' : '1');
   const method = $('rta-method') ? $('rta-method').value : r.method;
   const memo = $('rta-memo') ? $('rta-memo').value.trim() : (r.memo||'');
@@ -3829,7 +3889,7 @@ function submitEditTx(mon, id) {
   md.transactions[idx]={
     ...md.transactions[idx],
     date:newDate,
-    amt:parseNum($('et-amt')?$('et-amt').value:'0'),
+    amt:Math.abs(parseNum($('et-amt')?$('et-amt').value:'0')),
     type:$('et-type')?$('et-type').value:md.transactions[idx].type,
     cat:$('et-cat')?$('et-cat').value:md.transactions[idx].cat,
     memo:$('et-memo')?$('et-memo').value.trim():md.transactions[idx].memo,
@@ -4443,7 +4503,7 @@ function updateRTCats() {
 }
 function submitRec() {
   const cat=$('rta-cat')?$('rta-cat').value:'';
-  const amt=parseNum($('rta-amt')?$('rta-amt').value:'');
+  const amt=Math.abs(parseNum($('rta-amt')?$('rta-amt').value:''));
   const day=parseInt($('rta-day')?$('rta-day').value||'1':'1');
   const method=$('rta-method')?$('rta-method').value:'';
   const memo=$('rta-memo')?$('rta-memo').value.trim():'';
@@ -5018,7 +5078,7 @@ function showImageResults(txList, rawText) {
   const res=$('img-result'); if(!res) return;
   res.style.display='block';
   const today=currentMonth()+'-'+String(new Date().getDate()).padStart(2,'0');
-  const totalAmt=txList.reduce((a,t)=>a+(t.type==='income'?t.amt:-t.amt),0);
+  const totalAmt=txList.reduce((a,t)=>{const amt=Math.abs(Number(t.amt)||0);return a+(t.type==='income'?amt:-amt);},0);
   if (!rawText) rawText = window._lastOcrRawText || '';
 
   res.innerHTML=
@@ -5401,18 +5461,28 @@ function dismissRem(mon) { localStorage.setItem('ml_rem_'+mon,'1'); const w=$('r
 
 // ━━ CATEGORY EDITOR (칩 기반 — 토스/네이버 풍) ━━━━━━━━━━━━━━━━━━
 let _curCatType = 'income';
+let _editMode = false; // 편집 모드: 드래그/삭제/이름변경 가능
 
 function renderCatFields() {
   const tabsEl = $('cat-tabs');
   if (!tabsEl) return;
-  // 카드/이체는 결제수단으로 대체 → 카테고리 편집에서 제외
-  // _curCatType이 편집 불가 type이면 income으로 보정
   if (!CAT_EDITABLE_TYPES[_curCatType]) _curCatType = 'income';
   tabsEl.innerHTML = Object.entries(CAT_EDITABLE_TYPES).map(([type, label]) =>
     '<button class="cat-tab '+(type===_curCatType?'on':'')+'" onclick="switchCatTab(\''+type+'\')">'+label+'</button>'
   ).join('');
+  // 편집 토글 버튼 (카테고리 + 결제수단 공용)
+  const editToggle = $('cat-edit-toggle');
+  if (editToggle) {
+    editToggle.textContent = _editMode ? '완료' : '편집';
+    editToggle.classList.toggle('active', _editMode);
+  }
   renderCatList();
   renderMethodList();
+}
+
+function toggleEditMode() {
+  _editMode = !_editMode;
+  renderCatFields();
 }
 
 function switchCatTab(type) {
@@ -5423,7 +5493,6 @@ function switchCatTab(type) {
 function renderCatList() {
   const map = getCatMap();
   const cats = map[_curCatType] || [];
-  const sysCats = SYSTEM_CATS[_curCatType] || [];
   const listEl = $('cat-list');
   if (!listEl) return;
   if (cats.length === 0) {
@@ -5431,24 +5500,29 @@ function renderCatList() {
     return;
   }
   listEl.innerHTML = cats.map((cat, idx) => {
-    const isSystem = sysCats.includes(cat);
     const safe = cat.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    return '<span class="cat-chip'+(isSystem?' system':'')+'" '
-      + 'draggable="true" '
-      + 'data-cat="'+safe+'" '
-      + 'data-idx="'+idx+'" '
-      + 'ondragstart="dragCatStart(event)" '
-      + 'ondragover="dragCatOver(event)" '
-      + 'ondragleave="dragCatLeave(event)" '
-      + 'ondrop="dragCatDrop(event)" '
-      + 'ondragend="dragCatEnd(event)" '
-      + 'ontouchstart="touchCatStart(event)" '
-      + 'ontouchmove="touchCatMove(event)" '
-      + 'ontouchend="touchCatEnd(event)">'
-      + '<span class="cat-chip-grip"></span>'
-      + cat
-      + (isSystem ? '' : '<button class="cat-chip-x" onclick="removeCat(\''+cat.replace(/'/g,"\\'")+'\')">×</button>')
-      + '</span>';
+    if (_editMode) {
+      // 편집 모드: 그립 + 이름 수정(클릭) + × 버튼
+      return '<span class="cat-chip cat-chip-editable" '
+        + 'draggable="true" '
+        + 'data-cat="'+safe+'" '
+        + 'data-idx="'+idx+'" '
+        + 'ondragstart="dragCatStart(event)" '
+        + 'ondragover="dragCatOver(event)" '
+        + 'ondragleave="dragCatLeave(event)" '
+        + 'ondrop="dragCatDrop(event)" '
+        + 'ondragend="dragCatEnd(event)" '
+        + 'ontouchstart="touchCatStart(event)" '
+        + 'ontouchmove="touchCatMove(event)" '
+        + 'ontouchend="touchCatEnd(event)">'
+        + '<span class="cat-chip-grip"></span>'
+        + '<span class="cat-chip-label" onclick="renameCat(\''+cat.replace(/'/g,"\\'")+'\')">'+cat+'</span>'
+        + '<button class="cat-chip-x" onclick="removeCat(\''+cat.replace(/'/g,"\\'")+'\')">×</button>'
+        + '</span>';
+    } else {
+      // 일반 모드: 칩만 표시
+      return '<span class="cat-chip cat-chip-readonly">'+cat+'</span>';
+    }
   }).join('');
 }
 
@@ -5462,22 +5536,26 @@ function renderMethodList() {
   }
   listEl.innerHTML = methods.map((m, idx) => {
     const safe = m.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    return '<span class="cat-chip" '
-      + 'draggable="true" '
-      + 'data-method="'+safe+'" '
-      + 'data-idx="'+idx+'" '
-      + 'ondragstart="dragMethodStart(event)" '
-      + 'ondragover="dragMethodOver(event)" '
-      + 'ondragleave="dragCatLeave(event)" '
-      + 'ondrop="dragMethodDrop(event)" '
-      + 'ondragend="dragCatEnd(event)" '
-      + 'ontouchstart="touchCatStart(event)" '
-      + 'ontouchmove="touchCatMove(event)" '
-      + 'ontouchend="touchCatEnd(event)">'
-      + '<span class="cat-chip-grip"></span>'
-      + m
-      + '<button class="cat-chip-x" onclick="removeMethod(\''+m.replace(/'/g,"\\'")+'\')">×</button>'
-      + '</span>';
+    if (_editMode) {
+      return '<span class="cat-chip cat-chip-editable" '
+        + 'draggable="true" '
+        + 'data-method="'+safe+'" '
+        + 'data-idx="'+idx+'" '
+        + 'ondragstart="dragMethodStart(event)" '
+        + 'ondragover="dragMethodOver(event)" '
+        + 'ondragleave="dragCatLeave(event)" '
+        + 'ondrop="dragMethodDrop(event)" '
+        + 'ondragend="dragCatEnd(event)" '
+        + 'ontouchstart="touchCatStart(event)" '
+        + 'ontouchmove="touchCatMove(event)" '
+        + 'ontouchend="touchCatEnd(event)">'
+        + '<span class="cat-chip-grip"></span>'
+        + '<span class="cat-chip-label" onclick="renameMethod(\''+m.replace(/'/g,"\\'")+'\')">'+m+'</span>'
+        + '<button class="cat-chip-x" onclick="removeMethod(\''+m.replace(/'/g,"\\'")+'\')">×</button>'
+        + '</span>';
+    } else {
+      return '<span class="cat-chip cat-chip-readonly">'+m+'</span>';
+    }
   }).join('');
 }
 
@@ -5502,15 +5580,60 @@ function addCat() {
 
 function removeCat(name) {
   const sysCats = SYSTEM_CATS[_curCatType] || [];
-  if (sysCats.includes(name)) {
-    showToast('시스템 카테고리는 삭제할 수 없어요');
-    return;
-  }
+  const isSystem = sysCats.includes(name);
+  // 사용 중인 거래 수 확인
+  const state = getState();
+  let usedCount = 0;
+  Object.keys(state).forEach(mon => {
+    const txs = state[mon] && state[mon].transactions;
+    if (Array.isArray(txs)) {
+      txs.forEach(t => { if (t.cat === name) usedCount++; });
+    }
+  });
+  let msg = '"'+name+'" 삭제할까요?';
+  if (usedCount > 0) msg += '\n('+usedCount+'개 거래에서 사용 중 — 거래는 유지되지만 자산 자동 매칭이 끊길 수 있음)';
+  if (isSystem) msg += '\n⚠️ 시스템 카테고리입니다. 삭제 시 자산 자동 반영이 중단됩니다.';
+  if (!confirm(msg)) return;
   const map = getCatMap();
   map[_curCatType] = (map[_curCatType] || []).filter(c => c !== name);
   saveCatMap(map);
   renderCatList();
   updateRecCats();
+  showToast('삭제됐어요');
+}
+
+function renameCat(oldName) {
+  const newName = prompt('새 이름을 입력하세요', oldName);
+  if (newName === null) return; // 취소
+  const trimmed = newName.trim();
+  if (!trimmed) { showToast('이름을 입력해 주세요'); return; }
+  if (trimmed === oldName) return;
+  const map = getCatMap();
+  const list = map[_curCatType] || [];
+  if (list.includes(trimmed)) { showToast('이미 같은 이름이 있어요'); return; }
+  // 카테고리 배열에서 이름 변경
+  const idx = list.indexOf(oldName);
+  if (idx === -1) return;
+  list[idx] = trimmed;
+  map[_curCatType] = list;
+  saveCatMap(map);
+  // 거래 데이터의 cat도 같이 변경 (모든 월)
+  const state = getState();
+  let txChanged = 0;
+  Object.keys(state).forEach(mon => {
+    const txs = state[mon] && state[mon].transactions;
+    if (Array.isArray(txs)) {
+      txs.forEach(t => {
+        if (t.cat === oldName) { t.cat = trimmed; txChanged++; }
+      });
+    }
+  });
+  if (txChanged > 0) setState(state);
+  renderCatList();
+  updateRecCats();
+  // 자산 탭/홈 갱신 (매칭 변경 가능성)
+  if (typeof renderAll === 'function') renderAll();
+  showToast(txChanged > 0 ? '이름 변경됨 ('+txChanged+'개 거래 갱신)' : '이름 변경됨');
 }
 
 function addMethod() {
@@ -5532,10 +5655,53 @@ function addMethod() {
 }
 
 function removeMethod(name) {
+  // 사용 중인 거래 수 확인
+  const state = getState();
+  let usedCount = 0;
+  Object.keys(state).forEach(mon => {
+    const txs = state[mon] && state[mon].transactions;
+    if (Array.isArray(txs)) {
+      txs.forEach(t => { if (t.method === name) usedCount++; });
+    }
+  });
+  let msg = '"'+name+'" 삭제할까요?';
+  if (usedCount > 0) msg += '\n('+usedCount+'개 거래에서 사용 중)';
+  if (!confirm(msg)) return;
   const methods = getPayMethods().filter(m => m !== name);
   savePayMethods(methods);
   renderMethodList();
   updateRecMethods();
+  showToast('삭제됐어요');
+}
+
+function renameMethod(oldName) {
+  const newName = prompt('새 이름을 입력하세요', oldName);
+  if (newName === null) return;
+  const trimmed = newName.trim();
+  if (!trimmed) { showToast('이름을 입력해 주세요'); return; }
+  if (trimmed === oldName) return;
+  const methods = getPayMethods();
+  if (methods.includes(trimmed)) { showToast('이미 같은 이름이 있어요'); return; }
+  const idx = methods.indexOf(oldName);
+  if (idx === -1) return;
+  methods[idx] = trimmed;
+  savePayMethods(methods);
+  // 거래 데이터의 method도 같이 변경
+  const state = getState();
+  let txChanged = 0;
+  Object.keys(state).forEach(mon => {
+    const txs = state[mon] && state[mon].transactions;
+    if (Array.isArray(txs)) {
+      txs.forEach(t => {
+        if (t.method === oldName) { t.method = trimmed; txChanged++; }
+      });
+    }
+  });
+  if (txChanged > 0) setState(state);
+  renderMethodList();
+  updateRecMethods();
+  if (typeof renderAll === 'function') renderAll();
+  showToast(txChanged > 0 ? '이름 변경됨 ('+txChanged+'개 거래 갱신)' : '이름 변경됨');
 }
 
 function resetCats() {
@@ -7202,11 +7368,11 @@ async function recalcWoldkupTotal() {
 const INVEST_ORDER_KEY = 'ml_invest_order';
 const INVEST_DEFAULT_ORDER = ['월드컵','퇴직연금','CMA','회사주식','ISA'];
 const INVEST_LABELS = {
-  '월드컵':   { name:'토스 CMA',           previewId:'sinvest-wk' },
-  '퇴직연금': { name:'퇴직연금(IRP)',      previewId:'sinvest-re' },
-  'CMA':      { name:'나무 CMA',           previewId:'sinvest-cm' },
-  '회사주식': { name:'회사주식 (Abbott+MDT)', previewId:'sinvest-sk' },
-  'ISA':      { name:'ISA (도형+예진)',    previewId:'sinvest-isa' },
+  '월드컵':   { name:'토스 CMA',         previewId:'sinvest-wk' },
+  '퇴직연금': { name:'퇴직연금(IRP)',    previewId:'sinvest-re' },
+  'CMA':      { name:'나무 CMA',         previewId:'sinvest-cm' },
+  '회사주식': { name:'회사 주식',        previewId:'sinvest-sk' },
+  'ISA':      { name:'ISA',              previewId:'sinvest-isa' },
 };
 function getInvestOrder() {
   const saved = LS(INVEST_ORDER_KEY);
