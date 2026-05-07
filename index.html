@@ -355,15 +355,34 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   min-height:36px;
 }
 .cat-chip{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:8px 12px 8px 14px;
+  display:inline-flex;align-items:center;gap:4px;
+  padding:8px 12px 8px 8px;
   background:var(--bg);
   border:1px solid var(--border);
   border-radius:99px;
   font-size:13px;font-weight:500;
   color:var(--text);
   letter-spacing:-.2px;
-  transition:all .15s;
+  transition:transform .15s, box-shadow .15s, opacity .15s;
+  cursor:grab;
+  user-select:none;
+}
+.cat-chip:active{cursor:grabbing;}
+.cat-chip-grip{
+  font-size:10px;
+  color:var(--faint);
+  letter-spacing:-2px;
+  margin-right:2px;
+  pointer-events:none;
+}
+.cat-chip.cat-chip-dragging{
+  opacity:.4;
+  transform:scale(.95);
+}
+.cat-chip.cat-chip-over{
+  border-color:var(--blue);
+  box-shadow:0 0 0 2px var(--blue-light);
+  transform:scale(1.05);
 }
 .cat-chip.system{
   background:#f0f9ff;
@@ -381,6 +400,7 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   border-radius:50%;
   font-family:inherit;
   padding:0;
+  margin-left:2px;
   transition:all .15s;
 }
 .cat-chip-x:hover{background:var(--border);color:var(--red);}
@@ -2221,8 +2241,9 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     </div>
     <div class="acc-body" id="set-acc-cat-body" style="display:none;">
       <div class="acc-body-inner">
-        <!-- 거래 카테고리 (탭별) -->
+        <!-- 거래 카테고리 -->
         <div class="cat-section">
+          <div class="sub-label" style="margin-bottom:10px;">거래 카테고리</div>
           <div class="cat-tabs" id="cat-tabs"></div>
           <div class="cat-list" id="cat-list"></div>
           <div class="cat-add">
@@ -2232,7 +2253,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         </div>
 
         <!-- 결제수단 -->
-        <div class="cat-section" style="margin-top:24px;">
+        <div class="cat-section" style="margin-top:28px;">
           <div class="sub-label" style="margin-bottom:10px;">결제수단</div>
           <div class="cat-list" id="method-list"></div>
           <div class="cat-add">
@@ -2359,11 +2380,14 @@ const BUDGET_KEYS=['도형월급','예진월급','인센','부수입',
   '월세','관리비','전세이자','식자재','교통','통신','인터넷','도형운동','예진운동',
   '외식비','간식','예진점심','소모품','쇼핑','미용','유니','경조사','용돈','기타',
   '도형청도계','예진청도계','비상금','IRP','ISA','CMA주식'];
-const TL={income:'수입',fixed:'고정지출',variable:'변동지출',saving:'저축',invest:'투자',card:'카드',transfer:'이체'};
+const TL={income:'수입',fixed:'고정지출',variable:'변동지출',saving:'저축',invest:'투자',card:'카드대금',transfer:'이체'};
 const TC={income:'var(--green)',fixed:'var(--blue)',variable:'var(--orange)',saving:'var(--yellow)',invest:'var(--purple)',card:'var(--red)',transfer:'var(--teal)'};
 const TI={income:'💰',fixed:'🏠',variable:'🛒',saving:'🏦',invest:'📈',card:'💳',transfer:'🔄'};
 const TB={income:'bdg-gr',fixed:'bdg-bl',variable:'bdg-gy',saving:'bdg-yl',invest:'bdg-pr',card:'bdg-rd',transfer:'bdg-tl'};
+// 거래 type별 라벨 (코드 전체 분기에 사용)
 const CAT_TYPE_LABELS={income:'수입',fixed:'고정지출',variable:'변동지출',saving:'저축',invest:'투자',card:'카드',transfer:'이체'};
+// 카테고리 편집 UI에 표시할 type만 (card/transfer는 결제수단으로 대체됨)
+const CAT_EDITABLE_TYPES={income:'수입',fixed:'고정지출',variable:'변동지출',saving:'저축',invest:'투자'};
 // 시스템 카테고리 (자산 매핑에 사용 — 삭제 불가)
 const SYSTEM_CATS = {
   saving: ['청약(도형)','청약(예진)','청년도약(도형)','청년도약(예진)','가족모임(도형)','가족모임(예진)'],
@@ -2399,7 +2423,7 @@ function getCatMap() {
   return raw;
 }
 function saveCatMap(m) { LS_SET('ml_cats',m); }
-function getPayMethods() { return LS('ml_methods') || ['체크카드','신용카드','현금','이체','자동이체','계좌이체','삼성페이','카카오페이']; }
+function getPayMethods() { return LS('ml_methods') || ['체크카드','신용카드','현금','이체','자동이체','계좌이체','삼성페이','카카오페이','카드대금']; }
 function savePayMethods(a) { LS_SET('ml_methods',a); }
 function getRecurring() { return LS('ml_recurring') || []; }
 function saveRecurring(a) { LS_SET('ml_recurring',a); }
@@ -2951,28 +2975,90 @@ function compute(mon) {
   const 자물쇠초과 = (고정자물쇠 > 생활비) && (고정자물쇠 > 0);
   const 다음달용 = 결제;                            // 결제 통장만
   const 이번달예정 = Math.max(고정자물쇠, 0);       // 자물쇠 (이번달 나갈 분)
-  // 카테고리 → 자산 키 매핑 (거래로 자산값 자동 갱신)
-  const sd = savInvDelta;
-  const sav = (cat) => sd[cat] || 0;
-  // 저축
-  const 도형청약자산   = (sn.도형청약||0)   + sav('청약(도형)');
-  const 예진청약자산   = (sn.예진청약||0)   + sav('청약(예진)');
-  const 도형청도계자산 = (sn.도형청도계||0) + sav('청년도약(도형)');
-  const 예진청도계자산 = (sn.예진청도계||0) + sav('청년도약(예진)');
-  const 도형가족자산   = (sn.도형가족모임||0) + sav('가족모임(도형)');
-  const 예진가족자산   = (sn.예진가족모임||0) + sav('가족모임(예진)');
-  const 저축 = 도형청약자산 + 예진청약자산 + 도형청도계자산 + 예진청도계자산;
-  // (가족모임은 자산 제외 — 합산 안 함)
+  // ━━━━━ 카테고리 → 자산 매핑 ━━━━━
+  // 거래 1개를 1개 자산에만 매칭 (중복 합산 방지)
+  // 우선순위: 정확한 시스템 카테고리 > 키워드 패턴 매칭
+  const txAssetMap = {}; // {거래id: 자산키}
 
-  // 투자
-  const 토스CMA자산   = (sn.월드컵평가||0)    + sav('토스CMA');
-  const IRP자산       = (sn.퇴직연금평가||0)  + sav('퇴직연금(IRP)');
-  const 나무CMA자산   = (sn.CMA||0)           + sav('나무CMA');
-  const Abbott자산    = (sn.Abbott||0)        + sav('회사주식(Abbott)');
-  const Medtronic자산 = (sn.Medtronic||0)     + sav('회사주식(Medtronic)');
-  const 도형ISA자산   = (sn.도형ISA평가||0)   + sav('ISA(도형)');
-  const 예진ISA자산   = (sn.예진ISA평가||0)   + sav('ISA(예진)');
-  const 투자 = 토스CMA자산 + IRP자산 + 나무CMA자산 + Abbott자산 + Medtronic자산 + 도형ISA자산 + 예진ISA자산;
+  // 한 거래의 카테고리를 보고 자산 키 결정
+  const matchTxToAsset = (t) => {
+    const cat = String(t.cat || '').toLowerCase();
+    if (t.type !== 'saving' && t.type !== 'invest') return null;
+
+    if (t.type === 'saving') {
+      // 가족모임 (가장 먼저, 다른 키워드 없으면)
+      if (cat.includes('가족') && cat.includes('도형')) return '도형가족';
+      if (cat.includes('가족') && cat.includes('예진')) return '예진가족';
+      if (cat.includes('가족')) return null; // 도형/예진 구분 안 되면 매칭 X
+
+      // 청도계/청년도약
+      const isCheongDoGye = cat.includes('청도계') || cat.includes('청년도약');
+      if (isCheongDoGye && cat.includes('도형')) return '도형청도계';
+      if (isCheongDoGye && cat.includes('예진')) return '예진청도계';
+      if (isCheongDoGye) return null;
+
+      // 청약통장 (청도계/청년도약 키워드 없을 때만)
+      if (cat.includes('청약')) {
+        if (cat.includes('도형')) return '도형청약';
+        if (cat.includes('예진')) return '예진청약';
+        return null;
+      }
+      return null;
+    }
+
+    if (t.type === 'invest') {
+      // ISA (도형/예진 분기)
+      if (cat.includes('isa')) {
+        if (cat.includes('도형')) return '도형ISA';
+        if (cat.includes('예진')) return '예진ISA';
+        return null; // 명시 안 되면 매칭 X
+      }
+      // 토스 CMA
+      if (cat.includes('토스')) return '토스CMA';
+      // 나무 CMA
+      if (cat.includes('나무')) return '나무CMA';
+      // IRP / 퇴직연금
+      if (cat.includes('irp') || cat.includes('퇴직')) return 'IRP';
+      // Abbott
+      if (cat.includes('abbott')) return 'Abbott';
+      // Medtronic
+      if (cat.includes('medtronic') || cat.includes('mdt')) return 'Medtronic';
+      return null;
+    }
+    return null;
+  };
+
+  // 자산별 거래 합 계산
+  const assetTxSum = {};
+  txs.forEach(t => {
+    const key = matchTxToAsset(t);
+    if (!key) return;
+    if (!assetTxSum[key]) assetTxSum[key] = 0;
+    assetTxSum[key] += Math.abs(Number(t.amt) || 0);
+  });
+  const aSum = (k) => assetTxSum[k] || 0;
+
+  // 저축 자산 (snapshot + 거래)
+  const 도형청약자산_최종   = (sn.도형청약||0)     + aSum('도형청약');
+  const 예진청약자산_최종   = (sn.예진청약||0)     + aSum('예진청약');
+  const 도형청도계자산_최종 = (sn.도형청도계||0)   + aSum('도형청도계');
+  const 예진청도계자산_최종 = (sn.예진청도계||0)   + aSum('예진청도계');
+  const 도형가족자산_최종   = (sn.도형가족모임||0) + aSum('도형가족');
+  const 예진가족자산_최종   = (sn.예진가족모임||0) + aSum('예진가족');
+
+  const 저축 = 도형청약자산_최종 + 예진청약자산_최종 + 도형청도계자산_최종 + 예진청도계자산_최종;
+  // (가족모임은 자산 제외 — 의도적)
+
+  // 투자 자산
+  const 토스CMA자산_최종   = (sn.월드컵평가||0)    + aSum('토스CMA');
+  const IRP자산_최종       = (sn.퇴직연금평가||0)  + aSum('IRP');
+  const 나무CMA자산_최종   = (sn.CMA||0)           + aSum('나무CMA');
+  const Abbott자산_최종    = (sn.Abbott||0)        + aSum('Abbott');
+  const Medtronic자산_최종 = (sn.Medtronic||0)     + aSum('Medtronic');
+  const 도형ISA자산_최종   = (sn.도형ISA평가||0)   + aSum('도형ISA');
+  const 예진ISA자산_최종   = (sn.예진ISA평가||0)   + aSum('예진ISA');
+
+  const 투자 = 토스CMA자산_최종 + IRP자산_최종 + 나무CMA자산_최종 + Abbott자산_최종 + Medtronic자산_최종 + 도형ISA자산_최종 + 예진ISA자산_최종;
   const 변동대출=(sn.도형마통||0)+(sn.예진마통||0)+(sn.청약대출||0)+(sn.학자금||0);
   const 순자산=가용현금+저축+투자-변동대출;
   const catActual={};
@@ -2992,7 +3078,7 @@ function compute(mon) {
     }
     saveRate = saveRate.toFixed(1);
   }
-  return {
+  const _result = {
     가용현금, 저축, 투자, 변동대출, 순자산,
     결제, 카드자물쇠, 생활비, 고정자물쇠, 신한: 신한_now,
     결제초, 생활비초, 고정자물쇠초, 자물쇠사용, cardSpend,
@@ -3000,15 +3086,47 @@ function compute(mon) {
     income, fixed, variable, saving, invest, card, totalExp, saveRate, saveRateAbnormal, bIncome,
     // 자산별 계산값 (snapshot + 거래 합산)
     자산: {
-      도형청약: 도형청약자산, 예진청약: 예진청약자산,
-      도형청도계: 도형청도계자산, 예진청도계: 예진청도계자산,
-      도형가족: 도형가족자산, 예진가족: 예진가족자산,
-      토스CMA: 토스CMA자산, IRP: IRP자산, 나무CMA: 나무CMA자산,
-      Abbott: Abbott자산, Medtronic: Medtronic자산,
-      도형ISA: 도형ISA자산, 예진ISA: 예진ISA자산,
+      도형청약: 도형청약자산_최종, 예진청약: 예진청약자산_최종,
+      도형청도계: 도형청도계자산_최종, 예진청도계: 예진청도계자산_최종,
+      도형가족: 도형가족자산_최종, 예진가족: 예진가족자산_최종,
+      토스CMA: 토스CMA자산_최종, IRP: IRP자산_최종, 나무CMA: 나무CMA자산_최종,
+      Abbott: Abbott자산_최종, Medtronic: Medtronic자산_최종,
+      도형ISA: 도형ISA자산_최종, 예진ISA: 예진ISA자산_최종,
     },
+    savInvDelta, // 디버그: 카테고리별 거래 누적 노출
     bgt, sn, txs, catActual
   };
+// 디버그: 콘솔에서 window._debug.lastCompute 로 확인 가능
+  if (typeof window !== 'undefined') {
+    window._debug = window._debug || {};
+    window._debug.lastCompute = _result;
+    window._debug.month = mon;
+    // 자산 매핑 진단 도구 — 콘솔에서 window._debug.checkAssets() 실행
+    window._debug.checkAssets = function() {
+      console.group('💰 자산 자동 반영 진단 ('+mon+')');
+      console.log('1. snapshot 입력값:', {
+        도형청약: sn.도형청약 || 0,
+        예진청약: sn.예진청약 || 0,
+        도형청도계: sn.도형청도계 || 0,
+        예진청도계: sn.예진청도계 || 0,
+        도형ISA평가: sn.도형ISA평가 || 0,
+        예진ISA평가: sn.예진ISA평가 || 0,
+        도형청약납입: sn.도형ISA납입 || 0,
+        예진청약납입: sn.예진ISA납입 || 0,
+      });
+      console.log('2. 이번달 saving/invest 거래:');
+      txs.filter(t => t.type === 'saving' || t.type === 'invest').forEach(t => {
+        const matched = matchTxToAsset(t);
+        console.log('  -', t.date, t.type, '"'+t.cat+'"', '→', matched || '❌ 매칭 안 됨', t.amt+'원');
+      });
+      console.log('3. 자산별 거래 합:', assetTxSum);
+      console.log('4. 자산 최종값:', _result.자산);
+      console.log('💡 팁: 매칭 안 되는 거래는 카테고리에 자산명을 명확히 포함시키세요.');
+      console.log('   예) "청도계" → "도형 청도계" 또는 "청도계(도형)"');
+      console.groupEnd();
+    };
+  }
+  return _result;
 }
 
 // ━━ RENDER HOME ━━━━━━━━━━━━━━━━━━━━━━━
@@ -5276,8 +5394,10 @@ let _curCatType = 'income';
 function renderCatFields() {
   const tabsEl = $('cat-tabs');
   if (!tabsEl) return;
-  // 탭 렌더
-  tabsEl.innerHTML = Object.entries(CAT_TYPE_LABELS).map(([type, label]) =>
+  // 카드/이체는 결제수단으로 대체 → 카테고리 편집에서 제외
+  // _curCatType이 편집 불가 type이면 income으로 보정
+  if (!CAT_EDITABLE_TYPES[_curCatType]) _curCatType = 'income';
+  tabsEl.innerHTML = Object.entries(CAT_EDITABLE_TYPES).map(([type, label]) =>
     '<button class="cat-tab '+(type===_curCatType?'on':'')+'" onclick="switchCatTab(\''+type+'\')">'+label+'</button>'
   ).join('');
   renderCatList();
@@ -5299,9 +5419,19 @@ function renderCatList() {
     listEl.innerHTML = '<div style="color:var(--faint);font-size:12.5px;padding:8px 0;">카테고리가 없어요. 아래에서 추가하세요.</div>';
     return;
   }
-  listEl.innerHTML = cats.map(cat => {
+  listEl.innerHTML = cats.map((cat, idx) => {
     const isSystem = sysCats.includes(cat);
-    return '<span class="cat-chip'+(isSystem?' system':'')+'">'
+    const safe = cat.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    return '<span class="cat-chip'+(isSystem?' system':'')+'" '
+      + 'draggable="true" '
+      + 'data-cat="'+safe+'" '
+      + 'data-idx="'+idx+'" '
+      + 'ondragstart="dragCatStart(event)" '
+      + 'ondragover="dragCatOver(event)" '
+      + 'ondragleave="dragCatLeave(event)" '
+      + 'ondrop="dragCatDrop(event)" '
+      + 'ondragend="dragCatEnd(event)">'
+      + '<span class="cat-chip-grip">⋮⋮</span>'
       + cat
       + (isSystem ? '' : '<button class="cat-chip-x" onclick="removeCat(\''+cat.replace(/'/g,"\\'")+'\')">×</button>')
       + '</span>';
@@ -5316,12 +5446,22 @@ function renderMethodList() {
     listEl.innerHTML = '<div style="color:var(--faint);font-size:12.5px;padding:8px 0;">결제수단이 없어요. 아래에서 추가하세요.</div>';
     return;
   }
-  listEl.innerHTML = methods.map(m =>
-    '<span class="cat-chip">'
-    + m
-    + '<button class="cat-chip-x" onclick="removeMethod(\''+m.replace(/'/g,"\\'")+'\')">×</button>'
-    + '</span>'
-  ).join('');
+  listEl.innerHTML = methods.map((m, idx) => {
+    const safe = m.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    return '<span class="cat-chip" '
+      + 'draggable="true" '
+      + 'data-method="'+safe+'" '
+      + 'data-idx="'+idx+'" '
+      + 'ondragstart="dragMethodStart(event)" '
+      + 'ondragover="dragMethodOver(event)" '
+      + 'ondragleave="dragCatLeave(event)" '
+      + 'ondrop="dragMethodDrop(event)" '
+      + 'ondragend="dragCatEnd(event)">'
+      + '<span class="cat-chip-grip">⋮⋮</span>'
+      + m
+      + '<button class="cat-chip-x" onclick="removeMethod(\''+m.replace(/'/g,"\\'")+'\')">×</button>'
+      + '</span>';
+  }).join('');
 }
 
 function addCat() {
@@ -5389,6 +5529,75 @@ function resetCats() {
   showToast('초기화했어요');
   updateRecCats();
   updateRecMethods();
+}
+
+// ━━ DRAG & DROP for 카테고리/결제수단 ━━━━━━━━━━━━━━━━━━
+let _dragCatIdx = null;
+let _dragMethodIdx = null;
+
+function dragCatStart(e) {
+  _dragCatIdx = parseInt(e.currentTarget.dataset.idx, 10);
+  e.currentTarget.classList.add('cat-chip-dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function dragCatOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('cat-chip-over');
+}
+function dragCatLeave(e) {
+  e.currentTarget.classList.remove('cat-chip-over');
+}
+function dragCatDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('cat-chip-over');
+  if (_dragCatIdx === null) return;
+  const dropIdx = parseInt(e.currentTarget.dataset.idx, 10);
+  if (_dragCatIdx === dropIdx) return;
+  const map = getCatMap();
+  const cats = map[_curCatType] || [];
+  const moved = cats.splice(_dragCatIdx, 1)[0];
+  cats.splice(dropIdx, 0, moved);
+  map[_curCatType] = cats;
+  saveCatMap(map);
+  renderCatList();
+  updateRecCats();
+  _dragCatIdx = null;
+}
+
+function dragMethodStart(e) {
+  _dragMethodIdx = parseInt(e.currentTarget.dataset.idx, 10);
+  e.currentTarget.classList.add('cat-chip-dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function dragMethodOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('cat-chip-over');
+}
+function dragMethodDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('cat-chip-over');
+  if (_dragMethodIdx === null) return;
+  const dropIdx = parseInt(e.currentTarget.dataset.idx, 10);
+  if (_dragMethodIdx === dropIdx) return;
+  const methods = getPayMethods();
+  const moved = methods.splice(_dragMethodIdx, 1)[0];
+  methods.splice(dropIdx, 0, moved);
+  savePayMethods(methods);
+  renderMethodList();
+  updateRecMethods();
+  _dragMethodIdx = null;
+}
+
+function dragCatEnd(e) {
+  // 모든 chip의 dragging/over 클래스 제거
+  document.querySelectorAll('.cat-chip').forEach(el => {
+    el.classList.remove('cat-chip-dragging');
+    el.classList.remove('cat-chip-over');
+  });
+  _dragCatIdx = null;
+  _dragMethodIdx = null;
 }
 
 // 호환성: saveCatEdit는 더 이상 안 쓰지만 외부 호출 대비 빈 함수로 남겨둠
@@ -6665,6 +6874,8 @@ function renderAll() {
   if(curPage==='record') { renderRecordPage(); renderRecurringList(); }
   if(curPage==='analysis') switchAtab(curAtab, document.querySelectorAll('.atab')[curAtab]);
   if(curPage==='asset') renderAssetPage();
+  // 자산 탭 background 갱신 (다른 탭 있어도 자산 탭 데이터 미리 준비)
+  // → curPage 전환 시 stale 보지 않게
 }
 
 // ━━ MIGRATION: ISA 연간 → 월간 (1회 실행) ━━━━━━━━━━━━━━━━━━━━━━
