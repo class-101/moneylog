@@ -324,6 +324,98 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   margin-bottom:8px;
 }
 
+/* ━━━━━ 카테고리·결제수단 편집 (토스/네이버 풍) ━━━━━ */
+.cat-section{}
+.cat-tabs{
+  display:flex;gap:4px;
+  overflow-x:auto;
+  margin-bottom:14px;
+  border-bottom:1px solid var(--border);
+  -webkit-overflow-scrolling:touch;
+}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tab{
+  flex-shrink:0;
+  padding:10px 4px;
+  margin-right:14px;
+  font-size:13px;font-weight:600;
+  color:var(--faint);
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+  letter-spacing:-.2px;
+  transition:color .15s;
+  background:none;border-left:none;border-right:none;border-top:none;
+  font-family:inherit;
+}
+.cat-tab.on{color:var(--text);border-bottom-color:var(--text);}
+.cat-list{
+  display:flex;flex-wrap:wrap;gap:8px;
+  margin-bottom:12px;
+  min-height:36px;
+}
+.cat-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 12px 8px 14px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:99px;
+  font-size:13px;font-weight:500;
+  color:var(--text);
+  letter-spacing:-.2px;
+  transition:all .15s;
+}
+.cat-chip.system{
+  background:#f0f9ff;
+  border-color:#bae6fd;
+  color:#0c4a6e;
+}
+.cat-chip.system .cat-chip-x{display:none;}
+.cat-chip-x{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:16px;height:16px;
+  border:none;background:transparent;
+  color:var(--faint);
+  cursor:pointer;
+  font-size:14px;line-height:1;
+  border-radius:50%;
+  font-family:inherit;
+  padding:0;
+  transition:all .15s;
+}
+.cat-chip-x:hover{background:var(--border);color:var(--red);}
+.cat-add{
+  display:flex;gap:8px;
+  margin-top:6px;
+}
+.cat-add-input{
+  flex:1;
+  height:40px;
+  font-size:13px;
+  padding:0 14px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--white);
+  font-family:inherit;
+}
+.cat-add-input:focus{
+  outline:none;border-color:var(--blue);
+}
+.cat-add-btn{
+  height:40px;padding:0 18px;
+  background:var(--blue);
+  color:#fff;
+  border:none;
+  border-radius:10px;
+  font-size:13px;font-weight:600;
+  cursor:pointer;
+  letter-spacing:-.2px;
+  font-family:inherit;
+  transition:all .15s;
+}
+.cat-add-btn:hover{background:#1d6ad8;}
+.cat-add-btn:active{transform:scale(.97);}
+
 /* ━━━━━ REAL ESTATE CARD (당근/오늘의집 풍) ━━━━━ */
 .re-card{
   background:var(--white);
@@ -1695,7 +1787,6 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     <div class="stepbody" id="sb1">
       
       <div class="fg"><label>결제 통장</label><input class="fi" id="sn-결제통장" placeholder="0" oninput="onSnapInput()"></div>
-      <div class="fg"><label style="color:var(--faint);">└ 카드값 자물쇠 (다음달 출금 예정)</label><input class="fi" id="sn-카드자물쇠" placeholder="0" oninput="onSnapInput()"></div>
       <div class="fg"><label>생활비 통장</label><input class="fi" id="sn-생활비통장" placeholder="0" oninput="onSnapInput()"></div>
       <div class="fg"><label style="color:var(--faint);">└ 고정비 자물쇠 (생활비 통장 안에 따로 보관 중인 금액만)</label><input class="fi" id="sn-고정자물쇠" placeholder="0" oninput="onSnapInput()"></div>
       <div class="fg"><label>도형 신한</label><input class="fi" id="sn-도형신한" placeholder="0" oninput="onSnapInput()"></div>
@@ -2129,17 +2220,34 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <span class="acc-arrow" id="set-acc-cat-arr">▼</span>
     </div>
     <div class="acc-body" id="set-acc-cat-body" style="display:none;">
-      <div class="acc-body-inner" id="cat-edit-wrap">
-    <p style="font-size:12px;color:var(--sub);margin-bottom:14px;">쉼표(,)로 구분. 저장 후 거래 입력에 즉시 반영됩니다.</p>
-    <div id="cat-fields"></div>
-    <div class="sub-label" style="margin-top:14px;">결제수단</div>
-    <div class="fg"><textarea class="fi" id="methods-ta" style="min-height:56px;"></textarea></div>
-    <div class="btnrow" style="margin-top:8px;">
-      <button class="btn btn-blue" onclick="saveCatEdit()">저장하기</button>
-      <button class="btn btn-outline" onclick="resetCats()">초기화</button>
+      <div class="acc-body-inner">
+        <!-- 거래 카테고리 (탭별) -->
+        <div class="cat-section">
+          <div class="cat-tabs" id="cat-tabs"></div>
+          <div class="cat-list" id="cat-list"></div>
+          <div class="cat-add">
+            <input class="fi cat-add-input" id="cat-add-input" placeholder="새 카테고리 추가" onkeydown="if(event.key==='Enter')addCat()">
+            <button class="cat-add-btn" onclick="addCat()">추가</button>
+          </div>
+        </div>
+
+        <!-- 결제수단 -->
+        <div class="cat-section" style="margin-top:24px;">
+          <div class="sub-label" style="margin-bottom:10px;">결제수단</div>
+          <div class="cat-list" id="method-list"></div>
+          <div class="cat-add">
+            <input class="fi cat-add-input" id="method-add-input" placeholder="새 결제수단 추가" onkeydown="if(event.key==='Enter')addMethod()">
+            <button class="cat-add-btn" onclick="addMethod()">추가</button>
+          </div>
+        </div>
+
+        <!-- 초기화 -->
+        <div style="margin-top:24px;text-align:center;">
+          <button onclick="resetCats()" style="background:none;border:none;color:var(--faint);font-size:12px;cursor:pointer;text-decoration:underline;font-family:inherit;">기본값으로 초기화</button>
+        </div>
+      </div>
     </div>
-    <div id="cat-saved" style="font-size:12px;color:var(--green);margin-top:6px;display:none;">저장됐어요</div>
-  </div></div></div>
+  </div>
 
 
   <!-- ━━ 실시간 동기화 (아코디언) ━━ -->
@@ -2255,7 +2363,12 @@ const TL={income:'수입',fixed:'고정지출',variable:'변동지출',saving:'�
 const TC={income:'var(--green)',fixed:'var(--blue)',variable:'var(--orange)',saving:'var(--yellow)',invest:'var(--purple)',card:'var(--red)',transfer:'var(--teal)'};
 const TI={income:'💰',fixed:'🏠',variable:'🛒',saving:'🏦',invest:'📈',card:'💳',transfer:'🔄'};
 const TB={income:'bdg-gr',fixed:'bdg-bl',variable:'bdg-gy',saving:'bdg-yl',invest:'bdg-pr',card:'bdg-rd',transfer:'bdg-tl'};
-const CAT_TYPE_LABELS={income:'💰 수입',fixed:'🏠 고정지출',variable:'🛒 변동지출',saving:'🏦 저축',invest:'📈 투자',card:'💳 카드',transfer:'🔄 이체'};
+const CAT_TYPE_LABELS={income:'수입',fixed:'고정지출',variable:'변동지출',saving:'저축',invest:'투자',card:'카드',transfer:'이체'};
+// 시스템 카테고리 (자산 매핑에 사용 — 삭제 불가)
+const SYSTEM_CATS = {
+  saving: ['청약(도형)','청약(예진)','청년도약(도형)','청년도약(예진)','가족모임(도형)','가족모임(예진)'],
+  invest: ['토스CMA','퇴직연금(IRP)','나무CMA','회사주식(Abbott)','회사주식(Medtronic)','ISA(도형)','ISA(예진)'],
+};
 
 // ━━ STORAGE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const LS = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
@@ -2264,15 +2377,27 @@ function getState() { return LS('ml_v4') || {}; }
 function setState(s, silent) { LS_SET('ml_v4', s); if (!silent) scheduleSbPush(); }
 function getMonthKey(d) { d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function ensureMonth(s,k) { if(!s[k]) s[k]={snapshot:{},budget:{},transactions:[]}; return s[k]; }
-function getCatMap() { return LS('ml_cats') || {
-  income:['도형 월급','예진 월급','인센티브/상여','부수입','기타 수입'],
-  fixed:['월세','관리비','전세대출이자','오피스텔이자','식자재','교통','통신','인터넷','도형 운동','예진 운동','보험료','정수기','학자금대출','기타 고정'],
-  variable:['외식비','간식/음료','예진 점심','생활소모품','꾸밈비/쇼핑','꾸밈비/미용','유니','경조사','각자 용돈','문화생활','취미','여행','배달','기타 변동'],
-  saving:['청약(도형)','청약(예진)','청년도약(도형)','청년도약(예진)','가족모임(도형)','가족모임(예진)','비상금','자기계발비','경조사 비상금','기타 저축'],
-  invest:['토스CMA','퇴직연금(IRP)','나무CMA','회사주식(Abbott)','회사주식(Medtronic)','ISA(도형)','ISA(예진)','기타 투자'],
-  card:['카드지출(도형)','카드지출(예진)','창업비용','기타 카드'],
-  transfer:['저축 이체','투자 이체','가족 이체','개인 이체','환급','기타 이체'],
-}; }
+function getCatMap() {
+  const raw = LS('ml_cats') || {
+    income:['도형 월급','예진 월급','인센티브/상여','부수입','기타 수입'],
+    fixed:['월세','관리비','전세대출이자','오피스텔이자','식자재','교통','통신','인터넷','도형 운동','예진 운동','보험료','정수기','학자금대출','기타 고정'],
+    variable:['외식비','간식/음료','예진 점심','생활소모품','꾸밈비/쇼핑','꾸밈비/미용','유니','경조사','각자 용돈','문화생활','취미','여행','배달','기타 변동'],
+    saving:['청약(도형)','청약(예진)','청년도약(도형)','청년도약(예진)','가족모임(도형)','가족모임(예진)','비상금','자기계발비','경조사 비상금','기타 저축'],
+    invest:['토스CMA','퇴직연금(IRP)','나무CMA','회사주식(Abbott)','회사주식(Medtronic)','ISA(도형)','ISA(예진)','기타 투자'],
+    card:['카드지출(도형)','카드지출(예진)','창업비용','기타 카드'],
+    transfer:['저축 이체','투자 이체','가족 이체','개인 이체','환급','기타 이체'],
+  };
+  // 시스템 카테고리 자동 보정 (사용자가 실수로 삭제했어도 매핑 유지)
+  if (typeof SYSTEM_CATS !== 'undefined') {
+    Object.keys(SYSTEM_CATS).forEach(type => {
+      if (!raw[type]) raw[type] = [];
+      SYSTEM_CATS[type].forEach(sysCat => {
+        if (!raw[type].includes(sysCat)) raw[type].unshift(sysCat);
+      });
+    });
+  }
+  return raw;
+}
 function saveCatMap(m) { LS_SET('ml_cats',m); }
 function getPayMethods() { return LS('ml_methods') || ['체크카드','신용카드','현금','이체','자동이체','계좌이체','삼성페이','카카오페이']; }
 function savePayMethods(a) { LS_SET('ml_methods',a); }
@@ -2290,7 +2415,7 @@ const fmt = n => Math.round(n||0).toLocaleString('ko-KR');
 const fmtW = n => fmt(n)+'원';
 const $ = id => document.getElementById(id);
 function set(id,txt,cls) { const e=$(id); if(!e) return; e.textContent=txt; if(cls!==undefined) e.className=cls; }
-function fi(id) { const e=$(id); return e&&e.value.trim() ? parseNum(e.value) : 0; }
+function fi(id) { const e=$(id); return e&&e.value.trim() ? Math.abs(parseNum(e.value)) : 0; }
 function fmtInput(inp) { const v=parseNum(inp.value); if(v) inp.value=fmt(v); }
 
 // ━━ AUTO COMMA FORMATTER (전역) ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2758,13 +2883,15 @@ function compute(mon) {
   // 거래 자동 반영
   let 결제델타=0, 생활비델타=0, 신한델타=0;
   let 자물쇠사용=0; // fixed/saving/invest 거래 합계 (자물쇠에서 차감)
-  let cardSpend=0;
+  let cardSpend=0; // 이달 신용카드 사용 - 이달 'card' 타입 결제 (다음달 나갈 카드값)
   // 카테고리별 거래 누적 (저축/투자 자산값에 합산)
   const savInvDelta = {};
   txs.forEach(t=>{
-    const amt = t.amt||0;
+    // 음수/잘못된 amt 보호 — 절대값 처리, 0 이하면 무시
+    const amt = Math.abs(Number(t.amt) || 0);
+    if (amt === 0) return;
     if (t.type === 'income') {
-      // 수입: 결제대금 +
+      // 수입: 결제 통장 +
       결제델타 += amt;
     } else if (t.type === 'transfer') {
       // 이체: 출처 -, 도착 +
@@ -2785,39 +2912,38 @@ function compute(mon) {
         savInvDelta[cat] += amt;
       }
     } else if (t.type === 'card') {
-      // 카드대금 결제: 다음달 10~14일 카드사가 결제 통장에서 자동 출금하는 거래
+      // 카드대금 결제: 카드사가 결제 통장에서 자동 출금
       결제델타 -= amt;
+      // 'card' 타입 결제만큼 cardSpend(다음달 나갈 카드값)에서 차감
+      cardSpend -= amt;
     } else {
-      // 변동지출 / 카드 거래
-      // ⚠️ FLOW: 실제 잔액과 100% 일치시키기
-      // - 신용카드 결제 = 외상 → 결제 시점에 통장 잔액 변동 X
-      //   사용자가 카드값만큼 생활비→결제대금으로 수동 이체할 때만 잔액 변동 (transfer 거래)
-      //   다음달 카드사 자동 출금은 'card' 타입 거래로 별도 입력
-      // - 체크카드/현금/페이/자동이체 = 즉시 출금 → 생활비 −
+      // 변동지출
+      // - 신용카드 = 외상 → 통장 잔액 변동 X, cardSpend만 누적
+      // - 체크/현금/페이/자동이체 = 즉시 출금 → 출금 통장(기본 생활비) −
       if (_isCardCredit(t.method)) {
-        // 신용카드: 잔액 변동 없음, cardSpend만 누적 (다음달 나갈 카드값 추적)
         cardSpend += amt;
       } else {
-        // 체크카드/현금/페이/자동이체: 생활비 −
-        생활비델타 -= amt;
+        // 출금 통장 결정: t.fromAcc 명시되면 그 통장, 없으면 생활비 기본
+        const acc = t.fromAcc || '생활비';
+        if (acc === '결제') 결제델타 -= amt;
+        else if (acc === '신한') 신한델타 -= amt;
+        else 생활비델타 -= amt;
       }
     }
   });
+  cardSpend = Math.max(0, cardSpend); // 'card' 결제가 신용카드 사용보다 많으면 0으로 캡
   const 결제 = 결제초 + 결제델타;
   const 생활비 = 생활비초 + 생활비델타;
   const 고정자물쇠 = 고정자물쇠초 - 자물쇠사용; // 음수 가능
   const 신한_now = 신한 + 신한델타;
   const 가용현금 = 결제 + 생활비 + 신한_now;
   // ━━━━━ 이번달 자유잔액 정의 ━━━━━
-  // = 생활비 - 자물쇠(보관분) - 다음달 나갈 카드값(외상) + 신한
-  //   결제대금 = 다음달용
-  //   자물쇠 = 따로 보관해 둔 고정/저축/투자
-  //   카드값 = 외상이지만 다음달 카드사로 빠질 예정이라 미리 차감
+  // = 생활비 - 자물쇠(보관분) - 자물쇠 부족분 - 카드 외상 + 신한
   const 결제자유 = 0;
   const 자물쇠유효 = (고정자물쇠 > 0 && 고정자물쇠 <= 생활비) ? 고정자물쇠 : 0;
-  const 생활비자유_원본 = 생활비 - 자물쇠유효;
-  // 신용카드 미결제분 = cardSpend - 결제 통장 안에 모인 금액(수동이체된 부분)
-  // 결제 통장에 카드값 모임이 충분하면 자유잔액 안 깎고, 부족분만 깎음
+  const 자물쇠부족 = 고정자물쇠 < 0 ? Math.abs(고정자물쇠) : 0; // 자물쇠 입력 부족분
+  const 생활비자유_원본 = 생활비 - 자물쇠유효 - 자물쇠부족;
+  // 신용카드 미결제분 = cardSpend - 결제 통장 잔액
   const 카드미결제 = Math.max(0, cardSpend - 결제);
   const 생활비자유 = Math.max(0, 생활비자유_원본 - 카드미결제);
   const 신한자유 = 신한_now;
@@ -2850,10 +2976,10 @@ function compute(mon) {
   const 변동대출=(sn.도형마통||0)+(sn.예진마통||0)+(sn.청약대출||0)+(sn.학자금||0);
   const 순자산=가용현금+저축+투자-변동대출;
   const catActual={};
-  txs.forEach(t=>{ catActual[t.cat]=(catActual[t.cat]||0)+t.amt; });
-  const sumT=type=>txs.filter(t=>t.type===type).reduce((a,t)=>a+t.amt,0);
+  txs.forEach(t=>{ catActual[t.cat]=(catActual[t.cat]||0)+Math.abs(Number(t.amt)||0); });
+  const sumT=type=>txs.filter(t=>t.type===type).reduce((a,t)=>a+Math.abs(Number(t.amt)||0),0);
   const income=sumT('income'),fixed=sumT('fixed'),variable=sumT('variable'),saving=sumT('saving'),invest=sumT('invest'),card=sumT('card'),transfer=sumT('transfer');
-  const totalExp=fixed+variable+saving+invest+card; // transfer는 내부이동, 지출 아님
+  const totalExp=fixed+variable+saving+invest; // transfer 제외, card는 이중집계 방지로 제외
   const bIncome=(bgt.도형월급||0)+(bgt.예진월급||0)+(bgt.인센||0)+(bgt.부수입||0);
   // 저축률: 수입 대비 저축+투자
   // 수입이 너무 작아 비율이 폭발하는 케이스 방지 (월급 미입력 등)
@@ -2957,14 +3083,15 @@ function renderHome() {
   // 순자산
   set('h-net-cash',fmtW(c.가용현금)); set('h-net-save',fmtW(c.저축)); set('h-net-invest',fmtW(c.투자)); set('h-net-loan',fmtW(c.변동대출));
   const nt=$('h-net-total'); if(nt){ nt.textContent=fmtW(c.순자산); nt.className='rv '+(c.순자산>=0?'cbl':'crd'); }
-  // 전달 대비 증감
+  // 전월 대비 증감 — 이전 달도 compute로 정확히 계산 (snapshot + 거래)
   const now2=new Date(), pm=new Date(now2.getFullYear(),now2.getMonth()-1,1);
   const prevMon=pm.getFullYear()+'-'+String(pm.getMonth()+1).padStart(2,'0');
-  const prevSn=(getState()[prevMon]||{}).snapshot||{};
-  const prevNet=(prevSn.결제통장||0)+(prevSn.생활비통장||0)+(prevSn.도형신한||0)
-    +(prevSn.도형청약||0)+(prevSn.예진청약||0)+(prevSn.도형청도계||0)+(prevSn.예진청도계||0)
-    +(prevSn.월드컵평가||0)+(prevSn.퇴직연금평가||0)+(prevSn.CMA||0)+(prevSn.Abbott||0)+(prevSn.Medtronic||0)+(prevSn.도형ISA평가||0)+(prevSn.예진ISA평가||0)
-    -(prevSn.도형마통||0)-(prevSn.예진마통||0)-(prevSn.청약대출||0)-(prevSn.학자금||0);
+  const state2 = getState();
+  let prevNet = 0;
+  if (state2[prevMon]) {
+    const cPrev = compute(prevMon);
+    prevNet = cPrev.순자산;
+  }
   const delta=c.순자산-prevNet;
   const chips2=$('h-chips');
   if(chips2 && prevNet!==0 && delta!==0) {
@@ -3027,7 +3154,7 @@ function updateRecMethods() {
 function submitTx() {
   const date=$('r-date')?$('r-date').value:'';
   const amtRaw=$('r-amt')?$('r-amt').value:'';
-  const amt=parseNum(amtRaw);
+  const amt=Math.abs(parseNum(amtRaw)); // 음수 입력 차단
   const cat=$('r-cat')?$('r-cat').value:'';
   const memo=$('r-memo')?$('r-memo').value.trim():'';
   const method=$('r-method')?$('r-method').value:'';
@@ -3142,7 +3269,7 @@ function updateDrwCats() {
 }
 function submitTxDrawer() {
   const date = _readDateInput('drw-date');
-  const amt = parseNum($('drw-amt') ? $('drw-amt').value : '');
+  const amt = Math.abs(parseNum($('drw-amt') ? $('drw-amt').value : ''));
   const cat = $('drw-cat') ? $('drw-cat').value : '';
   const memo = $('drw-memo') ? $('drw-memo').value.trim() : '';
   const type = window._recType||'variable';
@@ -3346,9 +3473,10 @@ function renderRecordPage() {
   const wrap=$('rec-tx-list');
   if(wrap) {
     if(txs.length) {
-      const totalIn=txs.filter(t=>t.type==='income').reduce((a,t)=>a+t.amt,0);
-      // 지출만: fixed + variable + card (저축/투자/이체 제외)
-      const totalSpend=txs.filter(t=>t.type==='fixed'||t.type==='variable'||t.type==='card').reduce((a,t)=>a+t.amt,0);
+      const totalIn=txs.filter(t=>t.type==='income').reduce((a,t)=>a+Math.abs(Number(t.amt)||0),0);
+      // 지출만: fixed + variable (카드사용 즉시 시점)
+      // 'card' 타입은 카드대금 결제 거래라 이중집계 방지 위해 제외
+      const totalSpend=txs.filter(t=>t.type==='fixed'||t.type==='variable').reduce((a,t)=>a+Math.abs(Number(t.amt)||0),0);
       const summary='<div style="display:flex;gap:8px;padding:0 0 12px;margin-bottom:4px;border-bottom:2px solid var(--border);">'
         +'<div style="flex:1;text-align:center;"><div style="font-size:11px;color:var(--sub);">수입</div><div style="font-size:14px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums;">+'+fmtW(totalIn)+'</div></div>'
         +'<div style="width:1px;background:var(--border2);"></div>'
@@ -3715,8 +3843,9 @@ function renderTrendChart() {
     const 대출=(sn.도형마통||0)+(sn.예진마통||0)+(sn.청약대출||0)+(sn.학자금||0);
     const 순자산=가용+저축+투자-대출;
     const txs=(state[mon]||{}).transactions||[];
-    const income=txs.filter(t=>t.type==='income').reduce((a,t)=>a+t.amt,0);
-    const exp=txs.filter(t=>t.type!=='income').reduce((a,t)=>a+t.amt,0);
+    const income = txs.filter(t=>t.type==='income').reduce((a,t)=>a+Math.abs(Number(t.amt)||0),0);
+    // 지출 = fixed + variable + saving + invest (transfer/card 제외, 이중집계 방지)
+    const exp = txs.filter(t=>['fixed','variable','saving','invest'].includes(t.type)).reduce((a,t)=>a+Math.abs(Number(t.amt)||0),0);
     return {mon,순자산,income,exp,hasData:Object.keys((state[mon]||{}).snapshot||{}).length>0};
   });
   const validData=data.filter(d=>d.hasData);
@@ -3803,7 +3932,7 @@ function renderAnalysis() {
       +'</div><div style="font-size:16px;flex-shrink:0;">'+si+'</div></div>';
   }).join(''):'<div class="empty"><div class="ei">📊</div><p>예산 설정 후 거래 입력하면 분석이 표시됩니다</p></div>';
   const byType={};
-  c.txs.forEach(t=>{ if(!byType[t.type]) byType[t.type]={}; byType[t.type][t.cat]=(byType[t.type][t.cat]||0)+t.amt; });
+  c.txs.forEach(t=>{ if(!byType[t.type]) byType[t.type]={}; byType[t.type][t.cat]=(byType[t.type][t.cat]||0)+Math.abs(Number(t.amt)||0); });
   const catsEl=$('an-cats');
   if(catsEl) {
     const secs=[{type:'income',icon:'💰',l:'수입'},{type:'fixed',icon:'🏠',l:'고정지출'},{type:'variable',icon:'🛒',l:'변동지출'},{type:'saving',icon:'🏦',l:'저축'},{type:'invest',icon:'📈',l:'투자'},{type:'card',icon:'💳',l:'카드'},{type:'transfer',icon:'🔄',l:'이체'}];
@@ -3835,7 +3964,13 @@ function renderCalendar() {
   const daysInMon=new Date(y,m,0).getDate();
   const today=new Date(); const realTodayStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
   const dayData={};
-  txs.forEach(t=>{ if(!dayData[t.date]) dayData[t.date]={inc:0,exp:0,txs:[]}; if(t.type==='income') dayData[t.date].inc+=t.amt; else dayData[t.date].exp+=t.amt; dayData[t.date].txs.push(t); });
+  txs.forEach(t=>{
+    if(!dayData[t.date]) dayData[t.date]={inc:0,exp:0,txs:[]};
+    const amt = Math.abs(Number(t.amt)||0);
+    if(t.type==='income') dayData[t.date].inc += amt;
+    else if(t.type!=='transfer') dayData[t.date].exp += amt; // transfer는 내부 이동, 지출 아님
+    dayData[t.date].txs.push(t);
+  });
   const cal=$('cal-body'); if(!cal) return;
   let html='';
   for(let i=0;i<firstDay;i++) html+='<div></div>';
@@ -3865,21 +4000,25 @@ function showCalDay(ds) {
 // ── 저축 계획 ──
 function renderSavingPlan() {
   const c=compute(currentMonth()), bgt=c.bgt;
+  // cats: 거래 카테고리에 매칭할 후보 배열 (시스템 카테고리 + 옛날 카테고리 호환)
   const items=[
-    {l:'청년도약(도형)',bk:'도형청도계',cat:'청년도약(도형)'},
-    {l:'청년도약(예진)',bk:'예진청도계',cat:'청년도약(예진)'},
-    {l:'비상금',bk:'비상금',cat:'비상금'},
-    {l:'IRP(도형)',bk:'IRP',cat:'IRP(도형)'},
-    {l:'ISA',bk:'ISA',cat:'ISA'},
-    {l:'CMA 주식',bk:'CMA주식',cat:'CMA 주식'},
+    {l:'청년도약(도형)', bk:'도형청도계', cats:['청년도약(도형)']},
+    {l:'청년도약(예진)', bk:'예진청도계', cats:['청년도약(예진)']},
+    {l:'비상금',         bk:'비상금',     cats:['비상금']},
+    {l:'IRP(도형)',      bk:'IRP',        cats:['퇴직연금(IRP)','IRP(도형)']},
+    {l:'ISA',            bk:'ISA',        cats:['ISA(도형)','ISA(예진)','ISA']},
+    {l:'CMA 주식',       bk:'CMA주식',    cats:['토스CMA','나무CMA','CMA 주식']},
   ];
+  const sumActual = (cats) => c.txs
+    .filter(t => cats.includes(t.cat))
+    .reduce((a,t) => a + Math.abs(Number(t.amt)||0), 0);
   const sp=$('an-save-plan');
   if(sp) {
-    const total=items.reduce((a,i)=>(bgt[i.bk]||0)+a,0);
-    const actual=items.reduce((a,i)=>c.txs.filter(t=>t.cat===i.cat).reduce((b,t)=>b+t.amt,0)+a,0);
+    const total = items.reduce((a,i) => (bgt[i.bk]||0) + a, 0);
+    const actual = items.reduce((a,i) => sumActual(i.cats) + a, 0);
     if(!total) { sp.innerHTML='<div class="empty"><div class="ei">🎯</div><p>설정 탭에서 저축/투자 예산을 입력하세요</p></div>'; return; }
     sp.innerHTML=items.filter(i=>(bgt[i.bk]||0)>0).map(i=>{
-      const b=bgt[i.bk]||0, a=c.txs.filter(t=>t.cat===i.cat).reduce((s,t)=>s+t.amt,0);
+      const b=bgt[i.bk]||0, a=sumActual(i.cats);
       const done=a>=b;
       return '<div class="rl"><span class="rk">'+i.l+' <span class="bdg '+(done?'bdg-gr':'bdg-gy')+'">'+( done?'완료 ✓':'미이체')+'</span></span>'
         +'<span class="rv '+(a>0?'cgr':'cft')+'">'+fmtW(a)+' / '+fmtW(b)+'</span></div>';
@@ -5131,30 +5270,129 @@ function checkReminder() {
 }
 function dismissRem(mon) { localStorage.setItem('ml_rem_'+mon,'1'); const w=$('reminder-wrap'); if(w) w.innerHTML=''; }
 
-// ━━ CATEGORY EDITOR ━━━━━━━━━━━━━━━━━━
+// ━━ CATEGORY EDITOR (칩 기반 — 토스/네이버 풍) ━━━━━━━━━━━━━━━━━━
+let _curCatType = 'income';
+
 function renderCatFields() {
-  const map=getCatMap(), wrap=$('cat-fields'); if(!wrap) return;
-  wrap.innerHTML=Object.entries(CAT_TYPE_LABELS).map(([type,label])=>{
-    const cats=(map[type]||[]).join(', ');
-    return '<div class="fg" style="margin-bottom:14px;"><label style="font-size:13px;font-weight:700;color:var(--text);">'+label+'</label>'
-      +'<textarea class="fi" id="ce-'+type+'">'+cats+'</textarea>'
-      +'<div style="font-size:11px;color:var(--faint);margin-top:2px;">현재 '+(map[type]||[]).length+'개</div></div>';
+  const tabsEl = $('cat-tabs');
+  if (!tabsEl) return;
+  // 탭 렌더
+  tabsEl.innerHTML = Object.entries(CAT_TYPE_LABELS).map(([type, label]) =>
+    '<button class="cat-tab '+(type===_curCatType?'on':'')+'" onclick="switchCatTab(\''+type+'\')">'+label+'</button>'
+  ).join('');
+  renderCatList();
+  renderMethodList();
+}
+
+function switchCatTab(type) {
+  _curCatType = type;
+  renderCatFields();
+}
+
+function renderCatList() {
+  const map = getCatMap();
+  const cats = map[_curCatType] || [];
+  const sysCats = SYSTEM_CATS[_curCatType] || [];
+  const listEl = $('cat-list');
+  if (!listEl) return;
+  if (cats.length === 0) {
+    listEl.innerHTML = '<div style="color:var(--faint);font-size:12.5px;padding:8px 0;">카테고리가 없어요. 아래에서 추가하세요.</div>';
+    return;
+  }
+  listEl.innerHTML = cats.map(cat => {
+    const isSystem = sysCats.includes(cat);
+    return '<span class="cat-chip'+(isSystem?' system':'')+'">'
+      + cat
+      + (isSystem ? '' : '<button class="cat-chip-x" onclick="removeCat(\''+cat.replace(/'/g,"\\'")+'\')">×</button>')
+      + '</span>';
   }).join('');
-  const mta=$('methods-ta'); if(mta) mta.value=getPayMethods().join(', ');
 }
-function saveCatEdit() {
-  const map=getCatMap();
-  Object.keys(CAT_TYPE_LABELS).forEach(type=>{
-    const ta=$('ce-'+type); if(!ta) return;
-    map[type]=ta.value.split(',').map(s=>s.trim()).filter(Boolean);
-  });
+
+function renderMethodList() {
+  const methods = getPayMethods();
+  const listEl = $('method-list');
+  if (!listEl) return;
+  if (methods.length === 0) {
+    listEl.innerHTML = '<div style="color:var(--faint);font-size:12.5px;padding:8px 0;">결제수단이 없어요. 아래에서 추가하세요.</div>';
+    return;
+  }
+  listEl.innerHTML = methods.map(m =>
+    '<span class="cat-chip">'
+    + m
+    + '<button class="cat-chip-x" onclick="removeMethod(\''+m.replace(/'/g,"\\'")+'\')">×</button>'
+    + '</span>'
+  ).join('');
+}
+
+function addCat() {
+  const inp = $('cat-add-input');
+  if (!inp) return;
+  const v = inp.value.trim();
+  if (!v) return;
+  const map = getCatMap();
+  if (!map[_curCatType]) map[_curCatType] = [];
+  if (map[_curCatType].includes(v)) {
+    showToast('이미 있어요');
+    return;
+  }
+  map[_curCatType].push(v);
   saveCatMap(map);
-  const mta=$('methods-ta'); if(mta) savePayMethods(mta.value.split(',').map(s=>s.trim()).filter(Boolean));
-  const h=$('cat-saved'); if(h){ h.style.display='block'; setTimeout(()=>h.style.display='none',1500); }
-  showToast('저장됐어요');
-  updateRecCats(); updateRecMethods();
+  inp.value = '';
+  renderCatList();
+  updateRecCats();
+  showToast('추가됐어요');
 }
-function resetCats() { if(!confirm('카테고리를 기본값으로 초기화할까요?')) return; localStorage.removeItem('ml_cats'); localStorage.removeItem('ml_methods'); renderCatFields(); showToast('초기화했어요'); }
+
+function removeCat(name) {
+  const sysCats = SYSTEM_CATS[_curCatType] || [];
+  if (sysCats.includes(name)) {
+    showToast('시스템 카테고리는 삭제할 수 없어요');
+    return;
+  }
+  const map = getCatMap();
+  map[_curCatType] = (map[_curCatType] || []).filter(c => c !== name);
+  saveCatMap(map);
+  renderCatList();
+  updateRecCats();
+}
+
+function addMethod() {
+  const inp = $('method-add-input');
+  if (!inp) return;
+  const v = inp.value.trim();
+  if (!v) return;
+  const methods = getPayMethods();
+  if (methods.includes(v)) {
+    showToast('이미 있어요');
+    return;
+  }
+  methods.push(v);
+  savePayMethods(methods);
+  inp.value = '';
+  renderMethodList();
+  updateRecMethods();
+  showToast('추가됐어요');
+}
+
+function removeMethod(name) {
+  const methods = getPayMethods().filter(m => m !== name);
+  savePayMethods(methods);
+  renderMethodList();
+  updateRecMethods();
+}
+
+function resetCats() {
+  if (!confirm('카테고리와 결제수단을 기본값으로 초기화할까요?')) return;
+  localStorage.removeItem('ml_cats');
+  localStorage.removeItem('ml_methods');
+  renderCatFields();
+  showToast('초기화했어요');
+  updateRecCats();
+  updateRecMethods();
+}
+
+// 호환성: saveCatEdit는 더 이상 안 쓰지만 외부 호출 대비 빈 함수로 남겨둠
+function saveCatEdit() { showToast('자동 저장돼요'); }
 
 // ━━ SYNC ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function exportDataJSON() {
@@ -5423,9 +5661,11 @@ function renderDiagnosis() {
     }
     const data = months.map(mon => {
       const txs = (state[mon]||{transactions:[]}).transactions;
-      const income = txs.filter(t=>t.type==='income').reduce((a,t)=>a+t.amt,0);
-      const si = txs.filter(t=>t.type==='saving'||t.type==='invest').reduce((a,t)=>a+t.amt,0);
-      const rate = income > 0 ? si/income*100 : null;
+      const income = txs.filter(t=>t.type==='income').reduce((a,t)=>a+Math.abs(Number(t.amt)||0),0);
+      const si = txs.filter(t=>t.type==='saving'||t.type==='invest').reduce((a,t)=>a+Math.abs(Number(t.amt)||0),0);
+      let rate = income > 0 ? si/income*100 : null;
+      // 비현실적 비율 캡 (수입 누락 의심) — 차트에서는 200%로 클램프
+      if (rate !== null && rate > 200) rate = 200;
       return { mon, rate, income, si };
     }).filter(d => d.income > 0);
 
