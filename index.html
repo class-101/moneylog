@@ -3007,8 +3007,10 @@ function onSnapInput() {
 function _snapFieldType(elem) {
   if (!elem) return 'won';
   if (elem.tagName === 'SELECT') return 'select';
-  if (elem.type === 'date') return 'date';
   const id = elem.id || '';
+  // ⚠️ flatpickr가 altInput:true 사용 시 원본 input의 type을 'hidden'으로 변경 →
+  // elem.type 체크로는 date 판별 불가. id 기반 패턴으로 판별 (가장 안전)
+  if (id.endsWith('만기') || id.endsWith('시작일') || id.endsWith('종료일') || id.endsWith('만기일') || elem.type === 'date') return 'date';
   // 텍스트 필드 (자유 입력)
   if (id.endsWith('기관') || id.endsWith('상품')) return 'text';
   // 달러 필드
@@ -7406,6 +7408,40 @@ function migrateISA() {
 }
 
 // 카테고리 중복/옛이름 정리 (시스템 카테고리 명명 통일 후 1회 실행)
+function migrateBadDates() {
+  // 잘못 저장된 date 필드 (숫자 → YYYY-MM-DD) 복원
+  if (localStorage.getItem('ml_migrated_baddates_v1')) return;
+  const state = getState();
+  let changed = false;
+  const DATE_FIELDS = ['청약대출만기','학자금만기','학자금시작일','버팀목만기','오피스텔만기',
+    '도형청도계만기','예진청도계만기','도형ISA만기','예진ISA만기','전세만기'];
+  Object.keys(state).forEach(mon => {
+    const sn = state[mon] && state[mon].snapshot;
+    if (!sn) return;
+    DATE_FIELDS.forEach(f => {
+      const v = sn[f];
+      // 숫자거나 8자리 숫자 문자열이면 → YYYY-MM-DD로 복원
+      if (typeof v === 'number' && v > 19000000 && v < 21000000) {
+        const s = String(v);
+        sn[f] = s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8);
+        changed = true;
+      } else if (typeof v === 'string' && /^\d{8}$/.test(v)) {
+        sn[f] = v.slice(0,4)+'-'+v.slice(4,6)+'-'+v.slice(6,8);
+        changed = true;
+      } else if (typeof v === 'number' && v > 0 && v < 19000000) {
+        // 0이 아닌 잘못된 숫자(예: 2028) → 빈 문자열로 (복원 불가)
+        sn[f] = '';
+        changed = true;
+      }
+    });
+  });
+  if (changed) {
+    LS_SET('ml_v4', state);
+    console.log('[migration] 잘못된 date 필드 복원 완료');
+  }
+  localStorage.setItem('ml_migrated_baddates_v1', '1');
+}
+
 function migrateCats() {
   if (localStorage.getItem('ml_migrated_cats_v2')) return;
   const raw = LS('ml_cats');
@@ -7782,6 +7818,7 @@ function init() {
   // 🔄 데이터 마이그레이션 (ISA 연간 → 월간)
   migrateISA();
   migrateCats();
+  migrateBadDates();
   // 기본 데이터
   const state=getState();
   if(!Object.keys(state).length) {
