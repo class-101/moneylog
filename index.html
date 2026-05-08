@@ -2578,13 +2578,34 @@ function attachFlatpickr() {
             if (fpInst.input) fpInst.input.value = initialValue;
           }
         },
-        // 선택 시 양쪽 input 모두 sync
+        // 선택 시 양쪽 input 모두 sync + snapshot 즉시 저장 (해당 필드만)
         onChange: function(selectedDates, dateStr, fpInst) {
           if (fpInst.input) fpInst.input.value = dateStr;
+          const inpId = fpInst.input ? fpInst.input.id : '';
+          if (inpId && inpId.startsWith('sn-')) {
+            // 해당 필드만 저장 (다른 필드 영향 X)
+            const k = inpId.slice(3);
+            const mon = currentMonth();
+            const state = getState();
+            const md = ensureMonth(state, mon);
+            md.snapshot[k] = dateStr || '';
+            setState(state);
+          }
         },
-        // 캘린더 닫을 때도 한번 더 sync (선택 안 하고 닫는 경우 방어)
+        // 캘린더 닫을 때도 한번 더 sync + 저장
         onClose: function(selectedDates, dateStr, fpInst) {
-          if (fpInst.input && dateStr) fpInst.input.value = dateStr;
+          if (fpInst.input && dateStr) {
+            fpInst.input.value = dateStr;
+            const inpId = fpInst.input.id;
+            if (inpId && inpId.startsWith('sn-')) {
+              const k = inpId.slice(3);
+              const mon = currentMonth();
+              const state = getState();
+              const md = ensureMonth(state, mon);
+              md.snapshot[k] = dateStr || '';
+              setState(state);
+            }
+          }
         }
       });
       inp._fp = fp;
@@ -2793,6 +2814,56 @@ function toggleStep(n) {
 }
 
 // ━━ SNAPSHOT ━━━━━━━━━━━━━━━━━━━━━━━━━━
+// snapshot 자동 저장 (debounce 600ms) — 트리거된 input만 저장 (다른 필드 영향 X)
+let _snapAutoTimer = null;
+let _snapAutoQueue = new Set();
+function autoSaveSnapshot(e) {
+  // 트리거된 element 큐에 추가
+  if (e && e.target && e.target.id) _snapAutoQueue.add(e.target.id);
+  clearTimeout(_snapAutoTimer);
+  _snapAutoTimer = setTimeout(() => {
+    if (_snapAutoQueue.size === 0) {
+      saveSnapshot(true);
+      return;
+    }
+    // 큐에 있는 input만 저장
+    const mon = currentMonth();
+    const state = getState();
+    const md = ensureMonth(state, mon);
+    _snapAutoQueue.forEach(id => {
+      const elm = $(id); if (!elm) return;
+      const k = id.startsWith('sn-') ? id.slice(3) : null;
+      if (!k) return;
+      const ftype = _snapFieldType(elm);
+      const val = elm.value || '';
+      if (ftype === 'text' || ftype === 'select') {
+        md.snapshot[k] = val.trim();
+      } else if (ftype === 'date') {
+        // flatpickr 인스턴스 우선
+        if (elm._fp && elm._fp.selectedDates && elm._fp.selectedDates[0]) {
+          const d = elm._fp.selectedDates[0];
+          md.snapshot[k] = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+        } else {
+          md.snapshot[k] = val.trim();
+        }
+      } else if (ftype === 'decimal') {
+        md.snapshot[k] = val ? parseFloat(val) || 0 : 0;
+      } else if (ftype === 'integer') {
+        md.snapshot[k] = val ? parseInt(val, 10) || 0 : 0;
+      } else if (ftype === 'usd') {
+        const raw = val.replace(/[^\d.]/g, '');
+        md.snapshot[k] = raw ? parseFloat(raw) || 0 : 0;
+      } else {
+        md.snapshot[k] = val.trim() ? Math.abs(parseNum(val)) : 0;
+      }
+    });
+    setState(state);
+    _snapAutoQueue.clear();
+    clearDirtyFlags();
+    renderAll();
+  }, 600);
+}
+
 function onSnapInput() {
   // ── 통장 미리보기
   const 결제=fi('sn-결제통장'), 생활비=fi('sn-생활비통장'), 신한=fi('sn-도형신한');
@@ -2898,22 +2969,25 @@ function _snapFieldType(elem) {
   return 'won';
 }
 
-function saveSnapshot() {
+function saveSnapshot(silent) {
   const mon=currentMonth(), state=getState(), md=ensureMonth(state,mon);
   SNAP_KEYS.forEach(k=>{
     const e=$('sn-'+k); if(!e) return;
     const ftype = _snapFieldType(e);
     let val = e.value || '';
-    // date 필드는 flatpickr 인스턴스에서 값 우선 (alt-input 사용 시 원본 input value가 빌 수 있음)
-    if (ftype === 'date' && e._fp) {
-      const fp = e._fp;
-      if (fp.selectedDates && fp.selectedDates[0]) {
-        const d = fp.selectedDates[0];
+    // date 필드: flatpickr 인스턴스에서 값 우선 (alt-input 사용 시 원본 input value가 빌 수 있음)
+    if (ftype === 'date') {
+      let fpVal = '';
+      if (e._fp && e._fp.selectedDates && e._fp.selectedDates[0]) {
+        const d = e._fp.selectedDates[0];
         const yr = d.getFullYear();
         const mo = String(d.getMonth()+1).padStart(2,'0');
         const dy = String(d.getDate()).padStart(2,'0');
-        val = yr+'-'+mo+'-'+dy;
+        fpVal = yr+'-'+mo+'-'+dy;
       }
+      // 우선순위: flatpickr 선택값 > 원본 input value > 기존 저장값 (덮어쓰기 방지)
+      if (fpVal) val = fpVal;
+      else if (!val && md.snapshot[k]) val = md.snapshot[k]; // 기존 값 유지
     }
     if (ftype === 'text' || ftype === 'date' || ftype === 'select') {
       md.snapshot[k] = (val||'').trim();
@@ -2931,7 +3005,7 @@ function saveSnapshot() {
   });
   setState(state);
   clearDirtyFlags();
-  showToast('잔액이 저장됐어요');
+  if (!silent) showToast('잔액이 저장됐어요');
   renderAll();
 }
 function loadSnapshotForm() {
@@ -2971,6 +3045,27 @@ function loadSnapshotForm() {
   if (typeof recalcCMAtotal === 'function') recalcCMAtotal();
   if (typeof recalcWoldkupTotal === 'function') recalcWoldkupTotal();
   if (typeof applyInvestOrderToDom === 'function') applyInvestOrderToDom();
+  // 자동 저장 핸들러 부착 (1회만)
+  attachSnapAutoSave();
+}
+
+// 모든 sn-* input에 자동 저장 핸들러 부착 (이미 부착된 것은 skip)
+function attachSnapAutoSave() {
+  SNAP_KEYS.forEach(k => {
+    const e = $('sn-'+k);
+    if (!e || e.dataset.snapAutoAttached) return;
+    e.dataset.snapAutoAttached = '1';
+    if (e.type === 'date') {
+      // date는 flatpickr onChange에서 직접 처리
+      return;
+    }
+    if (e.tagName === 'SELECT') {
+      e.addEventListener('change', (ev) => autoSaveSnapshot(ev));
+    } else {
+      e.addEventListener('input', (ev) => autoSaveSnapshot(ev));
+      e.addEventListener('blur', (ev) => autoSaveSnapshot(ev));
+    }
+  });
 }
 
 // ━━ COMPUTE ━━━━━━━━━━━━━━━━━━━━━━━━━━━
