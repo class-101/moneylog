@@ -1373,9 +1373,35 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div style="font-size:11px;font-weight:700;color:var(--sub);letter-spacing:.2px;margin-bottom:8px;padding:6px 10px;background:var(--yellow-light);border-radius:8px;display:flex;align-items:center;gap:6px;">
             <span>📅</span><span id="h-thismonth-label">이번달 카드값</span>
           </div>
-          <div class="rl">
-            <span class="rk" id="h-prevcard-label">이번달 나갈 —월 카드값</span>
-            <span class="rv crd" id="h-prevcard">—</span>
+          <!-- 금액 행 + 인라인 수정 버튼 -->
+          <div class="rl" style="align-items:flex-start;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+              <span class="rk" id="h-prevcard-label">이번달 나갈 —월 카드값</span>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span class="rv crd" id="h-prevcard">—</span>
+                <span id="h-prevcard-manual-badge" style="display:none;font-size:10px;font-weight:700;color:#d97706;background:#fef3c7;padding:2px 7px;border-radius:99px;cursor:pointer;" onclick="clearPrevCardManual()" title="클릭하면 자동계산으로 되돌립니다">수동 ×</span>
+                <button id="h-prevcard-edit-btn" onclick="togglePrevCardInput()" style="width:28px;height:28px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);color:var(--sub);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;" title="직접 입력">✏️</button>
+              </div>
+            </div>
+            <!-- 인라인 입력 패널 (기본 숨김, 0원이거나 편집 버튼 클릭 시 표시) -->
+            <div id="h-prevcard-input-panel" style="display:none;width:100%;background:var(--yellow-light);border:1px solid #fde68a;border-radius:10px;padding:12px 12px 10px;">
+              <div style="font-size:11px;color:#92400e;font-weight:600;margin-bottom:8px;">지난달 카드 청구액을 직접 입력하세요</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input class="fi" id="h-prevcard-input" placeholder="0" inputmode="numeric"
+                  style="flex:1;height:42px;font-size:15px;font-weight:700;text-align:right;border-color:#fde68a;background:var(--white);"
+                  oninput="fmtInput(this);onHomePrevCardInput()"
+                  onkeydown="if(event.key==='Enter')confirmPrevCardInput()">
+                <button onclick="confirmPrevCardInput()"
+                  style="height:42px;padding:0 16px;background:#d97706;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">
+                  확정
+                </button>
+                <button onclick="togglePrevCardInput()"
+                  style="height:42px;padding:0 12px;background:var(--white);color:var(--sub);border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;font-family:'Noto Sans KR',sans-serif;">
+                  ✕
+                </button>
+              </div>
+              <div style="font-size:11px;color:#92400e;margin-top:6px;opacity:.75;">카드 앱에서 이번달 청구 예정 금액을 확인 후 입력</div>
+            </div>
           </div>
           <div class="rl">
             <span class="rk" id="h-afterprevcard-label">—월 카드값 출금 후 잔액</span>
@@ -3575,6 +3601,18 @@ function renderHome() {
   const srcEl = $('h-prevcard-src');
   if (srcEl) srcEl.textContent = '';
 
+  // 수동 배지 표시/숨김
+  const manualBadge = $('h-prevcard-manual-badge');
+  if (manualBadge) manualBadge.style.display = (prevCardSource === 'manual') ? 'inline-flex' : 'none';
+
+  // 0원 + 수동값 없으면 입력 패널 자동 오픈
+  const inputPanel = $('h-prevcard-input-panel');
+  if (inputPanel && prevCardSpend === 0 && prevCardSource !== 'manual') {
+    inputPanel.style.display = 'block';
+    const inp = $('h-prevcard-input');
+    if (inp && !inp.value) inp.focus && setTimeout(() => inp.focus(), 50);
+  }
+
   const afterPrevCard = c.가용현금 - prevCardSpend;
   const afterPrevSalary = afterPrevCard + c.bIncome;
   const apce = $('h-afterprevcard');
@@ -3679,6 +3717,68 @@ function renderHome() {
 
 function mkAlert(type,icon,msg) {
   return '<div class="al '+type+'"><div class="ali">'+icon+'</div><div>'+msg+'</div></div>';
+}
+
+// ━━ 홈탭 이번달 카드값 인라인 입력 ━━━━━━━━━━━━━━━━
+function togglePrevCardInput() {
+  const panel = $('h-prevcard-input-panel');
+  if (!panel) return;
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    const inp = $('h-prevcard-input');
+    // 기존 수동값 있으면 채워두기
+    const state = getState();
+    const sn = (state[currentMonth()] || {}).snapshot || {};
+    const existing = sn.이번달카드값 || 0;
+    if (inp) {
+      inp.value = existing > 0 ? fmt(existing) : '';
+      setTimeout(() => inp.focus(), 80);
+    }
+  }
+}
+
+function onHomePrevCardInput() {
+  // 실시간 미리보기: 입력 중 아래 잔액 행 즉시 갱신
+  const inp = $('h-prevcard-input');
+  if (!inp) return;
+  const amt = Math.abs(parseNum(inp.value));
+  const c = compute(currentMonth());
+  if (!c) return;
+  const afterCard = c.가용현금 - amt;
+  const apce = $('h-afterprevcard');
+  if (apce) { apce.textContent = fmtW(afterCard); apce.className = 'rv '+(afterCard>=0?'cgr':'crd'); }
+  set('h-afterprevsalary', fmtW(afterCard + c.bIncome));
+  set('h-prevcard', fmtW(amt));
+}
+
+function confirmPrevCardInput() {
+  const inp = $('h-prevcard-input');
+  if (!inp) return;
+  const amt = Math.abs(parseNum(inp.value));
+  if (!amt) { showToast('금액을 입력해 주세요'); inp.focus(); return; }
+  // snapshot에 저장
+  const mon = currentMonth(), state = getState(), md = ensureMonth(state, mon);
+  md.snapshot.이번달카드값 = amt;
+  setState(state);
+  // 패널 닫기
+  const panel = $('h-prevcard-input-panel');
+  if (panel) panel.style.display = 'none';
+  inp.value = '';
+  showToast('✅ 카드값 '+fmtW(amt)+'으로 확정');
+  renderAll();
+}
+
+function clearPrevCardManual() {
+  const mon = currentMonth(), state = getState(), md = ensureMonth(state, mon);
+  delete md.snapshot.이번달카드값;
+  md.snapshot.이번달카드값 = 0;
+  setState(state);
+  // 설정탭 input도 초기화
+  const settingInp = $('sn-이번달카드값');
+  if (settingInp) settingInp.value = '';
+  showToast('자동계산으로 되돌렸어요');
+  renderAll();
 }
 
 // ━━ 설정탭 카드값 섹션 업데이트 ━━━━━━━━━━
