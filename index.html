@@ -2903,9 +2903,20 @@ function saveSnapshot() {
   SNAP_KEYS.forEach(k=>{
     const e=$('sn-'+k); if(!e) return;
     const ftype = _snapFieldType(e);
-    const val = e.value || '';
+    let val = e.value || '';
+    // date 필드는 flatpickr 인스턴스에서 값 우선 (alt-input 사용 시 원본 input value가 빌 수 있음)
+    if (ftype === 'date' && e._fp) {
+      const fp = e._fp;
+      if (fp.selectedDates && fp.selectedDates[0]) {
+        const d = fp.selectedDates[0];
+        const yr = d.getFullYear();
+        const mo = String(d.getMonth()+1).padStart(2,'0');
+        const dy = String(d.getDate()).padStart(2,'0');
+        val = yr+'-'+mo+'-'+dy;
+      }
+    }
     if (ftype === 'text' || ftype === 'date' || ftype === 'select') {
-      md.snapshot[k] = val.trim();
+      md.snapshot[k] = (val||'').trim();
     } else if (ftype === 'decimal') {
       md.snapshot[k] = val ? parseFloat(val) || 0 : 0;
     } else if (ftype === 'integer') {
@@ -2930,24 +2941,30 @@ function loadSnapshotForm() {
     if(isInputBeingEdited(e.id)) return;
     if(isInputDirty(e)) return;
     const ftype = _snapFieldType(e);
-    if (sn[k] === undefined || sn[k] === null || sn[k] === '') {
-      if (ftype === 'won' || ftype === 'usd' || ftype === 'decimal' || ftype === 'integer') {
-        e.value = (sn[k] === 0) ? '' : '';
-      } else {
-        e.value = '';
-      }
+    const stored = sn[k];
+    if (stored === undefined || stored === null || stored === '') {
+      e.value = '';
+      // flatpickr 인스턴스도 비우기
+      if (ftype === 'date' && e._fp) e._fp.clear();
       return;
     }
-    if (ftype === 'text' || ftype === 'date' || ftype === 'select') {
-      e.value = String(sn[k] || '');
+    if (ftype === 'text' || ftype === 'select') {
+      e.value = String(stored || '');
+    } else if (ftype === 'date') {
+      const dateStr = String(stored || '');
+      e.value = dateStr;
+      // flatpickr 인스턴스에도 setDate (alt-input 표시용)
+      if (e._fp && dateStr) {
+        try { e._fp.setDate(dateStr, false); } catch(_) {}
+      }
     } else if (ftype === 'decimal' || ftype === 'integer') {
-      e.value = (sn[k] !== undefined && sn[k] !== null) ? sn[k] : '';
+      e.value = (stored !== undefined && stored !== null) ? stored : '';
     } else if (ftype === 'usd') {
-      const v = parseFloat(sn[k]) || 0;
+      const v = parseFloat(stored) || 0;
       e.value = v ? v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
     } else {
       // won
-      e.value = sn[k] ? fmt(sn[k]) : '';
+      e.value = stored ? fmt(stored) : '';
     }
   });
   onSnapInput();
