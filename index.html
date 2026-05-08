@@ -2585,7 +2585,11 @@ function attachFlatpickr() {
             const d = selectedDates[0];
             finalStr = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
           }
-          if (fpInst.input) fpInst.input.value = finalStr;
+          if (fpInst.input) {
+            fpInst.input.value = finalStr;
+            // 🔒 dirty 마크 — sbPull 등 외부 덮어쓰기로부터 보호
+            if (typeof _markDirty === 'function') _markDirty(fpInst.input);
+          }
           const inpId = fpInst.input ? fpInst.input.id : '';
           if (inpId && inpId.startsWith('sn-')) {
             const k = inpId.slice(3);
@@ -2598,13 +2602,15 @@ function attachFlatpickr() {
         },
         // 캘린더 닫을 때도 한번 더 sync + 저장
         onClose: function(selectedDates, dateStr, fpInst) {
-          // selectedDates 우선 (dateStr 빈 경우 방어)
           let finalStr = dateStr || '';
           if (!finalStr && selectedDates && selectedDates[0]) {
             const d = selectedDates[0];
             finalStr = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
           }
-          if (fpInst.input) fpInst.input.value = finalStr;
+          if (fpInst.input) {
+            fpInst.input.value = finalStr;
+            if (typeof _markDirty === 'function') _markDirty(fpInst.input);
+          }
           const inpId = fpInst.input ? fpInst.input.id : '';
           if (inpId && inpId.startsWith('sn-')) {
             const k = inpId.slice(3);
@@ -2996,6 +3002,10 @@ function saveSnapshot(silent) {
       // 우선순위: flatpickr 선택값 > 원본 input value > 기존 저장값 (덮어쓰기 방지)
       if (fpVal) val = fpVal;
       else if (!val && md.snapshot[k]) val = md.snapshot[k]; // 기존 값 유지
+    }
+    // text 필드: e.value가 빈 값인데 기존 저장값이 있으면 보존 (자동 저장 시 빈 input으로 덮어쓰기 방지)
+    if (ftype === 'text' && !val && md.snapshot[k]) {
+      val = md.snapshot[k];
     }
     if (ftype === 'text' || ftype === 'date' || ftype === 'select') {
       md.snapshot[k] = (val||'').trim();
@@ -7102,6 +7112,31 @@ async function sbPull(silent = false) {
           const key = id.slice(2);
           parsed.state[mon].budget[key] = parseInt((saved.value||'').replace(/[^\d-]/g,''), 10) || 0;
         }
+      });
+    }
+
+    // 🔒 받은 데이터에서 비어있는 date/text 필드는 로컬 state 값으로 보존
+    // (다른 기기에서 push 시 해당 필드를 입력 안 했을 가능성 → 빈 값으로 덮어쓰지 않음)
+    const _localState = getState();
+    if (parsed.state && _localState) {
+      const PROTECTED_FIELDS = ['청약대출만기','학자금만기','학자금시작일','학자금기관',
+        '버팀목만기','오피스텔만기','도형청도계만기','예진청도계만기',
+        '도형ISA만기','예진ISA만기','전세만기',
+        '도형마통기관','예진마통기관','퇴직연금상품'];
+      Object.keys(_localState).forEach(monKey => {
+        const remoteMd = parsed.state[monKey];
+        const localMd = _localState[monKey];
+        if (!localMd || !localMd.snapshot) return;
+        if (!remoteMd) {
+          parsed.state[monKey] = JSON.parse(JSON.stringify(localMd));
+          return;
+        }
+        if (!remoteMd.snapshot) remoteMd.snapshot = {};
+        PROTECTED_FIELDS.forEach(f => {
+          if ((!remoteMd.snapshot[f] || remoteMd.snapshot[f] === '') && localMd.snapshot[f]) {
+            remoteMd.snapshot[f] = localMd.snapshot[f];
+          }
+        });
       });
     }
 
