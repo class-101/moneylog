@@ -2454,8 +2454,18 @@ const LS = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } 
 const LS_SET = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 function getState() { return LS('ml_v4') || {}; }
 function setState(s, silent) {
+  // 디버그: 어떤 데이터가 저장되는지 확인
+  const mon = currentMonth();
+  const datesInState = {};
+  if (s[mon] && s[mon].snapshot) {
+    Object.keys(s[mon].snapshot).forEach(k => {
+      if (k.endsWith('만기') || k.endsWith('시작일') || k.endsWith('기관') || k.endsWith('상품')) {
+        datesInState[k] = s[mon].snapshot[k];
+      }
+    });
+  }
+  console.log('[setState] silent='+(silent?'Y':'N'), '날짜/텍스트 필드:', datesInState);
   LS_SET('ml_v4', s);
-  // 마지막 로컬 수정 시각 기록 (sbPull 시 로컬이 더 최신이면 보호용)
   localStorage.setItem('ml_last_local_modified', String(Date.now()));
   if (!silent) scheduleSbPush();
 }
@@ -2592,10 +2602,10 @@ function attachFlatpickr() {
           }
           if (fpInst.input) {
             fpInst.input.value = finalStr;
-            // 🔒 dirty 마크 — sbPull 등 외부 덮어쓰기로부터 보호
             if (typeof _markDirty === 'function') _markDirty(fpInst.input);
           }
           const inpId = fpInst.input ? fpInst.input.id : '';
+          console.log('[date onChange]', inpId, '→', finalStr);
           if (inpId && inpId.startsWith('sn-')) {
             const k = inpId.slice(3);
             const mon = currentMonth();
@@ -2603,6 +2613,7 @@ function attachFlatpickr() {
             const md = ensureMonth(state, mon);
             md.snapshot[k] = finalStr;
             setState(state);
+            console.log('[date saved]', k, '=', finalStr, '| 확인:', getState()[mon]?.snapshot[k]);
           }
         },
         // 캘린더 닫을 때도 한번 더 sync + 저장
@@ -3052,9 +3063,17 @@ function loadSnapshotForm() {
     } else if (ftype === 'date') {
       const dateStr = String(stored || '');
       e.value = dateStr;
+      console.log('[loadSnap date]', e.id, '저장값:', dateStr, '| _fp:', !!e._fp);
       // flatpickr 인스턴스에도 setDate (alt-input 표시용)
       if (e._fp && dateStr) {
-        try { e._fp.setDate(dateStr, false); } catch(_) {}
+        try {
+          e._fp.setDate(dateStr, false);
+          console.log('[loadSnap date setDate 성공]', e.id, dateStr);
+        } catch(err) {
+          console.error('[loadSnap date setDate 실패]', e.id, err);
+        }
+      } else if (!e._fp && dateStr) {
+        console.warn('[loadSnap date] _fp 없음! flatpickr 부착 안 됨:', e.id);
       }
     } else if (ftype === 'decimal' || ftype === 'integer') {
       e.value = (stored !== undefined && stored !== null) ? stored : '';
@@ -7203,34 +7222,12 @@ function sbSubscribe() {
       filter: 'id=eq.1'
     }, (payload) => {
       if (isSyncing) return; // 내가 업데이트한 건 무시
-      // 🔒 보류 조건: focus 중이거나 dirty input(DOM/localStorage)이 하나라도 있으면 보류
-      const hasDirtyDOM = !!document.querySelector('input[data-dirty="1"]');
-      const hasDirtyLS = Object.keys(getDirtyFromLS()).length > 0;
-      if (_focusedInputId || hasDirtyDOM || hasDirtyLS) {
-        console.log('실시간 업데이트 감지 (편집/dirty 중 → 보류)');
-        showToast('상대방이 입력 중이에요. 잠시 후 반영돼요.', 2000);
-        const waitAndPull = () => {
-          const stillFocused = !!_focusedInputId;
-          let stillDirty = false;
-          document.querySelectorAll('input[data-dirty="1"]').forEach(inp => {
-            if (isInputDirty(inp)) stillDirty = true;
-          });
-          // localStorage 백업도 체크
-          if (Object.keys(getDirtyFromLS()).length > 0) stillDirty = true;
-          if (!stillFocused && !stillDirty) {
-            sbPull(true).then(() => showToast('동기화 완료', 1500));
-          } else {
-            setTimeout(waitAndPull, 1500);
-          }
-        };
-        setTimeout(waitAndPull, 1500);
-        return;
-      }
-      // 상대방이 업데이트 → 자동 Pull
-      console.log('실시간 업데이트 감지!');
-      sbPull(true).then(() => {
-        showToast('동기화 완료', 2000);
-      });
+      // ⚠️ 자동 pull 비활성화 — 사용자가 "지금 불러오기" 클릭 시에만 pull
+      // (자동 pull은 사용자 입력을 덮어쓰는 문제 발생)
+      console.log('[sbSubscribe] 다른 기기에서 업데이트 감지 (자동 pull 안 함)');
+      // 사용자에게 표시만
+      const lp = $('topbar-sync-pull');
+      if (lp) lp.textContent = '새 데이터 있음 (수동 동기화)';
     })
     .subscribe((status) => {
       const el = $('sb-status');
@@ -7289,8 +7286,15 @@ async function manualSync() {
 async function initSupabase() {
   // 실시간 구독 시작
   sbSubscribe();
-  // 앱 시작 시 최신 데이터 Pull (조용히)
-  await sbPull(true);
+  // 첫 사용 시에만(localStorage 비어있을 때만) 자동 pull
+  // 그 외에는 localStorage 우선 — 사용자 입력 덮어쓰기 방지
+  const hasLocalData = !!localStorage.getItem('ml_v4');
+  if (!hasLocalData) {
+    console.log('[initSupabase] 로컬 데이터 없음 → 자동 pull');
+    await sbPull(true);
+  } else {
+    console.log('[initSupabase] 로컬 데이터 있음 → 자동 pull 생략 (수동 동기화 시에만 pull)');
+  }
   updateSyncStatus();
 }
 
