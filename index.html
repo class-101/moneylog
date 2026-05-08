@@ -2465,6 +2465,21 @@ function setState(s, silent) {
     });
   }
   console.log('[setState] silent='+(silent?'Y':'N'), '날짜/텍스트 필드:', datesInState);
+  // 잘못된 형식 감지 시 stack trace
+  Object.keys(datesInState).forEach(k => {
+    const v = datesInState[k];
+    if (k.endsWith('만기') || k.endsWith('시작일')) {
+      // 정상 형식: YYYY-MM-DD 또는 빈 문자열
+      if (v && typeof v === 'string' && !/^\d{4}-\d{2}-\d{2}$/.test(v) && v !== '') {
+        console.error('[setState] ⚠️ 잘못된 날짜 형식 감지!', k, '=', JSON.stringify(v));
+        console.trace('호출 스택');
+      }
+      if (typeof v === 'number') {
+        console.error('[setState] ⚠️ 날짜가 숫자로 저장됨!', k, '=', v);
+        console.trace('호출 스택');
+      }
+    }
+  });
   LS_SET('ml_v4', s);
   localStorage.setItem('ml_last_local_modified', String(Date.now()));
   if (!silent) scheduleSbPush();
@@ -2874,7 +2889,14 @@ function autoSaveSnapshot(e) {
           const d = elm._fp.selectedDates[0];
           md.snapshot[k] = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
         } else {
-          md.snapshot[k] = val.trim();
+          // val이 YYYY-MM-DD 형식인지 검증 — 아니면 기존 저장값 유지
+          const trimmed = val.trim();
+          if (trimmed === '' || /^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+            md.snapshot[k] = trimmed;
+          } else {
+            console.warn('[autoSaveSnapshot] 잘못된 날짜 형식 — 기존 값 유지:', k, '=', val);
+            // 기존 값 유지 (덮어쓰지 않음)
+          }
         }
       } else if (ftype === 'decimal') {
         md.snapshot[k] = val ? parseFloat(val) || 0 : 0;
@@ -3024,7 +3046,14 @@ function saveSnapshot(silent) {
       val = md.snapshot[k];
     }
     if (ftype === 'text' || ftype === 'date' || ftype === 'select') {
-      md.snapshot[k] = (val||'').trim();
+      const finalVal = (val||'').trim();
+      // date 필드는 형식 검증 — YYYY-MM-DD 또는 빈 문자열만 허용
+      if (ftype === 'date' && finalVal !== '' && !/^\d{4}-\d{2}-\d{2}$/.test(finalVal)) {
+        console.warn('[saveSnapshot] 잘못된 날짜 형식 — 기존 값 유지:', k, '=', finalVal);
+        // 기존 값 유지 (덮어쓰지 않음) — md.snapshot[k] 변경 X
+      } else {
+        md.snapshot[k] = finalVal;
+      }
     } else if (ftype === 'decimal') {
       md.snapshot[k] = val ? parseFloat(val) || 0 : 0;
     } else if (ftype === 'integer') {
