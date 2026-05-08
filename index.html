@@ -1368,7 +1368,9 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     </div>
     <div class="acc-body" id="h-acc-card-body" style="display:none;">
       <div class="acc-body-inner">
-        <div class="rl"><span class="rk">이번달 쓴 카드값</span><span class="rv crd" id="h-card">—</span></div>
+        <div class="rl"><span class="rk">이번달 카드 사용 (모든 카드)</span><span class="rv" id="h-card-total">—</span></div>
+        <div class="rl"><span class="rk">└ 신용카드 외상 (다음달 결제)</span><span class="rv crd" id="h-card">—</span></div>
+        <div class="rl"><span class="rk">└ 체크카드 (이미 차감)</span><span class="rv" id="h-card-debit">—</span></div>
         <div class="rl"><span class="rk">카드값 출금 직후 잔액</span><span class="rv" id="h-aftercard">—</span></div>
         <div class="rl"><span class="rk">카드값 출금 + 월급 입금 후</span><span class="rv cbl" id="h-aftersalary">—</span></div>
         <div id="h-card-alert" style="margin-top:8px;"></div>
@@ -3183,6 +3185,7 @@ function compute(mon) {
   let 결제델타=0, 생활비델타=0, 신한델타=0;
   let 자물쇠사용=0; // fixed/saving/invest 거래 합계 (자물쇠에서 차감)
   let cardSpend=0; // 이달 신용카드 사용 - 이달 'card' 타입 결제 (다음달 나갈 카드값)
+  let debitSpend=0; // 이달 체크카드 사용 합계 (이미 차감됨, 정보용)
   // 카테고리별 거래 누적 (저축/투자 자산값에 합산)
   const savInvDelta = {};
   txs.forEach(t=>{
@@ -3222,6 +3225,10 @@ function compute(mon) {
       if (_isCardCredit(t.method)) {
         cardSpend += amt;
       } else {
+        // 체크카드 사용 추적 (정보용)
+        if (t.method && /체크|체카/.test(String(t.method))) {
+          debitSpend += amt;
+        }
         // 출금 통장 결정: t.fromAcc 명시되면 그 통장, 없으면 생활비 기본
         const acc = t.fromAcc || '생활비';
         if (acc === '결제') 결제델타 -= amt;
@@ -3356,7 +3363,7 @@ function compute(mon) {
   const _result = {
     가용현금, 저축, 투자, 변동대출, 순자산,
     결제, 카드자물쇠, 생활비, 고정자물쇠, 신한: 신한_now,
-    결제초, 생활비초, 고정자물쇠초, 자물쇠사용, cardSpend,
+    결제초, 생활비초, 고정자물쇠초, 자물쇠사용, cardSpend, debitSpend,
     자유잔액, 다음달용, 이번달예정, 자물쇠초과, 결제자유, 생활비자유, 신한자유,
     income, fixed, variable, saving, invest, card, totalExp, saveRate, saveRateAbnormal, bIncome,
     // 자산별 계산값 (snapshot + 거래 합산)
@@ -3442,7 +3449,14 @@ function renderHome() {
   // ⚠️ 신용카드 결제 시 통장 자동 이체 X — 사용자가 카드값만큼 생활비→결제대금 수동 이체 (transfer 거래)
   // 다음달 10~14일에 카드사가 결제 통장에서 자동 출금
   const cardSpend = c.cardSpend || 0;
+  const debitSpend = c.debitSpend || 0;
+  const cardTotal = cardSpend + debitSpend;
   set('h-card', fmtW(cardSpend));
+  set('h-card-debit', fmtW(debitSpend));
+  set('h-card-total', fmtW(cardTotal));
+  // 헤더 미리보기도 더 명확히
+  const hSummary = $('h-card-summary');
+  if (hSummary) hSummary.textContent = cardSpend > 0 ? '-'+fmtW(cardSpend) : '0원';
   // 카드값 출금 직후 잔액 = 현재 가용현금 − 다음달 나갈 카드값
   const afterCard = c.가용현금 - cardSpend;
   // 월급 입금 후: afterCard + 예산상 월급 (도형+예진+인센+부수입)
