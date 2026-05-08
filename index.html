@@ -2873,24 +2873,53 @@ function onSnapInput() {
   // ── 부동산 미리보기 (참고용 - 자산 합계 미포함)
   if (typeof calcRealEstateGain === 'function') calcRealEstateGain();
 }
+// snapshot 입력 필드 타입 분류
+// - text: 자유 텍스트 (대출기관, 마통기관, 편입상품 등)
+// - date: 날짜 input
+// - select: select 요소
+// - decimal: 금리 등 소수 (parseFloat)
+// - integer: 횟수 등 정수
+// - usd: 달러 (parseFloat)
+// - won: 원화 금액 (parseNum + Math.abs)
+function _snapFieldType(elem) {
+  if (!elem) return 'won';
+  if (elem.tagName === 'SELECT') return 'select';
+  if (elem.type === 'date') return 'date';
+  const id = elem.id || '';
+  // 텍스트 필드 (자유 입력)
+  if (id.endsWith('기관') || id.endsWith('상품')) return 'text';
+  // 달러 필드
+  if (id.endsWith('달러현금') || id.endsWith('달러주식')) return 'usd';
+  // 소수 필드 (금리)
+  if (id.endsWith('금리')) return 'decimal';
+  // 정수 필드 (횟수)
+  if (id.endsWith('횟수')) return 'integer';
+  // 그 외 — 원화 금액
+  return 'won';
+}
+
 function saveSnapshot() {
   const mon=currentMonth(), state=getState(), md=ensureMonth(state,mon);
   SNAP_KEYS.forEach(k=>{
     const e=$('sn-'+k); if(!e) return;
-    if(e.type==='date' || e.tagName==='SELECT' || e.id.endsWith('상품')) {
-      md.snapshot[k] = e.value || '';
-    } else if(e.id.endsWith('금리') || e.id.endsWith('횟수')) {
-      md.snapshot[k] = e.value ? parseFloat(e.value) : 0;
-    } else if(e.id.endsWith('달러현금') || e.id.endsWith('달러주식')) {
-      // 💵 달러 필드는 소수점 보존 (float)
-      const raw = (e.value||'').replace(/[^\d.]/g,'');
-      md.snapshot[k] = raw ? parseFloat(raw) : 0;
+    const ftype = _snapFieldType(e);
+    const val = e.value || '';
+    if (ftype === 'text' || ftype === 'date' || ftype === 'select') {
+      md.snapshot[k] = val.trim();
+    } else if (ftype === 'decimal') {
+      md.snapshot[k] = val ? parseFloat(val) || 0 : 0;
+    } else if (ftype === 'integer') {
+      md.snapshot[k] = val ? parseInt(val, 10) || 0 : 0;
+    } else if (ftype === 'usd') {
+      const raw = val.replace(/[^\d.]/g, '');
+      md.snapshot[k] = raw ? parseFloat(raw) || 0 : 0;
     } else {
-      md.snapshot[k] = fi('sn-'+k);
+      // won
+      md.snapshot[k] = val.trim() ? Math.abs(parseNum(val)) : 0;
     }
   });
   setState(state);
-  clearDirtyFlags(); // 저장 완료했으니 dirty 보호 해제
+  clearDirtyFlags();
   showToast('잔액이 저장됐어요');
   renderAll();
 }
@@ -2898,28 +2927,32 @@ function loadSnapshotForm() {
   const sn=(getState()[currentMonth()]||{}).snapshot||{};
   SNAP_KEYS.forEach(k=>{
     const e=$('sn-'+k); if(!e) return;
-    // ⛔ 이중 보호: focus 중이거나 dirty 상태(30초 이내)면 덮어쓰지 않음
     if(isInputBeingEdited(e.id)) return;
     if(isInputDirty(e)) return;
-    if(!sn[k] && sn[k] !== 0) { e.value=''; return; }
-    // date 타입, select 타입, 텍스트 타입은 그대로
-    if(e.type==='date' || e.tagName==='SELECT' || e.id.endsWith('상품')) {
-      e.value = sn[k] || '';
-    } else if(e.id.endsWith('금리') || e.id.endsWith('횟수')) {
+    const ftype = _snapFieldType(e);
+    if (sn[k] === undefined || sn[k] === null || sn[k] === '') {
+      if (ftype === 'won' || ftype === 'usd' || ftype === 'decimal' || ftype === 'integer') {
+        e.value = (sn[k] === 0) ? '' : '';
+      } else {
+        e.value = '';
+      }
+      return;
+    }
+    if (ftype === 'text' || ftype === 'date' || ftype === 'select') {
+      e.value = String(sn[k] || '');
+    } else if (ftype === 'decimal' || ftype === 'integer') {
       e.value = (sn[k] !== undefined && sn[k] !== null) ? sn[k] : '';
-    } else if(e.id.endsWith('달러현금') || e.id.endsWith('달러주식')) {
-      // 💵 달러: 소수점 2자리 + 천 단위 콤마
+    } else if (ftype === 'usd') {
       const v = parseFloat(sn[k]) || 0;
       e.value = v ? v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
     } else {
+      // won
       e.value = sn[k] ? fmt(sn[k]) : '';
     }
   });
   onSnapInput();
-  // 원화/달러 입력값이 있으면 환산 미리보기도 갱신
   if (typeof recalcCMAtotal === 'function') recalcCMAtotal();
   if (typeof recalcWoldkupTotal === 'function') recalcWoldkupTotal();
-  // 저장된 투자 항목 순서 적용
   if (typeof applyInvestOrderToDom === 'function') applyInvestOrderToDom();
 }
 
