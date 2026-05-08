@@ -2580,31 +2580,39 @@ function attachFlatpickr() {
         },
         // 선택 시 양쪽 input 모두 sync + snapshot 즉시 저장 (해당 필드만)
         onChange: function(selectedDates, dateStr, fpInst) {
-          if (fpInst.input) fpInst.input.value = dateStr;
+          let finalStr = dateStr || '';
+          if (!finalStr && selectedDates && selectedDates[0]) {
+            const d = selectedDates[0];
+            finalStr = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+          }
+          if (fpInst.input) fpInst.input.value = finalStr;
           const inpId = fpInst.input ? fpInst.input.id : '';
           if (inpId && inpId.startsWith('sn-')) {
-            // 해당 필드만 저장 (다른 필드 영향 X)
             const k = inpId.slice(3);
             const mon = currentMonth();
             const state = getState();
             const md = ensureMonth(state, mon);
-            md.snapshot[k] = dateStr || '';
+            md.snapshot[k] = finalStr;
             setState(state);
           }
         },
         // 캘린더 닫을 때도 한번 더 sync + 저장
         onClose: function(selectedDates, dateStr, fpInst) {
-          if (fpInst.input && dateStr) {
-            fpInst.input.value = dateStr;
-            const inpId = fpInst.input.id;
-            if (inpId && inpId.startsWith('sn-')) {
-              const k = inpId.slice(3);
-              const mon = currentMonth();
-              const state = getState();
-              const md = ensureMonth(state, mon);
-              md.snapshot[k] = dateStr || '';
-              setState(state);
-            }
+          // selectedDates 우선 (dateStr 빈 경우 방어)
+          let finalStr = dateStr || '';
+          if (!finalStr && selectedDates && selectedDates[0]) {
+            const d = selectedDates[0];
+            finalStr = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+          }
+          if (fpInst.input) fpInst.input.value = finalStr;
+          const inpId = fpInst.input ? fpInst.input.id : '';
+          if (inpId && inpId.startsWith('sn-')) {
+            const k = inpId.slice(3);
+            const mon = currentMonth();
+            const state = getState();
+            const md = ensureMonth(state, mon);
+            md.snapshot[k] = finalStr;
+            setState(state);
           }
         }
       });
@@ -3009,6 +3017,8 @@ function saveSnapshot(silent) {
   renderAll();
 }
 function loadSnapshotForm() {
+  // flatpickr 부착 보장 (한번 더 강제 호출 — 멱등)
+  if (typeof attachFlatpickr === 'function') attachFlatpickr();
   const sn=(getState()[currentMonth()]||{}).snapshot||{};
   SNAP_KEYS.forEach(k=>{
     const e=$('sn-'+k); if(!e) return;
@@ -7726,14 +7736,15 @@ function init() {
   checkReminder();
   loadPlanInputs();
   renderAll();
+  // 📅 flatpickr 먼저 부착 (loadSnapshotForm이 _fp를 사용하므로 순서 중요)
+  watchDateInputs();
+  // 폼 로드 (이 시점에는 _fp 사용 가능)
   loadSnapshotForm(); loadBudgetForm(); renderCatFields();
   // 🔒 페이지 새로고침/재진입 시 localStorage에 남아있는 dirty 입력값 복원
   restoreDirtyFromLS();
   // 💱 환율 초기 로드 + 30분마다 자동 새로고침
   refreshFxRate();
   setInterval(refreshFxRate, 30 * 60 * 1000);
-  // 📅 flatpickr 적용 (예쁜 캘린더)
-  watchDateInputs();
   // 🔁 새로고침 시 마지막 보던 페이지로 복원
   try {
     const lastPage = localStorage.getItem('ml_curpage');
