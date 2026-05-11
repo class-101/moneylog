@@ -3245,8 +3245,9 @@ function loadSnapshotForm() {
     }
   });
   onSnapInput();
-  if (typeof recalcCMAtotal === 'function') recalcCMAtotal();
-  if (typeof recalcWoldkupTotal === 'function') recalcWoldkupTotal();
+  // ⚠️ recalcCMAtotal/recalcWoldkupTotal 자동 호출 제거 (2026-05-12 데이터 손실 버그 수정)
+  // 페이지 로드 시 자동 호출하면 빈 input 값으로 snapshot이 덮어씌워지는 문제 발생
+  // → 사용자가 현금 input 직접 변경할 때만 oninput 이벤트로 호출됨
   if (typeof applyInvestOrderToDom === 'function') applyInvestOrderToDom();
   // 자동 저장 핸들러 부착 (1회만)
   attachSnapAutoSave();
@@ -8041,13 +8042,8 @@ async function _recalcInvestTotal(prefix, krwOutId, previewId) {
 
   if (cashKrw <= 0 && cashUsd <= 0 && stockEval <= 0) {
     if (previewEl) previewEl.style.display = 'none';
-    krwOutEl.value = '';
-    // 모두 비었으면 snapshot에서도 제거
-    const mon = currentMonth(), state = getState(), md = ensureMonth(state, mon);
-    const snapKey = krwOutId.replace(/^sn-/, '');
-    md.snapshot[snapKey] = 0;
-    setState(state);
-    onSnapInput();
+    // ⚠️ 모두 비어있으면 readonly 합계 input도 비우지 않고, snapshot도 건드리지 않음
+    // (페이지 첫 로드 시 input이 아직 채워지지 않은 상태에서 호출되어 기존 데이터를 0으로 덮어쓰는 버그 방지)
     return;
   }
 
