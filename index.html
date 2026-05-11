@@ -2151,39 +2151,35 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;"><span class="invest-drag-handle" style="display:none;cursor:grab;color:var(--faint);margin-right:6px;font-size:14px;">☰</span>토스 CMA</div>
         <!-- 환율 표시 -->
         <div id="fx-badge-woldkup" class="fx-badge-shared" style="font-size:11px;font-weight:600;background:var(--blue-light);padding:6px 10px;border-radius:var(--rxs);margin-bottom:10px;text-align:center;">환율 조회 중</div>
-        <!-- 보유분 입력 (원화 + 달러 → 통합 환산) -->
+        <!-- 현금 보유분 입력 -->
         <div style="background:#fafbff;border:1px dashed var(--border);border-radius:var(--rxs);padding:10px;margin-bottom:10px;">
-          <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:8px;">보유분 입력 → 평가액 자동 계산</div>
-          <div style="font-size:10px;color:var(--faint);font-weight:600;margin:4px 0 4px;">원화 (KRW)</div>
+          <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:8px;">💵 현금 보유분</div>
           <div class="fg2">
             <div class="fg"><label style="font-size:11px;">원화 현금 (원)</label><input class="fi" id="sn-월드컵원화현금" placeholder="0" inputmode="numeric" oninput="recalcWoldkupTotal()"></div>
-            <div class="fg"><label style="font-size:11px;">원화 주식 (원)</label><input class="fi" id="sn-월드컵원화주식" placeholder="0" inputmode="numeric" oninput="recalcWoldkupTotal()"></div>
-          </div>
-          <div style="font-size:10px;color:var(--faint);font-weight:600;margin:10px 0 4px;">달러 (USD)</div>
-          <div class="fg2">
             <div class="fg"><label style="font-size:11px;">달러 현금 ($)</label><input class="fi" id="sn-월드컵달러현금" placeholder="0.00" inputmode="decimal" oninput="fmtUsdInput(this);recalcWoldkupTotal()"></div>
-            <div class="fg"><label style="font-size:11px;">달러 주식 ($)</label><input class="fi" id="sn-월드컵달러주식" placeholder="0.00" inputmode="decimal" oninput="fmtUsdInput(this);recalcWoldkupTotal()"></div>
           </div>
           <div id="woldkup-fx-preview" style="display:none;background:var(--white);border-radius:var(--rxs);padding:8px 10px;margin-top:8px;border:1px solid var(--border2);"></div>
         </div>
-        <!-- 합계 평가액 -->
+        <!-- 주식 평가액 (직접 입력) + 합계 -->
         <div class="fg2">
-          <div class="fg"><label>납입 원금</label><input class="fi" id="sn-월드컵납입" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('월드컵')"></div>
-          <div class="fg"><label>현재 평가액</label><input class="fi" id="sn-월드컵평가" placeholder="0" oninput="calcInvestReturn('월드컵');onSnapInput()"></div>
+          <div class="fg"><label style="font-size:11px;">📈 주식 평가액 (직접 입력)</label><input class="fi" id="sn-월드컵주식평가" placeholder="0" inputmode="numeric" oninput="recalcWoldkupTotal()"></div>
+          <div class="fg"><label style="font-size:11px;color:var(--blue);">총 합계 (자동)</label><input class="fi" id="sn-월드컵평가" placeholder="0" readonly style="background:var(--blue-light);color:var(--blue);font-weight:800;cursor:default;"></div>
         </div>
-        <div id="월드컵-return" style="font-size:12px;color:var(--faint);margin-top:4px;"></div>
-        
+        <div class="fg2" style="margin-top:8px;">
+          <div class="fg"><label style="font-size:11px;">납입 원금 (선택)</label><input class="fi" id="sn-월드컵납입" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('월드컵')"></div>
+          <div class="fg"><label style="font-size:11px;color:var(--faint);">평가차익 자동 계산</label><div id="월드컵-return" style="height:42px;display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--faint);">—</div></div>
+        </div>
       </div>
 
       <!-- 퇴직연금 -->
       <div class="invest-item" data-invest-key="퇴직연금" style="border:1px solid var(--border);border-radius:14px;padding:16px 16px 14px;margin-bottom:10px;">
         <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;"><span class="invest-drag-handle" style="display:none;cursor:grab;color:var(--faint);margin-right:6px;font-size:14px;">☰</span>퇴직연금 (IRP)</div>
         <div class="fg2">
-          <div class="fg"><label>납입 원금</label><input class="fi" id="sn-퇴직연금납입" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('퇴직연금')"></div>
-          <div class="fg"><label>현재 평가액</label><input class="fi" id="sn-퇴직연금평가" placeholder="0" oninput="calcInvestReturn('퇴직연금');onSnapInput()"></div>
+          <div class="fg"><label style="font-size:11px;">납입 원금</label><input class="fi" id="sn-퇴직연금납입" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('퇴직연금')"></div>
+          <div class="fg"><label style="font-size:11px;">현재 평가액</label><input class="fi" id="sn-퇴직연금평가" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('퇴직연금');onSnapInput()"></div>
         </div>
-        <div class="fg" style="margin-top:10px;"><label>주요 편입 상품</label><input class="fi" id="sn-퇴직연금상품" placeholder="예: TIGER 미국S&P500, 국채ETF"></div>
-        <div id="퇴직연금-return" style="font-size:12px;color:var(--faint);margin-top:4px;"></div>
+        <div class="fg" style="margin-top:8px;"><label style="font-size:11px;">주요 편입 상품 (선택)</label><input class="fi" id="sn-퇴직연금상품" placeholder="예: TIGER 미국S&P500, 국채ETF"></div>
+        <div id="퇴직연금-return" style="font-size:11px;color:var(--faint);margin-top:6px;text-align:right;"></div>
       </div>
 
       <!-- CMA -->
@@ -2191,59 +2187,71 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;"><span class="invest-drag-handle" style="display:none;cursor:grab;color:var(--faint);margin-right:6px;font-size:14px;">☰</span>나무 CMA</div>
         <!-- 환율 표시 -->
         <div id="fx-badge" class="fx-badge-shared" style="font-size:11px;font-weight:600;background:var(--blue-light);padding:6px 10px;border-radius:var(--rxs);margin-bottom:10px;text-align:center;">환율 조회 중</div>
-        <!-- 보유분 입력 (원화 + 달러 → 통합 환산) -->
+        <!-- 현금 보유분 입력 -->
         <div style="background:#fafbff;border:1px dashed var(--border);border-radius:var(--rxs);padding:10px;margin-bottom:10px;">
-          <div class="sub-label" style="margin-bottom:8px;">보유분 입력 → 평가액 자동 계산</div>
-          <!-- 원화 -->
-          <div style="font-size:10px;color:var(--faint);font-weight:600;margin:4px 0 4px;">원화 (KRW)</div>
+          <div style="font-size:11px;color:var(--sub);font-weight:600;margin-bottom:8px;">💵 현금 보유분</div>
           <div class="fg2">
             <div class="fg"><label style="font-size:11px;">원화 현금 (원)</label><input class="fi" id="sn-CMA원화현금" placeholder="0" inputmode="numeric" oninput="recalcCMAtotal()"></div>
-            <div class="fg"><label style="font-size:11px;">원화 주식 (원)</label><input class="fi" id="sn-CMA원화주식" placeholder="0" inputmode="numeric" oninput="recalcCMAtotal()"></div>
-          </div>
-          <!-- 달러 -->
-          <div style="font-size:10px;color:var(--faint);font-weight:600;margin:10px 0 4px;">달러 (USD)</div>
-          <div class="fg2">
             <div class="fg"><label style="font-size:11px;">달러 현금 ($)</label><input class="fi" id="sn-CMA달러현금" placeholder="0.00" inputmode="decimal" oninput="fmtUsdInput(this);recalcCMAtotal()"></div>
-            <div class="fg"><label style="font-size:11px;">달러 주식 ($)</label><input class="fi" id="sn-CMA달러주식" placeholder="0.00" inputmode="decimal" oninput="fmtUsdInput(this);recalcCMAtotal()"></div>
           </div>
           <div id="cma-fx-preview" style="display:none;background:var(--white);border-radius:var(--rxs);padding:8px 10px;margin-top:8px;border:1px solid var(--border2);"></div>
         </div>
-        <!-- 합계 평가액 (자동 계산) -->
+        <!-- 주식 평가액 (직접 입력) + 합계 -->
         <div class="fg2">
-          <div class="fg"><label>납입 원금</label><input class="fi" id="sn-CMA납입" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('CMA')"></div>
-          <div class="fg"><label>현재 평가액</label><input class="fi" id="sn-CMA" placeholder="0" oninput="calcInvestReturn('CMA');onSnapInput()"></div>
+          <div class="fg"><label style="font-size:11px;">📈 주식 평가액 (직접 입력)</label><input class="fi" id="sn-CMA주식평가" placeholder="0" inputmode="numeric" oninput="recalcCMAtotal()"></div>
+          <div class="fg"><label style="font-size:11px;color:var(--blue);">총 합계 (자동)</label><input class="fi" id="sn-CMA" placeholder="0" readonly style="background:var(--blue-light);color:var(--blue);font-weight:800;cursor:default;"></div>
         </div>
-        <div id="CMA-return" style="font-size:12px;color:var(--faint);margin-top:4px;"></div>
-        
+        <div class="fg2" style="margin-top:8px;">
+          <div class="fg"><label style="font-size:11px;">납입 원금 (선택)</label><input class="fi" id="sn-CMA납입" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('CMA')"></div>
+          <div class="fg"><label style="font-size:11px;color:var(--faint);">평가차익 자동 계산</label><div id="CMA-return" style="height:42px;display:flex;align-items:center;padding:0 10px;font-size:12px;color:var(--faint);">—</div></div>
+        </div>
       </div>
 
       <!-- 회사 주식 -->
       <div class="invest-item" data-invest-key="회사주식" style="border:1px solid var(--border);border-radius:14px;padding:16px 16px 14px;margin-bottom:10px;">
         <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text);"><span class="invest-drag-handle" style="display:none;cursor:grab;color:var(--faint);margin-right:6px;font-size:14px;">☰</span>회사 주식</div>
-        <div class="fg2">
-          <div class="fg"><label>Abbott 납입 원금</label><input class="fi" id="sn-Abbott납입" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('Abbott')"></div>
-          <div class="fg"><label>Abbott 현재 평가액</label><input class="fi" id="sn-Abbott" placeholder="0" oninput="calcInvestReturn('Abbott');onSnapInput()"></div>
-          <div class="fg"><label>Medtronic 납입 원금</label><input class="fi" id="sn-Medtronic납입" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('Medtronic')"></div>
-          <div class="fg"><label>Medtronic 현재 평가액</label><input class="fi" id="sn-Medtronic" placeholder="0" oninput="calcInvestReturn('Medtronic');onSnapInput()"></div>
+        <!-- Abbott -->
+        <div style="background:#fafbff;border:1px dashed var(--border);border-radius:var(--rxs);padding:10px;margin-bottom:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;">Abbott (애보트)</div>
+          <div class="fg2">
+            <div class="fg"><label style="font-size:11px;">납입 원금</label><input class="fi" id="sn-Abbott납입" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('Abbott')"></div>
+            <div class="fg"><label style="font-size:11px;">현재 평가액</label><input class="fi" id="sn-Abbott" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('Abbott');onSnapInput()"></div>
+          </div>
+          <div id="Abbott-return" style="font-size:11px;color:var(--faint);margin-top:6px;text-align:right;"></div>
         </div>
-        <div id="Abbott-return" style="font-size:12px;color:var(--faint);margin-top:2px;"></div>
-        <div id="Medtronic-return" style="font-size:12px;color:var(--faint);margin-top:2px;"></div>
+        <!-- Medtronic -->
+        <div style="background:#fafbff;border:1px dashed var(--border);border-radius:var(--rxs);padding:10px;">
+          <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;">Medtronic (메드트로닉)</div>
+          <div class="fg2">
+            <div class="fg"><label style="font-size:11px;">납입 원금</label><input class="fi" id="sn-Medtronic납입" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('Medtronic')"></div>
+            <div class="fg"><label style="font-size:11px;">현재 평가액</label><input class="fi" id="sn-Medtronic" placeholder="0" inputmode="numeric" oninput="calcInvestReturn('Medtronic');onSnapInput()"></div>
+          </div>
+          <div id="Medtronic-return" style="font-size:11px;color:var(--faint);margin-top:6px;text-align:right;"></div>
+        </div>
       </div>
 
       <!-- ISA (개인종합자산관리계좌) -->
       <div class="invest-item" data-invest-key="ISA" style="border:1px solid var(--border);border-radius:14px;padding:16px 16px 14px;margin-bottom:10px;">
         <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text);"><span class="invest-drag-handle" style="display:none;cursor:grab;color:var(--faint);margin-right:6px;font-size:14px;">☰</span>ISA</div>
-        <div class="fg2">
-          <div class="fg"><label>도형 납입 원금</label><input class="fi" id="sn-도형ISA납입" placeholder="0" inputmode="numeric" oninput="onSnapInput()"></div>
-          <div class="fg"><label>도형 현재 평가액</label><input class="fi" id="sn-도형ISA평가" placeholder="0" inputmode="numeric" oninput="onSnapInput()"></div>
-          <div class="fg"><label>예진 납입 원금</label><input class="fi" id="sn-예진ISA납입" placeholder="0" inputmode="numeric" oninput="onSnapInput()"></div>
-          <div class="fg"><label>예진 현재 평가액</label><input class="fi" id="sn-예진ISA평가" placeholder="0" inputmode="numeric" oninput="onSnapInput()"></div>
+        <!-- 도형 ISA -->
+        <div style="background:#fafbff;border:1px dashed var(--border);border-radius:var(--rxs);padding:10px;margin-bottom:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;">도형 ISA</div>
+          <div class="fg2">
+            <div class="fg"><label style="font-size:11px;">납입 원금</label><input class="fi" id="sn-도형ISA납입" placeholder="0" inputmode="numeric" oninput="onSnapInput()"></div>
+            <div class="fg"><label style="font-size:11px;">현재 평가액</label><input class="fi" id="sn-도형ISA평가" placeholder="0" inputmode="numeric" oninput="onSnapInput()"></div>
+          </div>
+          <div class="fg" style="margin-top:8px;"><label style="font-size:11px;">만기일</label><input class="fi" id="sn-도형ISA만기" type="date"></div>
         </div>
-        <div class="fg2">
-          <div class="fg"><label>도형 만기일</label><input class="fi" id="sn-도형ISA만기" type="date"></div>
-          <div class="fg"><label>예진 만기일</label><input class="fi" id="sn-예진ISA만기" type="date"></div>
+        <!-- 예진 ISA -->
+        <div style="background:#fafbff;border:1px dashed var(--border);border-radius:var(--rxs);padding:10px;">
+          <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;">예진 ISA</div>
+          <div class="fg2">
+            <div class="fg"><label style="font-size:11px;">납입 원금</label><input class="fi" id="sn-예진ISA납입" placeholder="0" inputmode="numeric" oninput="onSnapInput()"></div>
+            <div class="fg"><label style="font-size:11px;">현재 평가액</label><input class="fi" id="sn-예진ISA평가" placeholder="0" inputmode="numeric" oninput="onSnapInput()"></div>
+          </div>
+          <div class="fg" style="margin-top:8px;"><label style="font-size:11px;">만기일</label><input class="fi" id="sn-예진ISA만기" type="date"></div>
         </div>
-        <div style="font-size:11px;color:var(--faint);">연 2,000만 / 총 1억 한도. 만기 후 연금계좌 이전 시 추가 세액공제.</div>
+        <div style="font-size:11px;color:var(--faint);margin-top:8px;">연 2,000만 / 총 1억 한도. 만기 후 연금계좌 이전 시 추가 세액공제.</div>
       </div>
       </div><!-- /invest-items-wrap -->
 
@@ -2546,9 +2554,9 @@ const SNAP_KEYS=['결제통장','카드자물쇠','생활비통장','고정자�
   '예진ISA평가','예진ISA납입','예진ISA월간','예진ISA만기',
   '도형가족모임','예진가족모임',
   // 투자
-  '월드컵납입','월드컵평가','월드컵원화현금','월드컵원화주식','월드컵달러현금','월드컵달러주식',
+  '월드컵납입','월드컵평가','월드컵원화현금','월드컵원화주식','월드컵달러현금','월드컵달러주식','월드컵주식평가',
   '퇴직연금납입','퇴직연금평가','퇴직연금상품',
-  'CMA납입','CMA','CMA원화현금','CMA원화주식','CMA달러현금','CMA달러주식','Abbott납입','Abbott','Medtronic납입','Medtronic',
+  'CMA납입','CMA','CMA원화현금','CMA원화주식','CMA달러현금','CMA달러주식','CMA주식평가','Abbott납입','Abbott','Medtronic납입','Medtronic',
   // 부동산 (참고용 - 자산 미포함)
   '전세보증금','전세만기','오피스텔평가','오피스텔매수'];
 const BUDGET_KEYS=['도형월급','예진월급','인센','부수입',
@@ -7179,7 +7187,7 @@ function calcInvestReturn(key) {
   const costEl=$(costId), valEl=$(valId), resEl=$(resId);
   if(!costEl||!valEl||!resEl) return;
   const cost=parseNum(costEl.value), val=parseNum(valEl.value);
-  if(!cost||!val){ resEl.textContent=''; return; }
+  if(!cost||!val){ resEl.innerHTML='<span style="color:var(--faint);">—</span>'; return; }
   const gain=val-cost, rate=(gain/cost*100).toFixed(2);
   const cls=gain>=0?'color:var(--green)':'color:var(--red)';
   resEl.innerHTML='<span style="'+cls+';font-weight:700;">'+(gain>=0?'▲':'▼')+' '+(gain>=0?'+':'')+fmt(gain)+'원 ('+rate+'%)</span>';
@@ -7635,12 +7643,15 @@ function sbSubscribe() {
       filter: 'id=eq.1'
     }, (payload) => {
       if (isSyncing) return; // 내가 업데이트한 건 무시
-      // ⚠️ 자동 pull 비활성화 — 사용자가 "지금 불러오기" 클릭 시에만 pull
-      // (자동 pull은 사용자 입력을 덮어쓰는 문제 발생)
-      console.log('[sbSubscribe] 다른 기기에서 업데이트 감지 (자동 pull 안 함)');
-      // 사용자에게 표시만
+      // 🔥 실시간 자동 pull 활성화 — 다른 기기 변경 즉시 반영
+      // dirty 입력값 보호 + lastModified 비교로 사용자 입력 덮어쓰기 방지 (sbPull 내부 로직)
+      console.log('[sbSubscribe] 다른 기기 업데이트 감지 → 자동 pull');
       const lp = $('topbar-sync-pull');
-      if (lp) lp.textContent = '새 데이터 있음 (수동 동기화)';
+      if (lp) lp.textContent = '동기화 중...';
+      // 약간의 딜레이로 push와 충돌 방지
+      setTimeout(() => {
+        if (!isSyncing) sbPull(true);
+      }, 300);
     })
     .subscribe((status) => {
       const el = $('sb-status');
@@ -7662,9 +7673,9 @@ function scheduleSbPush() {
   sbAutoTimer = setTimeout(() => {
     isSyncing = true;
     sbPush(true).finally(() => {
-      setTimeout(() => { isSyncing = false; }, 2000);
+      setTimeout(() => { isSyncing = false; }, 1500);
     });
-  }, 3000); // 3초 — 빠른 자동저장
+  }, 1500); // 1.5초 — 빠른 자동저장 (실시간 동기화)
 }
 
 function updateSyncStatus() {
@@ -7699,17 +7710,34 @@ async function manualSync() {
 async function initSupabase() {
   // 실시간 구독 시작
   sbSubscribe();
-  // 첫 사용 시에만(localStorage 비어있을 때만) 자동 pull
-  // 그 외에는 localStorage 우선 — 사용자 입력 덮어쓰기 방지
-  const hasLocalData = !!localStorage.getItem('ml_v4');
-  if (!hasLocalData) {
-    console.log('[initSupabase] 로컬 데이터 없음 → 자동 pull');
-    await sbPull(true);
-  } else {
-    console.log('[initSupabase] 로컬 데이터 있음 → 자동 pull 생략 (수동 동기화 시에만 pull)');
-  }
+  // 🔥 항상 pull 시도 — sbPull 내부에서 lastModified 비교로 로컬 vs 서버 자동 판단
+  // 로컬이 더 최신이면 pull 무시 + 즉시 push, 서버가 더 최신이면 pull 적용
+  console.log('[initSupabase] 자동 pull 시도 (lastModified 비교)');
+  await sbPull(true);
   updateSyncStatus();
 }
+
+// ━━ 페이지 가시성 변경 시 자동 동기화 ━━━━━━━━━━━
+// 모바일 앱 백그라운드 → 포그라운드 복귀 시 즉시 pull
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && sbClient && !isSyncing) {
+    console.log('[visibility] 포그라운드 복귀 → 자동 pull');
+    sbPull(true);
+  }
+});
+
+// 네트워크 복구 시 즉시 push + pull
+window.addEventListener('online', () => {
+  if (sbClient) {
+    console.log('[online] 네트워크 복구 → 자동 동기화');
+    setTimeout(async () => {
+      if (!isSyncing) {
+        await sbPush(true);
+        await sbPull(true);
+      }
+    }, 500);
+  }
+});
 
 // ━━ CSV ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function exportCSV() {
@@ -7787,6 +7815,33 @@ function migrateISA() {
   if (changed) setState(state);
   localStorage.setItem('ml_migrated_isa_v1', '1');
   if (changed) console.log('[migration] ISA 연간 → 월간 변환 완료');
+}
+
+// 옛 4분할(원화/달러 × 현금/주식) → 새 구조(현금만 분리, 주식 직접입력) 마이그레이션
+function migrateInvestStockFields() {
+  if (localStorage.getItem('ml_migrated_stock_v1')) return;
+  const state = getState();
+  let changed = false;
+  Object.keys(state).forEach(mon => {
+    const sn = state[mon] && state[mon].snapshot;
+    if (!sn) return;
+    // 토스 CMA: 옛 원화주식 + 달러주식(환산 어려움 → 원화주식만 그대로 이전, 달러주식은 평가액에 미포함되었던 것을 그대로 둠)
+    // 실제로는 sn.월드컵평가에 이미 합산값이 들어있으므로,
+    // 새 주식평가 = 기존 평가 - (현금 합계) 로 역산
+    ['월드컵', 'CMA'].forEach(prefix => {
+      if (sn[prefix+'주식평가'] != null) return; // 이미 새 필드 있음
+      const oldStockKrw = sn[prefix+'원화주식'] || 0;
+      // 옛 달러주식은 환율 변동성 있어 보존 어려움 → 원화주식 값만 새 주식평가로 이전
+      // 사용자가 토스증권 보고 다시 입력하도록 유도
+      if (oldStockKrw > 0) {
+        sn[prefix+'주식평가'] = oldStockKrw;
+        changed = true;
+      }
+    });
+  });
+  if (changed) setState(state);
+  localStorage.setItem('ml_migrated_stock_v1', '1');
+  if (changed) console.log('[migration] 옛 주식 필드 → 주식평가 단일 필드 변환 완료');
 }
 
 // 카테고리 중복/옛이름 정리 (시스템 카테고리 명명 통일 후 1회 실행)
@@ -7973,53 +8028,71 @@ async function refreshFxRate() {
 // CMA 영역 — 원화 + (달러 × 환율) → 평가액 자동 계산
 // 원화+달러 통합 평가액 계산 (CMA/토스CMA 공용)
 async function _recalcInvestTotal(prefix, krwOutId, previewId) {
-  const cashUsdEl = $('sn-'+prefix+'달러현금');
-  const stockUsdEl = $('sn-'+prefix+'달러주식');
+  // 새 구조: 원화현금 + 달러현금(환산) + 주식평가액(직접입력) = 총합계
   const cashKrwEl = $('sn-'+prefix+'원화현금');
-  const stockKrwEl = $('sn-'+prefix+'원화주식');
+  const cashUsdEl = $('sn-'+prefix+'달러현금');
+  const stockKrwEl = $('sn-'+prefix+'주식평가');  // 사용자가 직접 입력한 주식 평가액
   const krwOutEl = $(krwOutId);
   const previewEl = $(previewId);
-  if (!cashUsdEl || !stockUsdEl || !krwOutEl) return;
-  const cashUsd = parseFloat((cashUsdEl.value||'0').replace(/[^\d.]/g,'')) || 0;
-  const stockUsd = parseFloat((stockUsdEl.value||'0').replace(/[^\d.]/g,'')) || 0;
+  if (!krwOutEl) return;
   const cashKrw = cashKrwEl ? (parseInt((cashKrwEl.value||'0').replace(/[^\d]/g,''),10) || 0) : 0;
-  const stockKrw = stockKrwEl ? (parseInt((stockKrwEl.value||'0').replace(/[^\d]/g,''),10) || 0) : 0;
-  const totalUsd = cashUsd + stockUsd;
-  const totalKrwInput = cashKrw + stockKrw;
-  if (totalUsd <= 0 && totalKrwInput <= 0) {
+  const cashUsd = cashUsdEl ? (parseFloat((cashUsdEl.value||'0').replace(/[^\d.]/g,'')) || 0) : 0;
+  const stockEval = stockKrwEl ? (parseInt((stockKrwEl.value||'0').replace(/[^\d]/g,''),10) || 0) : 0;
+
+  if (cashKrw <= 0 && cashUsd <= 0 && stockEval <= 0) {
     if (previewEl) previewEl.style.display = 'none';
+    krwOutEl.value = '';
+    // 모두 비었으면 snapshot에서도 제거
+    const mon = currentMonth(), state = getState(), md = ensureMonth(state, mon);
+    const snapKey = krwOutId.replace(/^sn-/, '');
+    md.snapshot[snapKey] = 0;
+    setState(state);
+    onSnapInput();
     return;
   }
+
   let fxRate = 0, fxDate = '';
-  if (totalUsd > 0) {
+  let cashUsdKrw = 0;
+  if (cashUsd > 0) {
     const fx = await fetchUsdKrw();
     if (!fx || !fx.rate) {
       if (previewEl) {
         previewEl.style.display = 'block';
-        previewEl.innerHTML = '<span style="color:var(--red);">환율 조회 실패. 평가액을 직접 입력해 주세요.</span>';
+        previewEl.innerHTML = '<span style="color:var(--red);">환율 조회 실패. 잠시 후 다시 시도해 주세요.</span>';
       }
+      // ⚠️ 환율 실패해도 readonly 합계값은 그대로 유지 (snapshot 손실 방지)
+      // krwOutEl.value를 건드리지 않음
       return;
     }
     fxRate = fx.rate;
     fxDate = fx.date || new Date(fx.at).toLocaleDateString('ko-KR');
+    cashUsdKrw = Math.round(cashUsd * fxRate);
   }
-  const cashUsdKrw = Math.round(cashUsd * fxRate);
-  const stockUsdKrw = Math.round(stockUsd * fxRate);
-  const usdToKrw = cashUsdKrw + stockUsdKrw;
-  const totalAll = totalKrwInput + usdToKrw;
-  if (!isInputBeingEdited(krwOutId)) {
-    krwOutEl.value = fmt(totalAll);
-    onSnapInput();
-    calcInvestReturn(prefix);
-  }
+
+  const cashTotal = cashKrw + cashUsdKrw;
+  const totalAll = cashTotal + stockEval;
+
+  // readonly로 변경했으므로 dirty check 없이 직접 입력
+  krwOutEl.value = fmt(totalAll);
+  // ⚠️ readonly input은 input 이벤트가 자동 발생하지 않아 autoSaveSnapshot 미트리거
+  // → snapshot에 직접 저장 + 큐에 추가
+  const mon = currentMonth(), state = getState(), md = ensureMonth(state, mon);
+  const snapKey = krwOutId.replace(/^sn-/, '');
+  md.snapshot[snapKey] = totalAll;
+  setState(state);
+  onSnapInput();
+  calcInvestReturn(prefix);
+
   if (previewEl) {
     previewEl.style.display = 'block';
     let html = '';
     if (cashKrw > 0) html += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;"><span style="color:var(--sub);">원화 현금</span><span style="font-variant-numeric:tabular-nums;font-weight:600;">'+fmtW(cashKrw)+'</span></div>';
-    if (stockKrw > 0) html += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;"><span style="color:var(--sub);">원화 주식</span><span style="font-variant-numeric:tabular-nums;font-weight:600;">'+fmtW(stockKrw)+'</span></div>';
     if (cashUsd > 0) html += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;"><span style="color:var(--sub);">달러 현금 환산</span><span style="font-variant-numeric:tabular-nums;font-weight:600;">$'+cashUsd.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' → '+fmtW(cashUsdKrw)+'</span></div>';
-    if (stockUsd > 0) html += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;"><span style="color:var(--sub);">달러 주식 환산</span><span style="font-variant-numeric:tabular-nums;font-weight:600;">$'+stockUsd.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' → '+fmtW(stockUsdKrw)+'</span></div>';
-    html += '<div style="display:flex;justify-content:space-between;padding:6px 0 2px;border-top:1px dashed var(--border);margin-top:4px;"><span style="font-size:13px;font-weight:700;">합계 (평가액 자동 입력)</span><span style="font-size:13px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums;">'+fmtW(totalAll)+'</span></div>';
+    if (cashKrw > 0 || cashUsd > 0) {
+      html += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-top:1px dashed var(--border2);margin-top:4px;padding-top:6px;"><span style="color:var(--sub);font-weight:700;">현금 합계</span><span style="font-variant-numeric:tabular-nums;font-weight:700;">'+fmtW(cashTotal)+'</span></div>';
+    }
+    if (stockEval > 0) html += '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;"><span style="color:var(--sub);">주식 평가액</span><span style="font-variant-numeric:tabular-nums;font-weight:600;">'+fmtW(stockEval)+'</span></div>';
+    html += '<div style="display:flex;justify-content:space-between;padding:6px 0 2px;border-top:1.5px solid var(--blue);margin-top:4px;"><span style="font-size:13px;font-weight:700;color:var(--blue);">총 합계</span><span style="font-size:14px;font-weight:900;color:var(--blue);font-variant-numeric:tabular-nums;">'+fmtW(totalAll)+'</span></div>';
     if (fxRate > 0) html += '<div style="font-size:10px;color:var(--faint);margin-top:4px;">적용 환율 '+fxRate.toFixed(2)+'원/$ · '+fxDate+'</div>';
     previewEl.innerHTML = html;
   }
@@ -8199,6 +8272,7 @@ function init() {
   buildMonthOptions();
   // 🔄 데이터 마이그레이션 (ISA 연간 → 월간)
   migrateISA();
+  migrateInvestStockFields();
   migrateCats();
   migrateBadDates();
   // 기본 데이터
