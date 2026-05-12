@@ -871,9 +871,11 @@ textarea.fi{resize:vertical;line-height:1.6;min-height:68px;}
 /* ── TOP BUTTON */
 .top-btn{
   position:fixed;
-  /* bnav 위에 항상 보이도록: bottom = bnav높이(50px) + safe-area + 간격(12px) */
+  /* 컨테이너(.shell max-width 480px) 우측 안쪽에 위치 */
   bottom:calc(50px + env(safe-area-inset-bottom, 0px) + 12px);
-  right:16px;
+  /* 480/2 = 240, 버튼폭 42, 우측 여백 20 → margin-left = 240 - 42 - 20 = 178px */
+  left:50%;
+  margin-left:178px;
   width:42px;height:42px;
   border-radius:50%;
   background:var(--blue);
@@ -883,21 +885,29 @@ textarea.fi{resize:vertical;line-height:1.6;min-height:68px;}
   cursor:pointer;
   font-size:18px;font-weight:700;
   color:#fff;
-  z-index:55;
+  z-index:60;
   opacity:0;
   pointer-events:none;
   transform:translateY(8px);
-  transition:opacity .25s ease,transform .25s ease;
+  transition:opacity .25s ease,transform .25s ease,bottom .2s ease;
   font-family:'Noto Sans KR',sans-serif;
   line-height:1;
   -webkit-tap-highlight-color:transparent;
 }
+/* 좁은 모바일(컨테이너가 화면 가득 차는 경우): 화면 우측에서 20px 띄움 */
+@media(max-width:495px){
+  .top-btn{
+    left:auto;
+    margin-left:0;
+    right:20px;
+  }
+}
+/* 설정탭 — "이번 달 잔액 저장" 버튼을 피해 위로 올림 */
+body.snap-save-active .top-btn{
+  bottom:calc(50px + env(safe-area-inset-bottom, 0px) + 12px + 80px);
+}
 .top-btn.show{opacity:1;pointer-events:all;transform:translateY(0);}
 .top-btn:active{opacity:.8;}
-/* 앱 최대폭 480px 고려 — 오른쪽 끝에서 16px */
-@media(min-width:496px){
-  .top-btn{right:calc(50% - 240px + 16px);}
-}
 .toast{position:fixed;top:auto;bottom:80px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 18px;border-radius:14px;font-size:13px;font-weight:600;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;display:inline-flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);width:auto;max-width:calc(100vw - 32px);white-space:nowrap;}
 .toast.on{opacity:1;pointer-events:all;}
 .tundo{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;}
@@ -7486,11 +7496,74 @@ async function sbPush(silent = false) {
       if (!silent) showToast('저장할 데이터가 없어요');
       return;
     }
-    // key='main' 행에 전체 데이터 upsert
+
+    // 🔒 머지-then-push: 서버 데이터를 먼저 가져와 로컬과 머지 후 업로드
+    // (다른 기기의 변경사항을 절대 잃지 않음)
+    try {
+      const { data: srvData } = await sb.from('moneylog').select('value').eq('id', 1).maybeSingle();
+      if (srvData && srvData.value) {
+        const srvParsed = JSON.parse(srvData.value);
+        if (srvParsed.state) {
+          Object.keys(srvParsed.state).forEach(monKey => {
+            const srvMd = srvParsed.state[monKey];
+            const locMd = data.state[monKey];
+            if (!srvMd) return;
+            // 로컬에 없는 월은 서버 데이터 그대로 보존
+            if (!locMd) {
+              data.state[monKey] = JSON.parse(JSON.stringify(srvMd));
+              return;
+            }
+            // snapshot 머지: 서버 값이 있고 로컬이 비어있으면 서버 보존
+            if (!locMd.snapshot) locMd.snapshot = {};
+            if (srvMd.snapshot) {
+              Object.keys(srvMd.snapshot).forEach(f => {
+                const srvVal = srvMd.snapshot[f];
+                const locVal = locMd.snapshot[f];
+                if (srvVal !== '' && srvVal !== null && srvVal !== undefined && srvVal !== 0) {
+                  if (locVal === '' || locVal === null || locVal === undefined) {
+                    locMd.snapshot[f] = srvVal;
+                  }
+                }
+              });
+            }
+            // transactions 머지: id 기준 union (서버에만 있는 거래 보존)
+            if (!Array.isArray(locMd.transactions)) locMd.transactions = [];
+            if (Array.isArray(srvMd.transactions)) {
+              const txMap = new Map();
+              locMd.transactions.forEach(t => { if (t && t.id) txMap.set(t.id, t); });
+              srvMd.transactions.forEach(t => {
+                if (!t || !t.id) return;
+                if (!txMap.has(t.id)) txMap.set(t.id, t); // 로컬 우선 (이미 수정했을 수 있음)
+              });
+              locMd.transactions = Array.from(txMap.values()).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+            }
+            // budget 머지
+            if (!locMd.budget) locMd.budget = {};
+            if (srvMd.budget) {
+              Object.keys(srvMd.budget).forEach(f => {
+                const srvVal = srvMd.budget[f];
+                const locVal = locMd.budget[f];
+                if (srvVal !== '' && srvVal !== null && srvVal !== undefined && srvVal !== 0) {
+                  if (locVal === '' || locVal === null || locVal === undefined) {
+                    locMd.budget[f] = srvVal;
+                  }
+                }
+              });
+            }
+          });
+        }
+      }
+    } catch(mergeErr) {
+      console.warn('[sbPush] 서버 머지 단계 실패 — 로컬 그대로 push:', mergeErr);
+    }
+
+    // key='main' 행에 머지된 데이터 upsert
     const { error } = await sb
       .from('moneylog')
       .upsert({ id: 1, key: 'main', value: JSON.stringify(data) }, { onConflict: 'id' });
     if (error) throw error;
+    // 머지 결과를 로컬에도 반영 (서버 단독 데이터를 로컬에 복원)
+    if (data.state) setState(data.state, true);
     if (!silent) {
       const now = new Date().toLocaleString('ko-KR');
       localStorage.setItem('sb_last_push', now);
@@ -7521,17 +7594,12 @@ async function sbPull(silent = false) {
     }
     const parsed = JSON.parse(data.value);
 
-    // 🔒 timestamp 비교 — 로컬이 더 최신이면 pull 무시 + 로컬 데이터로 push
+    // ⚠️ lastModified 단순 비교 폐기 — transactions(기록) 손실 위험
+    // 대신 항상 머지: 로컬 transactions + 서버 transactions를 합치고 중복 제거
+    // (snapshot은 후속 머지 로직에서 처리)
     const localLastModified = parseInt(localStorage.getItem('ml_last_local_modified')||'0', 10);
     const remoteLastModified = parseInt(parsed.lastModified||'0', 10);
-    if (localLastModified > 0 && localLastModified > remoteLastModified) {
-      // 로컬이 서버보다 최신 → pull 무시 + 로컬을 서버에 push
-      console.log('[sbPull] 로컬이 더 최신 → pull 무시 + 즉시 push');
-      if (!silent) showToast('로컬 데이터가 더 최신이에요', 1500);
-      // 즉시 push (서버 덮어쓰기)
-      setTimeout(() => sbPush(true), 100);
-      return;
-    }
+    console.log('[sbPull] 머지 시작. localLastModified:', new Date(localLastModified).toLocaleString('ko-KR'), '/ remoteLastModified:', new Date(remoteLastModified).toLocaleString('ko-KR'));
 
     // 🔒 dirty input 백업 (DOM + localStorage)
     const dirtySnapshot = {};
@@ -7582,25 +7650,54 @@ async function sbPull(silent = false) {
       Object.keys(_localState).forEach(monKey => {
         const remoteMd = parsed.state[monKey];
         const localMd = _localState[monKey];
-        if (!localMd || !localMd.snapshot) return;
+        if (!localMd) return;
         // 로컬에만 있는 월은 그대로 추가
         if (!remoteMd) {
           parsed.state[monKey] = JSON.parse(JSON.stringify(localMd));
           return;
         }
+
+        // ── snapshot 머지 (필드 단위)
+        if (!localMd.snapshot) localMd.snapshot = {};
         if (!remoteMd.snapshot) remoteMd.snapshot = {};
-        // 모든 snapshot 키 점검 — 로컬에 값 있고 서버에 비어있으면 로컬 우선
         Object.keys(localMd.snapshot).forEach(f => {
           const localVal = localMd.snapshot[f];
           const remoteVal = remoteMd.snapshot[f];
-          // 로컬 값이 의미 있고(빈 문자열/0/null/undefined 아님), 서버 값이 비어있거나 0이면 로컬 보존
           if (localVal !== '' && localVal !== null && localVal !== undefined && localVal !== 0) {
             if (remoteVal === '' || remoteVal === null || remoteVal === undefined) {
               remoteMd.snapshot[f] = localVal;
             }
-            // 텍스트 필드의 경우 서버가 0인 경우도 빈 값으로 간주
             if (typeof localVal === 'string' && remoteVal === 0) {
               remoteMd.snapshot[f] = localVal;
+            }
+          }
+        });
+
+        // ── 🆕 transactions 머지 (id 기준 dedupe + 로컬 우선 보존)
+        // 로컬에만 있는 거래는 절대 잃지 않도록 union 처리
+        if (!Array.isArray(localMd.transactions)) localMd.transactions = [];
+        if (!Array.isArray(remoteMd.transactions)) remoteMd.transactions = [];
+        const txMap = new Map();
+        // 서버 거래 먼저 넣고
+        remoteMd.transactions.forEach(t => { if (t && t.id) txMap.set(t.id, t); });
+        // 로컬 거래로 덮어쓰기 (로컬이 최신일 가능성)
+        localMd.transactions.forEach(t => {
+          if (!t) return;
+          if (!t.id) { t.id = 'tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,8); }
+          txMap.set(t.id, t);
+        });
+        remoteMd.transactions = Array.from(txMap.values()).sort((a,b) => (b.date||'').localeCompare(a.date||''));
+
+        // ── 🆕 budget 머지 (필드 단위 — 로컬 0/빈값은 서버 우선)
+        if (!localMd.budget) localMd.budget = {};
+        if (!remoteMd.budget) remoteMd.budget = {};
+        Object.keys(localMd.budget).forEach(f => {
+          const localVal = localMd.budget[f];
+          const remoteVal = remoteMd.budget[f];
+          // 로컬 값이 있고 서버가 비어있으면 로컬 보존
+          if (localVal !== '' && localVal !== null && localVal !== undefined && localVal !== 0) {
+            if (remoteVal === '' || remoteVal === null || remoteVal === undefined) {
+              remoteMd.budget[f] = localVal;
             }
           }
         });
@@ -7644,15 +7741,14 @@ function sbSubscribe() {
       filter: 'id=eq.1'
     }, (payload) => {
       if (isSyncing) return; // 내가 업데이트한 건 무시
-      // 🔥 실시간 자동 pull 활성화 — 다른 기기 변경 즉시 반영
-      // dirty 입력값 보호 + lastModified 비교로 사용자 입력 덮어쓰기 방지 (sbPull 내부 로직)
-      console.log('[sbSubscribe] 다른 기기 업데이트 감지 → 자동 pull');
+      // ⚠️ 자동 pull 비활성화 — 데이터 손실 방지 (lastModified 단순 비교의 위험성)
+      console.log('[sbSubscribe] 다른 기기 업데이트 감지 — 수동 동기화 필요');
       const lp = $('topbar-sync-pull');
-      if (lp) lp.textContent = '동기화 중...';
-      // 약간의 딜레이로 push와 충돌 방지
-      setTimeout(() => {
-        if (!isSyncing) sbPull(true);
-      }, 300);
+      if (lp) lp.textContent = '새 데이터 있음 (지금 불러오기 ↻)';
+      // 토스트로 사용자 알림
+      if (typeof showToast === 'function') {
+        showToast('다른 기기에서 변경됨 — 설정 > 지금 불러오기를 눌러 동기화하세요', 4000);
+      }
     })
     .subscribe((status) => {
       const el = $('sb-status');
@@ -7711,31 +7807,23 @@ async function manualSync() {
 async function initSupabase() {
   // 실시간 구독 시작
   sbSubscribe();
-  // 🔥 항상 pull 시도 — sbPull 내부에서 lastModified 비교로 로컬 vs 서버 자동 판단
-  // 로컬이 더 최신이면 pull 무시 + 즉시 push, 서버가 더 최신이면 pull 적용
-  console.log('[initSupabase] 자동 pull 시도 (lastModified 비교)');
-  await sbPull(true);
+  // ⚠️ 자동 pull 비활성화 — lastModified 단순 비교가 transactions(기록) 손실을 일으킴
+  // PC에서 거래 추가 → 핸드폰 새로고침 → 핸드폰 lastModified가 더 크면 핸드폰 빈 데이터로 PC 데이터 덮어씀
+  // → 수동 동기화로 변경 (사용자가 "지금 불러오기" 클릭 시에만 pull)
+  console.log('[initSupabase] 자동 pull 비활성화 (데이터 손실 방지) — 수동 동기화 사용');
   updateSyncStatus();
 }
 
 // ━━ 페이지 가시성 변경 시 자동 동기화 ━━━━━━━━━━━
-// 모바일 앱 백그라운드 → 포그라운드 복귀 시 즉시 pull
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && sbClient && !isSyncing) {
-    console.log('[visibility] 포그라운드 복귀 → 자동 pull');
-    sbPull(true);
-  }
-});
+// ⚠️ 자동 pull 비활성화 — 데이터 손실 방지
+// document.addEventListener('visibilitychange', ...) 제거
 
-// 네트워크 복구 시 즉시 push + pull
+// 네트워크 복구 시 자동 push만 (pull은 사용자 명시적 액션에서만)
 window.addEventListener('online', () => {
-  if (sbClient) {
-    console.log('[online] 네트워크 복구 → 자동 동기화');
-    setTimeout(async () => {
-      if (!isSyncing) {
-        await sbPush(true);
-        await sbPull(true);
-      }
+  if (sbClient && !isSyncing) {
+    console.log('[online] 네트워크 복구 → 자동 push만 실행 (pull은 수동)');
+    setTimeout(() => {
+      if (!isSyncing) sbPush(true);
     }, 500);
   }
 });
