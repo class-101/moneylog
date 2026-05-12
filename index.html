@@ -88,7 +88,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 body.snap-save-active .scroll{padding-bottom:210px;}
 
 /* ── SCROLL */
-.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 16px 120px;display:flex;flex-direction:column;gap:0;-webkit-overflow-scrolling:touch;}
+.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 16px 120px;display:flex;flex-direction:column;gap:0;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:rgba(148,163,184,.4) transparent;}
+.scroll::-webkit-scrollbar{width:6px;}
+.scroll::-webkit-scrollbar-track{background:transparent;}
+.scroll::-webkit-scrollbar-thumb{background:rgba(148,163,184,.4);border-radius:3px;}
+.scroll::-webkit-scrollbar-thumb:hover{background:rgba(148,163,184,.6);}
 
 /* ── PAGE */
 .pg{display:none;flex-direction:column;gap:12px;}
@@ -384,16 +388,16 @@ body.snap-save-active .scroll{padding-bottom:210px;}
   background:var(--bg);
   border:1px solid var(--border);
   border-radius:99px;
-  font-size:13px;font-weight:500;
+  font-size:12.5px;font-weight:500;
   color:var(--text);
-  letter-spacing:-.2px;
+  letter-spacing:-.3px;
   transition:transform .15s, box-shadow .15s, opacity .15s;
   user-select:none;
   -webkit-user-select:none;
 }
 /* 일반 모드: 칩만 깔끔하게 표시 */
 .cat-chip-readonly{
-  padding:8px 14px;
+  padding:6px 11px;
   cursor:default;
 }
 /* 편집 모드: 그립 + 라벨 + × 버튼 */
@@ -988,7 +992,10 @@ body.snap-save-active .top-btn{
 /* ── CHART PLACEHOLDER */
 .chart-wrap{width:100%;position:relative;}
 svg.chart{display:block;width:100%;}
-/* ── ANALYSIS TABS (토스/네이버 스타일 언더라인) */.atabs{display:flex;gap:18px;overflow-x:auto;padding:0 16px;margin:0 -16px 12px;-webkit-overflow-scrolling:touch;cursor:grab;scroll-behavior:smooth;border-bottom:1px solid var(--border);}
+/* ── ANALYSIS TABS (토스/네이버 스타일 언더라인) */
+.atabs-wrap{position:relative;margin:0 -16px 12px;}
+.atabs-wrap::after{content:'';position:absolute;top:0;right:0;width:24px;height:100%;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none;}
+.atabs{display:flex;gap:18px;overflow-x:auto;padding:0 16px;-webkit-overflow-scrolling:touch;cursor:grab;scroll-behavior:smooth;border-bottom:1px solid var(--border);}
 .atabs.dragging{cursor:grabbing;user-select:none;scroll-behavior:auto;}
 .atabs.dragging .atab{pointer-events:none;}
 .atabs::-webkit-scrollbar{display:none;}
@@ -1395,7 +1402,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
             </div>
             <!-- 인라인 입력 패널 (기본 숨김, 0원이거나 편집 버튼 클릭 시 표시) -->
             <div id="h-prevcard-input-panel" style="display:none;width:100%;background:var(--yellow-light);border:1px solid #fde68a;border-radius:10px;padding:12px 12px 10px;">
-              <div style="font-size:11px;color:#92400e;font-weight:600;margin-bottom:8px;">지난달 카드 청구액을 직접 입력하세요</div>
+              <div style="font-size:11px;color:#92400e;font-weight:600;margin-bottom:8px;">카드 앱에서 이번달 청구 예정 금액을 확인 후 입력하세요</div>
               <div style="display:flex;gap:8px;align-items:center;">
                 <input class="fi" id="h-prevcard-input" placeholder="0" inputmode="numeric"
                   style="flex:1;height:42px;font-size:15px;font-weight:700;text-align:right;border-color:#fde68a;background:var(--white);"
@@ -1410,7 +1417,6 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
                   ✕
                 </button>
               </div>
-              <div style="font-size:11px;color:#92400e;margin-top:6px;opacity:.75;">카드 앱에서 이번달 청구 예정 금액을 확인 후 입력</div>
             </div>
           </div>
           <div class="rl">
@@ -1452,7 +1458,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
   <!-- 최근 거래 -->
   <div>
     <div class="sechead"><h3>최근 거래</h3><a onclick="goPage('record')">전체 보기</a></div>
-    <div class="card"><div class="cp" id="h-recent-tx"><div class="empty"><div class="ei">📭</div><p>기록 탭에서 거래를 입력하세요</p></div></div></div>
+    <div class="card"><div class="cp" id="h-recent-tx"><div class="empty"><div class="ei">📭</div><p>아직 입력된 거래가 없어요</p><button onclick="goPage('record')" style="margin-top:10px;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">＋ 거래 추가하기</button></div></div></div>
   </div>
   <!-- 순자산 -->
   <div id="h-acc-net">
@@ -1617,6 +1623,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
 
 <!-- ══════════ 분석 ══════════ -->
 <div class="pg" id="pg-analysis">
+  <div class="atabs-wrap">
   <div class="atabs">
     <div class="atab on" onclick="switchAtab(0,this)">순자산 추이</div>
     <div class="atab" onclick="switchAtab(1,this)">지출 분석</div>
@@ -1625,6 +1632,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     <div class="atab" onclick="switchAtab(4,this)">목표</div>
     <div class="atab" onclick="switchAtab(5,this)">재무 진단</div>
     <div class="atab" onclick="switchAtab(6,this)">부동산</div>
+  </div>
   </div>
 
   <!-- 순자산 추이 -->
@@ -1722,7 +1730,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       <div id="diag-chungak"></div>
     </div></div>
     <div class="card"><div class="cp">
-      <div class="ctitle">청년도약계좌 만기 예상</div>
+      <div class="ctitle">청도계 만기 예상</div>
       <div id="diag-dodoyak"></div>
     </div></div>
     <div class="card"><div class="cp">
@@ -1900,22 +1908,6 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
       </div>
     </div>
   </div>
-  <!-- 동기화 -->
-  <div class="sync-card card"><div class="cp">
-    <div class="ctitle" style="color:var(--blue);">동기화 · 백업</div>
-    <p style="font-size:12px;color:var(--sub);margin-bottom:14px;">도형↔예진 이번달 데이터 공유, 또는 전체 백업</p>
-    <div class="btnrow" style="margin-bottom:10px;">
-      <button class="btn btn-blue" onclick="copyShareCode()">코드 복사 (내보내기)</button>
-      <button class="btn btn-outline" onclick="pasteShareCode()">코드 붙여넣기</button>
-    </div>
-    <p style="font-size:11px;color:var(--faint);margin-bottom:12px;">① 도형이 코드복사 → ② 카톡 전달 → ③ 예진이 붙여넣기</p>
-    <div class="btnrow" style="margin-bottom:8px;">
-      <button class="btn btn-outline btn-sm" onclick="exportDataJSON()" style="width:auto;padding:10px 18px;">📥 백업 저장</button>
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('import-file').click()" style="width:auto;padding:10px 18px;">📤 복원하기</button>
-    </div>
-    <button class="btn btn-outline" onclick="exportExcel()" style="width:100%;padding:11px;font-size:13px;">엑셀(CSV) 내보내기</button>
-    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importDataJSON(event)">
-  </div></div>
 </div><!-- /자산 -->
 
 <!-- ══════════ 설정 ══════════ -->
@@ -2005,16 +1997,34 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     <div class="stepbody" id="sb2">
       
 
-      <!-- 마통 -->
+      <!-- 마이너스통장 (도형/예진 각각 통합 카드) -->
       <div style="border:1px solid var(--border);border-radius:14px;padding:16px 16px 14px;margin-bottom:10px;">
         <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text);">마이너스통장</div>
-        <div class="fg2">
-          <div class="fg"><label>도형 마통 잔액</label><input class="fi" id="sn-도형마통" placeholder="0" oninput="onSnapInput()"></div>
-          <div class="fg"><label>도형 마통 금리 (%)</label><input class="fi" id="sn-도형마통금리" placeholder="4.5" inputmode="decimal"></div>
-          <div class="fg"><label>예진 마통 잔액</label><input class="fi" id="sn-예진마통" placeholder="0" oninput="onSnapInput()"></div>
-          <div class="fg"><label>예진 마통 금리 (%)</label><input class="fi" id="sn-예진마통금리" placeholder="0" inputmode="decimal"></div>
+        <!-- 도형 마통 -->
+        <div style="background:#fafbff;border:1px dashed var(--border);border-radius:var(--rxs);padding:10px;margin-bottom:8px;">
+          <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;">도형 마통</div>
+          <div class="fg2">
+            <div class="fg"><label style="font-size:11px;">잔액</label><input class="fi" id="sn-도형마통" placeholder="0" oninput="onSnapInput()"></div>
+            <div class="fg"><label style="font-size:11px;">금리 (%)</label><input class="fi" id="sn-도형마통금리" placeholder="4.5" inputmode="decimal"></div>
+          </div>
+          <div class="fg2" style="margin-top:8px;">
+            <div class="fg"><label style="font-size:11px;">한도</label><input class="fi" id="sn-도형마통한도" placeholder="0" inputmode="numeric"></div>
+            <div class="fg"><label style="font-size:11px;">기관</label><input class="fi" id="sn-도형마통기관" placeholder="신한은행"></div>
+          </div>
         </div>
-        <div style="font-size:11px;color:var(--faint);margin-top:2px;">월 이자 = 잔액 × 금리 ÷ 12</div>
+        <!-- 예진 마통 -->
+        <div style="background:#fafbff;border:1px dashed var(--border);border-radius:var(--rxs);padding:10px;">
+          <div style="font-size:11px;font-weight:700;color:var(--sub);margin-bottom:8px;">예진 마통</div>
+          <div class="fg2">
+            <div class="fg"><label style="font-size:11px;">잔액</label><input class="fi" id="sn-예진마통" placeholder="0" oninput="onSnapInput()"></div>
+            <div class="fg"><label style="font-size:11px;">금리 (%)</label><input class="fi" id="sn-예진마통금리" placeholder="0" inputmode="decimal"></div>
+          </div>
+          <div class="fg2" style="margin-top:8px;">
+            <div class="fg"><label style="font-size:11px;">한도</label><input class="fi" id="sn-예진마통한도" placeholder="0" inputmode="numeric"></div>
+            <div class="fg"><label style="font-size:11px;">기관</label><input class="fi" id="sn-예진마통기관" placeholder=""></div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--faint);margin-top:8px;">월 이자 = 잔액 × 금리 ÷ 12</div>
       </div>
 
       <!-- 청약대출 -->
@@ -2048,17 +2058,6 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div class="fg"><label>상환 시작일</label><input class="fi" id="sn-학자금시작일" type="date"></div>
         </div>
         <div style="font-size:11px;color:var(--faint);margin-top:2px;"></div>
-      </div>
-
-      <!-- 마통 추가 필드 보완 -->
-      <div style="border:1px solid var(--border);border-radius:14px;padding:16px 16px 14px;margin-bottom:10px;">
-        <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text);">마통 추가 정보</div>
-        <div class="fg2">
-          <div class="fg"><label>도형 마통 한도</label><input class="fi" id="sn-도형마통한도" placeholder="0" inputmode="numeric"></div>
-          <div class="fg"><label>도형 마통 기관</label><input class="fi" id="sn-도형마통기관" placeholder="신한은행"></div>
-          <div class="fg"><label>예진 마통 한도</label><input class="fi" id="sn-예진마통한도" placeholder="0" inputmode="numeric"></div>
-          <div class="fg"><label>예진 마통 기관</label><input class="fi" id="sn-예진마통기관" placeholder=""></div>
-        </div>
       </div>
 
       <!-- 버팀목/오피스텔 고정대출 추가 정보 -->
@@ -2105,12 +2104,12 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div class="fg"><label>예진 잔액</label><input class="fi" id="sn-예진청약" placeholder="0" oninput="onSnapInput()"></div>
           <div class="fg"><label>예진 납입 횟수</label><input class="fi" id="sn-예진청약횟수" placeholder="0" inputmode="numeric"></div>
         </div>
-        <div style="font-size:11px;color:var(--faint);">1순위 조건: 24회 이상. 통장에서 납입 횟수를 직접 확인하세요.</div>
+        <div style="font-size:11px;color:var(--faint);">1순위 = 납입 24회 이상</div>
       </div>
 
-      <!-- 청년도약계좌 -->
+      <!-- 청도계 -->
       <div style="border:1px solid var(--border);border-radius:14px;padding:16px 16px 14px;margin-bottom:10px;">
-        <div class="sub-label">청년도약계좌</div>
+        <div class="sub-label">청도계</div>
         <div class="fg2">
           <div class="fg"><label>도형 잔액</label><input class="fi" id="sn-도형청도계" placeholder="0" oninput="onSnapInput()"></div>
           <div class="fg"><label>도형 월 납입액</label><input class="fi" id="sn-도형청도계납입" placeholder="0" inputmode="numeric"></div>
@@ -2121,7 +2120,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div class="fg"><label>도형 만기일</label><input class="fi" id="sn-도형청도계만기" type="date"></div>
           <div class="fg"><label>예진 만기일</label><input class="fi" id="sn-예진청도계만기" type="date"></div>
         </div>
-        <div style="font-size:11px;color:var(--faint);">만기 5년. 중도해지 시 정부기여금 미지급. 절대 유지 권장.</div>
+        <div style="font-size:11px;color:var(--faint);">만기 5년. 중도해지 시 정부기여금 미지급되니 유지 권장.</div>
       </div>
 
       <!-- 가족모임 -->
@@ -2306,7 +2305,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           </div>
         </div>
         <div class="fg2">
-          <div class="fg"><label>본인 부담 (대출 제외)</label><input class="fi" id="sn-전세보증금" placeholder="0" inputmode="numeric" oninput="onSnapInput()"></div>
+          <div class="fg"><label>보증금 현금</label><input class="fi" id="sn-전세보증금" placeholder="0" inputmode="numeric" oninput="onSnapInput()"></div>
           <div class="fg"><label>임대 종료일</label><input type="date" id="sn-전세만기"></div>
         </div>
       </div>
@@ -2358,7 +2357,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
         <span style="font-size:14px;font-weight:700;">예산</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:11px;color:var(--faint);">자동저장</span>
+        <span style="font-size:10px;color:var(--green);background:var(--green-light);padding:2px 8px;border-radius:99px;font-weight:700;">자동 저장</span>
         <span class="acc-arrow" id="set-acc-budget-arr">▼</span>
       </div>
     </div>
@@ -2398,8 +2397,8 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     </div>
     <div class="sub-label" style="margin-top:14px;">저축</div>
     <div class="fg2">
-      <div class="fg"><label>청년도약(도형)</label><input class="fi" id="b-도형청도계" oninput="autoSaveBudget()"></div>
-      <div class="fg"><label>청년도약(예진)</label><input class="fi" id="b-예진청도계" oninput="autoSaveBudget()"></div>
+      <div class="fg"><label>도형 청도계</label><input class="fi" id="b-도형청도계" oninput="autoSaveBudget()"></div>
+      <div class="fg"><label>예진 청도계</label><input class="fi" id="b-예진청도계" oninput="autoSaveBudget()"></div>
       <div class="fg"><label>비상금</label><input class="fi" id="b-비상금" oninput="autoSaveBudget()"></div>
       <div class="fg"><label>IRP(도형)</label><input class="fi" id="b-IRP" oninput="autoSaveBudget()"></div>
     </div>
@@ -2462,7 +2461,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
   </div>
 
 
-  <!-- ━━ 실시간 동기화 (아코디언) ━━ -->
+  <!-- ━━ 동기화 (아코디언) ━━ -->
   <div id="set-acc-sync">
     <div class="acc-header" id="set-acc-sync-hd" onclick="toggleAcc('set-acc-sync')">
       <div style="display:flex;align-items:center;gap:8px;">
@@ -2476,24 +2475,26 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     <div class="acc-body" id="set-acc-sync-body" style="display:none;">
       <div class="acc-body-inner">
 
-    <!-- 수동 버튼 (긴급용) -->
-    <div class="btnrow" style="margin-bottom:10px;">
-      <button class="btn btn-green" onclick="isSyncing=false;sbPush()">지금 저장</button>
-      <button class="btn btn-outline" onclick="sbPull()">지금 불러오기</button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:14px;">
-      <div id="sb-last-push" style="font-size:11px;color:var(--faint);"></div>
-      <div id="sb-last-pull" style="font-size:11px;color:var(--faint);"></div>
-    </div>
+        <!-- 연결 상태 + 마지막 동기화 시각 -->
+        <div style="background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:12px;">
+          <div id="sb-last-push" style="font-size:11px;color:var(--sub);line-height:1.6;"></div>
+          <div id="sb-last-pull" style="font-size:11px;color:var(--sub);line-height:1.6;"></div>
+        </div>
 
-    <!-- 보조 백업 -->
-    <div class="sub-label">파일 백업</div>
-    <div class="btnrow">
-      <button class="btn btn-outline btn-sm" onclick="exportDataJSON()" style="flex:1;height:38px;font-size:12px;">JSON 백업</button>
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('import-file').click()" style="flex:1;height:38px;font-size:12px;">JSON 복원</button>
-      <button class="btn btn-outline btn-sm" onclick="exportExcel()" style="flex:1;height:38px;font-size:12px;">엑셀</button>
-    </div>
-    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importDataJSON(event)">
+        <!-- 수동 동기화 (다른 기기 변경사항 즉시 받기) -->
+        <div class="btnrow" style="margin-bottom:14px;">
+          <button class="btn btn-green" onclick="isSyncing=false;sbPush()" style="flex:1;">지금 저장</button>
+          <button class="btn btn-outline" onclick="sbPull()" style="flex:1;">지금 불러오기</button>
+        </div>
+
+        <!-- 파일 백업 (보조) -->
+        <div class="sub-label" style="margin-bottom:6px;">파일 백업</div>
+        <div class="btnrow">
+          <button class="btn btn-outline btn-sm" onclick="exportDataJSON()" style="flex:1;height:38px;font-size:12px;">JSON 백업</button>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('import-file').click()" style="flex:1;height:38px;font-size:12px;">JSON 복원</button>
+          <button class="btn btn-outline btn-sm" onclick="exportExcel()" style="flex:1;height:38px;font-size:12px;">엑셀</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importDataJSON(event)">
       </div>
     </div>
   </div>
@@ -3713,7 +3714,7 @@ function renderHome() {
   // 최근 거래
   const recent=[...c.txs].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
   const rw=$('h-recent-tx');
-  if(rw) rw.innerHTML=recent.length?recent.map(t=>txRow(t,currentMonth(),false)).join(''):'<div class="empty"><div class="ei">📭</div><p>기록 탭에서 거래를 입력하세요</p></div>';
+  if(rw) rw.innerHTML=recent.length?recent.map(t=>txRow(t,currentMonth(),false)).join(''):'<div class="empty"><div class="ei">📭</div><p>아직 입력된 거래가 없어요</p><button onclick="goPage(\'record\')" style="margin-top:10px;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Noto Sans KR\',sans-serif;">＋ 거래 추가하기</button></div>';
 
   // 순자산
   set('h-net-cash',fmtW(c.가용현금)); set('h-net-save',fmtW(c.저축)); set('h-net-invest',fmtW(c.투자)); set('h-net-loan',fmtW(c.변동대출));
@@ -4824,10 +4825,10 @@ function renderSavingPlan() {
   const c=compute(currentMonth()), bgt=c.bgt;
   // cats: 거래 카테고리에 매칭할 후보 배열 (시스템 카테고리 + 옛날 카테고리 호환)
   const items=[
-    {l:'청년도약(도형)', bk:'도형청도계', cats:['청년도약(도형)']},
-    {l:'청년도약(예진)', bk:'예진청도계', cats:['청년도약(예진)']},
+    {l:'도형 청도계', bk:'도형청도계', cats:['도형 청도계','청년도약(도형)','청년도약 (도형)']},
+    {l:'예진 청도계', bk:'예진청도계', cats:['예진 청도계','청년도약(예진)','청년도약 (예진)']},
     {l:'비상금',         bk:'비상금',     cats:['비상금']},
-    {l:'IRP(도형)',      bk:'IRP',        cats:['퇴직연금(IRP)','IRP(도형)']},
+    {l:'IRP(도형)',      bk:'IRP',        cats:['도형 IRP','퇴직연금(IRP)','IRP(도형)']},
     {l:'ISA',            bk:'ISA',        cats:['도형 ISA','예진 ISA','ISA(도형)','ISA(예진)','ISA']},
     {l:'CMA 주식',       bk:'CMA주식',    cats:['토스 CMA','나무 CMA','토스CMA','나무CMA','CMA 주식']},
   ];
@@ -4901,12 +4902,6 @@ function renderAssetPage() {
     }
     html += '<div class="formula-row op"><span class="fk">+ 신한 통장</span><span class="fv">'+fmtW(c.신한자유)+'</span></div>';
     html += '<div class="formula-row eq"><span class="fk">자유잔액</span><span class="fv">'+fmtW(c.자유잔액)+'</span></div>';
-    if (c.자물쇠초과) {
-      html += '<div style="margin-top:12px;padding:9px 11px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:11.5px;color:#991b1b;line-height:1.5;">자물쇠 입력값('+fmtW(c.고정자물쇠)+')이 생활비 통장 잔액보다 커서 무시했습니다. 자물쇠는 <b>실제 통장 안에 따로 보관 중인 금액</b>만 입력하세요.</div>';
-    }
-    if (c.다음달용 > 0) {
-      html += '<div style="margin-top:12px;padding:9px 11px;background:var(--bg);border-radius:8px;font-size:11.5px;color:var(--sub);line-height:1.5;">결제 통장 '+fmtW(c.다음달용)+'은 카드값 결제용이라 자유잔액에서 제외</div>';
-    }
     formulaBody.innerHTML = html;
   }
 
@@ -5104,8 +5099,8 @@ function initRecurring() {
     {id:1002,name:'예진 월급',type:'income',cat:'예진 월급',amt:2830000,day:15,method:'이체',active:true},
     {id:1003,name:'월세',type:'fixed',cat:'월세',amt:250000,day:1,method:'자동이체',active:true},
     {id:1004,name:'전세대출이자',type:'fixed',cat:'전세대출이자',amt:256700,day:1,method:'자동이체',active:true},
-    {id:1005,name:'청년도약(도형)',type:'saving',cat:'청년도약(도형)',amt:300000,day:5,method:'자동이체',active:true},
-    {id:1006,name:'청년도약(예진)',type:'saving',cat:'청년도약(예진)',amt:700000,day:5,method:'자동이체',active:true},
+    {id:1005,name:'도형 청도계',type:'saving',cat:'도형 청도계',amt:300000,day:5,method:'자동이체',active:true},
+    {id:1006,name:'예진 청도계',type:'saving',cat:'예진 청도계',amt:700000,day:5,method:'자동이체',active:true},
     {id:1007,name:'ISA',type:'invest',cat:'ISA',amt:1670000,day:5,method:'자동이체',active:true},
     {id:1008,name:'CMA 주식',type:'invest',cat:'CMA 주식',amt:170000,day:5,method:'자동이체',active:true},
     {id:1009,name:'학자금대출',type:'fixed',cat:'학자금대출',amt:35280,day:11,method:'자동이체',active:true},
@@ -5193,9 +5188,16 @@ function undoRecDelete() {
 
 // 모든 데이터 초기화
 async function resetAllData() {
-  // 2단계 확인
+  // 2단계 확인 + 타이핑 확인
   if (!confirm('정말 모든 데이터를 삭제할까요?\n\n거래내역, 잔액, 예산, 고정지출이 모두 사라져요.\n이 작업은 되돌릴 수 없어요.')) return;
   if (!confirm('마지막으로 확인할게요.\n\n다른 폰의 데이터까지 함께 사라져요.\n\n정말 진행할까요?')) return;
+  // 3단계: "삭제합니다" 타이핑 확인
+  const typed = prompt('실수 방지를 위해 아래 문구를 정확히 입력해 주세요:\n\n삭제합니다');
+  if (typed === null) return;
+  if (typed.trim() !== '삭제합니다') {
+    showToast('문구가 일치하지 않아요. 취소됐어요');
+    return;
+  }
   
   try {
     // 로컬 초기화
@@ -6159,6 +6161,16 @@ function renderCatList() {
   }).join('');
 }
 
+// 결제수단 접두어 ([계좌], [체카], [신카] 등)를 회색으로 분리해 시각 노이즈 감소
+function fmtMethodLabel(m) {
+  const safe = m.replace(/"/g, '&quot;');
+  const match = m.match(/^(\[[^\]]+\])\s*(.+)$/);
+  if (match) {
+    return '<span style="color:var(--faint);font-size:.85em;">'+match[1]+'</span> '+match[2];
+  }
+  return safe;
+}
+
 function renderMethodList() {
   const methods = getPayMethods();
   const listEl = $('method-list');
@@ -6169,6 +6181,7 @@ function renderMethodList() {
   }
   listEl.innerHTML = methods.map((m, idx) => {
     const safe = m.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const display = fmtMethodLabel(m);
     if (_editMode) {
       return '<span class="cat-chip cat-chip-editable" '
         + 'draggable="true" '
@@ -6183,11 +6196,11 @@ function renderMethodList() {
         + 'ontouchmove="touchCatMove(event)" '
         + 'ontouchend="touchCatEnd(event)">'
         + '<span class="cat-chip-grip"></span>'
-        + '<span class="cat-chip-label" onclick="renameMethod(\''+m.replace(/'/g,"\\'")+'\')">'+m+'</span>'
+        + '<span class="cat-chip-label" onclick="renameMethod(\''+m.replace(/'/g,"\\'")+'\')">'+display+'</span>'
         + '<button class="cat-chip-x" onclick="removeMethod(\''+m.replace(/'/g,"\\'")+'\')">×</button>'
         + '</span>';
     } else {
-      return '<span class="cat-chip cat-chip-readonly">'+m+'</span>';
+      return '<span class="cat-chip cat-chip-readonly">'+display+'</span>';
     }
   }).join('');
 }
@@ -7787,12 +7800,12 @@ function sbSubscribe() {
     .subscribe((status) => {
       const el = $('sb-status');
       if (status === 'SUBSCRIBED') {
-        if (el) el.innerHTML = '<span style="color:var(--green);">● 실시간 연결됨</span>';
+        if (el) el.innerHTML = '<span style="color:var(--green);">● 연결됨</span>';
         console.log('Supabase 실시간 연결됨');
       } else if (status === 'CHANNEL_ERROR') {
-        if (el) el.innerHTML = '<span style="color:var(--red);">● 연결 오류</span>';
+        if (el) el.innerHTML = '<span style="color:var(--red);">● 연결 끊김</span>';
       } else {
-        if (el) el.innerHTML = '<span style="color:var(--yellow);">● 연결 중...</span>';
+        if (el) el.innerHTML = '<span style="color:var(--yellow);">● 연결 중</span>';
       }
     });
 }
@@ -8422,8 +8435,8 @@ function init() {
       {id:3,date:mon+'-01',type:'fixed',cat:'월세',amt:250000,memo:'월세',method:'자동이체',_sample:true},
       {id:4,date:mon+'-20',type:'variable',cat:'외식비',amt:38000,memo:'반포한강 피크닉',method:'카드',_sample:true},
       {id:5,date:mon+'-22',type:'variable',cat:'간식/음료',amt:12000,memo:'스타벅스',method:'카드',_sample:true},
-      {id:6,date:mon+'-25',type:'saving',cat:'청년도약(도형)',amt:300000,memo:'도형 청도계',method:'자동이체',_sample:true},
-      {id:7,date:mon+'-25',type:'saving',cat:'청년도약(예진)',amt:700000,memo:'예진 청도계',method:'자동이체',_sample:true},
+      {id:6,date:mon+'-25',type:'saving',cat:'도형 청도계',amt:300000,memo:'도형 청도계',method:'자동이체',_sample:true},
+      {id:7,date:mon+'-25',type:'saving',cat:'예진 청도계',amt:700000,memo:'예진 청도계',method:'자동이체',_sample:true},
       {id:8,date:mon+'-27',type:'variable',cat:'외식비',amt:8400,memo:'프랭크버거 남위례역점',method:'카드',_sample:true},
     ];
     setState(state);
