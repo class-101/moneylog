@@ -7595,13 +7595,20 @@ function saveGistSettings() {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const SB_URL = 'https://osqwftlmnuukqnserhej.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zcXdmdGxtbnV1a3Fuc2VyaGVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0Mzg1ODQsImV4cCI6MjA5MzAxNDU4NH0.0EEF92C1u13C_dUhrGhvhQqMSjJ9yc_yyQNIi2VREFQ';
+// ⚠️ Row-Level Security 정책 통과용 비밀 문자열
+// Supabase SQL: current_setting('request.headers', true)::json->>'x-app-secret' = 'XXX'
+const SB_SECRET = 'W6jgIHjeJvDwkeJIjqZfZ43aiEAKFUiS';
 let sbClient = null;
 let sbChannel = null;
 let isSyncing = false; // 내 업데이트로 인한 수신 무시용
 
 function getSB() {
   if (!sbClient) {
-    sbClient = supabase.createClient(SB_URL, SB_KEY);
+    sbClient = supabase.createClient(SB_URL, SB_KEY, {
+      global: {
+        headers: { 'x-app-secret': SB_SECRET }
+      }
+    });
   }
   return sbClient;
 }
