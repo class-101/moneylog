@@ -2645,11 +2645,23 @@ function getCatMap() {
   }
   return raw;
 }
-function saveCatMap(m) { LS_SET('ml_cats',m); }
+function saveCatMap(m) {
+  LS_SET('ml_cats', m);
+  localStorage.setItem('ml_last_local_modified', String(Date.now()));
+  if (typeof scheduleSbPush === 'function') scheduleSbPush();
+}
 function getPayMethods() { return LS('ml_methods') || ['체크카드','신용카드','현금','이체','자동이체','계좌이체','삼성페이','카카오페이','카드대금']; }
-function savePayMethods(a) { LS_SET('ml_methods',a); }
+function savePayMethods(a) {
+  LS_SET('ml_methods', a);
+  localStorage.setItem('ml_last_local_modified', String(Date.now()));
+  if (typeof scheduleSbPush === 'function') scheduleSbPush();
+}
 function getRecurring() { return LS('ml_recurring') || []; }
-function saveRecurring(a) { LS_SET('ml_recurring',a); }
+function saveRecurring(a) {
+  LS_SET('ml_recurring', a);
+  localStorage.setItem('ml_last_local_modified', String(Date.now()));
+  if (typeof scheduleSbPush === 'function') scheduleSbPush();
+}
 
 // ━━ UTILS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function parseNum(s) {
@@ -6517,7 +6529,11 @@ function pasteShareCode() {
 
 // ━━ 🎯 목표 설정 (GOALS) ━━━━━━━━━━━━━━
 function getGoals() { return LS('ml_goals') || []; }
-function saveGoals(g) { LS_SET('ml_goals', g); }
+function saveGoals(g) {
+  LS_SET('ml_goals', g);
+  localStorage.setItem('ml_last_local_modified', String(Date.now()));
+  if (typeof scheduleSbPush === 'function') scheduleSbPush();
+}
 
 const GOAL_TYPES = [
   {v:'net_asset', l:'순자산 목표', icon:'🏆', unit:'원'},
@@ -6960,6 +6976,8 @@ function renderPlan() {
     priceRate: $('plan-price-rate') ? $('plan-price-rate').value : '3',
     investRate: $('plan-invest-rate') ? $('plan-invest-rate').value : '5',
   });
+  localStorage.setItem('ml_last_local_modified', String(Date.now()));
+  if (typeof scheduleSbPush === 'function') scheduleSbPush();
 
   const c = compute(currentMonth());
   const currentNet = c.순자산; // 현재 순자산
@@ -7319,6 +7337,7 @@ function getAllData() {
     plan:     LS('ml_plan') || {},
     cats:     localStorage.getItem('ml_cats') || '',
     methods:  localStorage.getItem('ml_methods') || '',
+    investOrder: LS('ml_invest_order') || null,
     savedAt:  new Date().toISOString(),
     lastModified: parseInt(localStorage.getItem('ml_last_local_modified')||'0', 10),
     version:  'v18',
@@ -7327,11 +7346,12 @@ function getAllData() {
 function applyAllData(data) {
   // pull로 받은 데이터 적용 시에는 setState가 다시 push를 트리거하지 않도록 silent=true
   if (data.state)    setState(data.state, true);
-  if (data.recurring) saveRecurring(data.recurring);
+  if (data.recurring) LS_SET('ml_recurring', data.recurring); // saveRecurring 호출 시 push 재발생 방지
   if (data.goals)    LS_SET('ml_goals', data.goals);
   if (data.plan)     LS_SET('ml_plan', data.plan);
   if (data.cats)     localStorage.setItem('ml_cats', data.cats);
   if (data.methods)  localStorage.setItem('ml_methods', data.methods);
+  if (data.investOrder) LS_SET('ml_invest_order', data.investOrder);
 }
 
 // Gist에 올리기 (Push)
@@ -7503,6 +7523,20 @@ async function sbPush(silent = false) {
       const { data: srvData } = await sb.from('moneylog').select('value').eq('id', 1).maybeSingle();
       if (srvData && srvData.value) {
         const srvParsed = JSON.parse(srvData.value);
+
+        // ── cats/methods/goals/plan/investOrder: lastModified 기준으로 더 최신 데이터 보존
+        // (단순 비교로 안전 — 빈 로컬값이 서버 데이터 덮어쓰지 않도록)
+        const localMod = parseInt(localStorage.getItem('ml_last_local_modified')||'0', 10);
+        const srvMod = parseInt(srvParsed.lastModified||'0', 10);
+        if (srvMod > localMod) {
+          // 서버가 더 최신 — 서버의 설정값을 로컬 데이터에 머지 (로컬에 값 있으면 우선)
+          if (srvParsed.cats && !data.cats) data.cats = srvParsed.cats;
+          if (srvParsed.methods && !data.methods) data.methods = srvParsed.methods;
+          if (srvParsed.goals && srvParsed.goals.length && !(data.goals && data.goals.length)) data.goals = srvParsed.goals;
+          if (srvParsed.plan && Object.keys(srvParsed.plan).length && !(data.plan && Object.keys(data.plan).length)) data.plan = srvParsed.plan;
+          if (srvParsed.investOrder && !data.investOrder) data.investOrder = srvParsed.investOrder;
+        }
+
         if (srvParsed.state) {
           Object.keys(srvParsed.state).forEach(monKey => {
             const srvMd = srvParsed.state[monKey];
@@ -8208,6 +8242,8 @@ function getInvestOrder() {
 }
 function setInvestOrder(order) {
   LS_SET(INVEST_ORDER_KEY, order);
+  localStorage.setItem('ml_last_local_modified', String(Date.now()));
+  if (typeof scheduleSbPush === 'function') scheduleSbPush();
 }
 let _investReorderMode = false;
 function toggleInvestReorder() {
