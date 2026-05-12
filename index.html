@@ -3560,15 +3560,21 @@ function compute(mon) {
   const totalExp = realSpend + saving + invest; // 수입 대비 사용처 전체
   const bIncome=(bgt.도형월급||0)+(bgt.예진월급||0)+(bgt.인센||0)+(bgt.부수입||0);
   // 저축률: 수입 대비 저축+투자
-  // 수입이 너무 작아 비율이 폭발하는 케이스 방지 (월급 미입력 등)
+  // 실수입이 너무 작거나 0인 케이스 → 예산 수입(bIncome)으로 fallback
+  // (월초 — 거래는 적게 입력됐지만 저축은 자동이체로 빠진 경우)
   let saveRate = 0;
   let saveRateAbnormal = false;
-  if (income > 0) {
-    saveRate = ((saving + invest) / income * 100);
-    if (saveRate > 200) {
-      saveRateAbnormal = true; // 200% 초과 = 수입 누락 의심
+  const savInv = saving + invest;
+  if (savInv > 0) {
+    // 실수입과 예산수입 중 더 큰 값을 기준으로 (분모가 작아서 비율 폭발 방지)
+    const denom = Math.max(income, bIncome);
+    if (denom > 0) {
+      saveRate = (savInv / denom * 100);
+      if (saveRate > 200) {
+        saveRateAbnormal = true;
+      }
+      saveRate = saveRate.toFixed(1);
     }
-    saveRate = saveRate.toFixed(1);
   }
   const _result = {
     가용현금, 저축, 투자, 변동대출, 순자산,
@@ -3647,10 +3653,21 @@ function renderHome() {
   if (c.saveRateAbnormal) {
     set('h-rate', '—');
     set('h-rate-ss', '수입 누락 의심');
+  } else if (!c.saveRate || c.saveRate === '0.0' || c.saveRate === 0) {
+    set('h-rate', '—');
+    set('h-rate-ss', '저축+투자 입력 필요');
   } else {
     set('h-rate', c.saveRate + '%');
     const targetRate = c.bIncome>0 ? Math.round(savePlan/c.bIncome*100) : 0;
-    set('h-rate-ss', targetRate>0 ? '목표 '+targetRate+'%' : '수입 대비');
+    // 실수입 < 예산수입이면 예산 기준 라벨
+    const usingBudget = c.income < c.bIncome;
+    if (targetRate>0) {
+      set('h-rate-ss', '목표 '+targetRate+'%');
+    } else if (usingBudget) {
+      set('h-rate-ss', '예산 수입 기준');
+    } else {
+      set('h-rate-ss', '수입 대비');
+    }
   }
 
   // ── 월 컨텍스트 계산 ──
