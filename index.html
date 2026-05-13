@@ -3019,13 +3019,29 @@ function showToast(msg, dur=2500, undo=false) {
 // ━━ MONTH SELECT ━━━━━━━━━━━━━━━━━━━━━━━
 function buildMonthOptions() {
   const sel=$('gMonth'); sel.innerHTML='';
-  const now=new Date();
-  for(let i=0;i<18;i++) {
-    const d=new Date(now.getFullYear(), now.getMonth()-i, 1);
-    const k=getMonthKey(d);
-    const o=document.createElement('option');
-    o.value=k; o.textContent=(d.getMonth()+1)+'월 ('+d.getFullYear()+')';
+  // 시작점: 2026년 4월 (가계부 시작) ~ 종료점: 이번달 + 3개월
+  const START_YEAR = 2026, START_MONTH = 4;
+  const now = new Date();
+  const endDate = new Date(now.getFullYear(), now.getMonth() + 3, 1);
+  const startDate = new Date(START_YEAR, START_MONTH - 1, 1);
+  // 최신 → 과거 순으로 채우기 (드롭다운 상단이 가장 최근/미래)
+  const list = [];
+  let cur = new Date(endDate);
+  while (cur >= startDate) {
+    list.push(new Date(cur));
+    cur.setMonth(cur.getMonth() - 1);
+  }
+  list.forEach(d => {
+    const k = getMonthKey(d);
+    const o = document.createElement('option');
+    o.value = k;
+    o.textContent = (d.getMonth()+1)+'월 ('+d.getFullYear()+')';
     sel.appendChild(o);
+  });
+  // 기본 선택: 이번달
+  const thisKey = getMonthKey(now);
+  if ([...sel.options].some(op => op.value === thisKey)) {
+    sel.value = thisKey;
   }
 }
 const currentMonth=()=>$('gMonth').value;
@@ -8110,6 +8126,34 @@ function migrateISA() {
 }
 
 // 옛 4분할(원화/달러 × 현금/주식) → 새 구조(현금만 분리, 주식 직접입력) 마이그레이션
+// 빈 월 데이터 + 2026-04 이전 데이터 정리 (가계부 시작 이전)
+function cleanupOldMonths() {
+  const state = getState();
+  let changed = false;
+  Object.keys(state).forEach(monKey => {
+    // 2026-04 이전이면 무조건 삭제
+    if (monKey < '2026-04') {
+      delete state[monKey];
+      changed = true;
+      return;
+    }
+    // 빈 월 데이터 (snapshot/budget/transactions 모두 비어있음) 삭제
+    const md = state[monKey];
+    if (!md) return;
+    const snapEmpty = !md.snapshot || Object.values(md.snapshot).every(v => !v || v === '' || v === 0);
+    const budgetEmpty = !md.budget || Object.keys(md.budget).length === 0;
+    const txEmpty = !Array.isArray(md.transactions) || md.transactions.length === 0;
+    if (snapEmpty && budgetEmpty && txEmpty) {
+      delete state[monKey];
+      changed = true;
+    }
+  });
+  if (changed) {
+    setState(state);
+    console.log('[cleanupOldMonths] 빈 월 / 2026-04 이전 데이터 정리 완료');
+  }
+}
+
 function migrateInvestStockFields() {
   if (localStorage.getItem('ml_migrated_stock_v1')) return;
   const state = getState();
@@ -8564,6 +8608,8 @@ function init() {
   migrateInvestStockFields();
   migrateCats();
   migrateBadDates();
+  // 빈 월 데이터 + 2026-04 이전 데이터 정리 (1회만)
+  cleanupOldMonths();
   // 기본 데이터
   const state=getState();
   if(!Object.keys(state).length) {
