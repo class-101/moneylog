@@ -1964,10 +1964,10 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     </div>
     <div class="stepbody" id="sb1">
       
-      <div class="fg"><label>결제 통장</label><input class="fi" id="sn-결제통장" placeholder="0" oninput="onSnapInput()"></div>
-      <div class="fg"><label>생활비 통장</label><input class="fi" id="sn-생활비통장" placeholder="0" oninput="onSnapInput()"></div>
-      <div class="fg"><label style="color:var(--faint);">└ 고정비 자물쇠 (생활비 통장 안에 따로 보관 중인 금액만)</label><input class="fi" id="sn-고정자물쇠" placeholder="0" oninput="onSnapInput()"></div>
-      <div class="fg"><label>도형 신한</label><input class="fi" id="sn-도형신한" placeholder="0" oninput="onSnapInput()"></div>
+      <div class="fg"><label>결제 통장 <span style="color:var(--faint);font-weight:400;font-size:11px;">전체 잔액</span></label><input class="fi" id="sn-결제통장" placeholder="0" oninput="onSnapInput()"></div>
+      <div class="fg"><label>생활비 통장 <span style="color:var(--faint);font-weight:400;font-size:11px;">전체 잔액 (본잔액 + 자물쇠)</span></label><input class="fi" id="sn-생활비통장" placeholder="0" oninput="onSnapInput()"></div>
+      <div class="fg"><label style="color:var(--faint);">└ 고정비 자물쇠 <span style="font-weight:400;font-size:11px;">생활비 통장 안 보관 중 (이번달 나갈 고정비/저축/투자)</span></label><input class="fi" id="sn-고정자물쇠" placeholder="0" oninput="onSnapInput()"></div>
+      <div class="fg"><label>도형 신한 <span style="color:var(--faint);font-weight:400;font-size:11px;">전체 잔액</span></label><input class="fi" id="sn-도형신한" placeholder="0" oninput="onSnapInput()"></div>
 
       <!-- 이번달 나갈 지난달 카드값 입력 -->
       <div style="margin-top:16px;border-top:1px dashed var(--border);padding-top:14px;">
@@ -5012,10 +5012,7 @@ function renderAssetPage() {
     if (자물쇠유효 > 0) {
       html += '<div class="formula-row op"><span class="fk">− 자물쇠 (따로 보관)</span><span class="fv">'+fmtW(자물쇠유효)+'</span></div>';
     }
-    const 카드미결제 = Math.max(0, (c.cardSpend||0) - (c.카드자물쇠||0));
-    if (카드미결제 > 0) {
-      html += '<div class="formula-row op" style="color:var(--faint);"><span class="fk">⚠ 자물쇠 부족분 (참고)</span><span class="fv">'+fmtW(카드미결제)+'</span></div>';
-    }
+    // 카드미결제는 정보 과부하 — 화면에 표시 안 함 (필요 시 카드값 예측 영역 참조)
     html += '<div class="formula-row op"><span class="fk">+ 신한 통장</span><span class="fv">'+fmtW(c.신한자유)+'</span></div>';
     html += '<div class="formula-row eq"><span class="fk">자유잔액</span><span class="fv">'+fmtW(c.자유잔액)+'</span></div>';
     formulaBody.innerHTML = html;
@@ -5065,7 +5062,9 @@ function renderAssetPage() {
     const 토스신한실잔 = sn.실잔_신한 != null ? sn.실잔_신한 : null;
     const 토스자물쇠실잔 = sn.실잔_자물쇠 != null ? sn.실잔_자물쇠 : null;
     const diff결제 = 토스결제실잔 != null ? (c.결제 - 토스결제실잔) : 0;
-    const diff생활비 = 토스생활비실잔 != null ? (c.생활비 - 토스생활비실잔) : 0;
+    // 생활비 비교 기준: 화면의 본잔액 (자물쇠 제외) vs 토스 메인 숫자
+    const 본잔액_화면 = c.생활비 - Math.max(c.고정자물쇠, 0);
+    const diff생활비 = 토스생활비실잔 != null ? (본잔액_화면 - 토스생활비실잔) : 0;
     const diff신한 = 토스신한실잔 != null ? (c.신한 - 토스신한실잔) : 0;
     const diff자물쇠 = 토스자물쇠실잔 != null ? (c.고정자물쇠 - 토스자물쇠실잔) : 0;
 
@@ -5078,11 +5077,22 @@ function renderAssetPage() {
       ? '카드값 ' + fmtW(cardSpendNow) + ' 모임 중'
       : '카드값용 통장';
     html += unirow('결제 통장', 결제meta, c.결제, diffPill('결제 통장', diff결제), 'csb');
-    html += unirow('생활비 통장', null, c.생활비, diffPill('생활비 통장', diff생활비), '');
+    // 생활비 통장 (전체 잔액 = 본잔액 + 자물쇠)
+    const 자물쇠양수 = Math.max(자물쇠잔액, 0);
+    const 본잔액 = c.생활비 - 자물쇠양수; // 자유롭게 쓸 수 있는 돈
+    html += unirow('생활비 통장', '전체 (본잔액 + 자물쇠)', c.생활비, diffPill('생활비 통장', diff생활비), '');
+    // 본잔액 (자물쇠 제외, 토스 메인 화면 숫자)
+    html += '<div class="uni-row uni-sub" style="cursor:default;">'
+        + '<div class="uni-left">'
+        +   '<div class="uni-name uni-sub-name">└ 본잔액 (자유 사용)</div>'
+        +   '<div class="uni-meta">' + (본잔액 < 0 ? '⚠️ 자물쇠가 통장 초과' : '자물쇠 제외 — 토스 메인 숫자') + '</div>'
+        + '</div>'
+        + '<div class="uni-amt '+(본잔액<0?'crd':'')+'">'+fmtW(본잔액)+'</div>'
+        + '</div>';
     if (자물쇠잔액 !== 0) {
       const 자물쇠meta = c.자물쇠초과
-        ? '입력값 확인 — 통장 잔액 초과'
-        : '생활비 통장 안 보관분';
+        ? '⚠️ 입력값 확인 — 통장 잔액 초과'
+        : '이번달 나갈 고정비/저축/투자 보관 중';
       html += '<div class="uni-row uni-sub" onclick="reconcileBank(\'자물쇠\')">'
         + '<div class="uni-left">'
         +   '<div class="uni-name uni-sub-name">└ 자물쇠</div>'
@@ -6019,8 +6029,10 @@ function openReconcileSheet() {
   $('dtitle').textContent = '잔액 편집';
   $('dbody').innerHTML =
     '<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:14px;padding:12px 14px;background:var(--bg);border-radius:10px;">'
-    + '실제 통장 잔액을 입력하면 화면 잔액과 차이를 자동 보정합니다.<br>'
-    + '<b>생활비</b>는 통장 전체 잔액(자물쇠 포함), <b>자물쇠</b>는 따로 보관 중인 금액을 입력하세요.'
+    + '<b style="color:var(--text);">📱 토스 앱 화면에서 본 그대로:</b><br>'
+    + '• <b>생활비 통장 본잔액</b>: 토스 메인 큰 숫자 (자물쇠 제외)<br>'
+    + '• <b>자물쇠</b>: "보관 중" 금액 (이번달 고정비/저축/투자)<br>'
+    + '<span style="font-size:11px;color:var(--faint);">두 값을 입력하면 통장 전체 = 본잔액 + 자물쇠로 자동 계산</span>'
     + '</div>'
 
     // 결제 통장
@@ -6033,12 +6045,12 @@ function openReconcileSheet() {
     +   '</div>'
     + '</div>'
 
-    // 생활비 통장
+    // 생활비 통장 (본잔액 입력 — 자물쇠 별도)
     + '<div class="rec-row">'
-    +   '<div class="rec-row-head"><span class="bdg bdg-tl">생활</span><span class="rec-row-name">생활비 통장</span></div>'
+    +   '<div class="rec-row-head"><span class="bdg bdg-tl">생활</span><span class="rec-row-name">생활비 통장 본잔액</span></div>'
     +   '<div class="rec-row-grid">'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val cbl">'+fmtW(c.생활비)+'</div></div>'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">실제 잔액</div><input class="fi rec-cell-in" id="rec-생활비" placeholder="0" inputmode="numeric" value="'+(toss생활비!==''?Number(toss생활비).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">화면 본잔액</div><div class="rec-cell-val cbl">'+fmtW(c.생활비 - Math.max(c.고정자물쇠,0))+'</div></div>'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">토스 본잔액</div><input class="fi rec-cell-in" id="rec-생활비" placeholder="0" inputmode="numeric" value="'+(toss생활비!==''?Number(toss생활비).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
     +     '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-생활비">—</div></div>'
     +   '</div>'
 
@@ -6047,7 +6059,7 @@ function openReconcileSheet() {
     +     '<div class="rec-row-head"><span class="rec-sub-icon">🔒</span><span class="rec-row-name-sub">└ 자물쇠 (이번달 나갈 고정/저축/투자)</span></div>'
     +     '<div class="rec-row-grid">'
     +       '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val csb">'+fmtW(c.고정자물쇠)+'</div></div>'
-    +       '<div class="rec-cell"><div class="rec-cell-lbl">실제 보관액</div><input class="fi rec-cell-in" id="rec-자물쇠" placeholder="0" inputmode="numeric" value="'+(toss자물쇠!==''?Number(toss자물쇠).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
+    +       '<div class="rec-cell"><div class="rec-cell-lbl">토스 보관액</div><input class="fi rec-cell-in" id="rec-자물쇠" placeholder="0" inputmode="numeric" value="'+(toss자물쇠!==''?Number(toss자물쇠).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
     +       '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-자물쇠">—</div></div>'
     +     '</div>'
     +   '</div>'
@@ -6088,8 +6100,10 @@ function openReconcileSheet() {
 function recalcReconcileDiff() {
   const c = compute(currentMonth());
   ['결제','생활비','자물쇠','신한'].forEach(name => {
+    // 생활비 입력란은 본잔액 (자물쇠 제외) — 토스 메인 숫자와 직접 비교
+    const 본잔액 = c.생활비 - Math.max(c.고정자물쇠, 0);
     const screen = name==='결제' ? c.결제
-                 : name==='생활비' ? c.생활비
+                 : name==='생활비' ? 본잔액
                  : name==='자물쇠' ? c.고정자물쇠
                  : c.신한;
     const inp = $('rec-'+name);
@@ -6098,7 +6112,7 @@ function recalcReconcileDiff() {
     const v = inp.value.replace(/,/g,'').trim();
     if (!v) { out.textContent='—'; out.className='rec-cell-val csb'; return; }
     const real = parseInt(v) || 0;
-    const diff = screen - real; // 화면이 더 크면 양수 (지출 누락 의심)
+    const diff = screen - real;
     if (diff === 0) { out.textContent='✅ 일치'; out.className='rec-cell-val cgr'; }
     else {
       out.textContent = (diff>0?'+':'')+fmtW(diff);
@@ -6124,16 +6138,19 @@ function applyReconcile() {
     if (!v) return;
     const real = parseInt(v) || 0;
     sn['실잔_'+name] = real; // 토스 실잔액 저장 (참고용)
+    // 생활비 입력은 본잔액(자물쇠 제외) — 비교 기준도 본잔액
+    const 본잔액_화면 = c.생활비 - Math.max(c.고정자물쇠, 0);
     const screen = name==='결제' ? c.결제
-                 : name==='생활비' ? c.생활비
+                 : name==='생활비' ? 본잔액_화면
                  : name==='자물쇠' ? c.고정자물쇠
                  : c.신한;
     const diff = screen - real;
     if (diff === 0) return;
 
     // 자물쇠는 항상 snapshot 보정 (거래로는 처리 불가)
+    // 사용자가 "지금 자물쇠 잔액"을 입력 → snapshot 월초값 = 입력값 + 자물쇠사용
     if (name === '자물쇠') {
-      sn.고정자물쇠 = (sn.고정자물쇠 || 0) - diff;
+      sn.고정자물쇠 = real + (c.자물쇠사용 || 0);
       touched++;
       return;
     }
