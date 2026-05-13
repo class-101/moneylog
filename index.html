@@ -2647,6 +2647,20 @@ const LS = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } 
 const LS_SET = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 function getState() { return LS('ml_v4') || {}; }
 function setState(s, silent) {
+  // 🚨 빈 객체 / 손상된 데이터 가드 — 기존 데이터 보호
+  if (!s || typeof s !== 'object') {
+    console.error('[setState] ❌ 잘못된 state 거부:', s);
+    return;
+  }
+  const keys = Object.keys(s);
+  // 빈 객체인데 로컬에 데이터가 있으면 차단
+  if (keys.length === 0) {
+    const existing = LS('ml_v4');
+    if (existing && Object.keys(existing).length > 0) {
+      console.error('[setState] ❌ 빈 state로 덮어쓰기 시도 차단 (기존 데이터 보호)');
+      return;
+    }
+  }
   // 디버그: 어떤 데이터가 저장되는지 확인
   const mon = currentMonth();
   const datesInState = {};
@@ -7478,9 +7492,23 @@ function getAllData() {
   };
 }
 function applyAllData(data) {
+  // 🚨 데이터 무결성 검증
+  if (!data || typeof data !== 'object') {
+    console.error('[applyAllData] ❌ 잘못된 data 거부');
+    return;
+  }
+  // state가 비어있는데 로컬에 데이터가 있으면 state는 건드리지 않음
+  const localState = LS('ml_v4');
+  const localHasData = localState && Object.keys(localState).length > 0;
+  const remoteHasData = data.state && Object.keys(data.state).length > 0;
+
   // pull로 받은 데이터 적용 시에는 setState가 다시 push를 트리거하지 않도록 silent=true
-  if (data.state)    setState(data.state, true);
-  if (data.recurring) LS_SET('ml_recurring', data.recurring); // saveRecurring 호출 시 push 재발생 방지
+  if (data.state && remoteHasData) {
+    setState(data.state, true);
+  } else if (data.state && !remoteHasData && localHasData) {
+    console.warn('[applyAllData] ⚠️ 서버 state 비어있음 — 로컬 보존');
+  }
+  if (data.recurring) LS_SET('ml_recurring', data.recurring);
   if (data.goals)    LS_SET('ml_goals', data.goals);
   if (data.plan)     LS_SET('ml_plan', data.plan);
   if (data.cats)     localStorage.setItem('ml_cats', data.cats);
