@@ -6156,6 +6156,11 @@ function applyReconcile() {
   const sn = md.snapshot;
   const c = compute(mon);
 
+  // 거래 델타 역산: snapshot = 입력값(목표 결과) - 거래델타
+  // c.X = sn.X_초 + 델타 → sn.X_초 = c.X - 델타
+  // 새 snapshot = 입력값 - 델타 = 입력값 - (c.X - sn.X_초)
+  // 즉 sn.X_새 = sn.X_기존 + (입력값 - c.X) = sn.X_기존 - (c.X - 입력값) = sn.X_기존 - diff
+
   let touched = 0;
   ['결제','생활비','자물쇠','신한'].forEach(name => {
     const inp = $('rec-'+name);
@@ -6163,7 +6168,7 @@ function applyReconcile() {
     const v = inp.value.replace(/,/g,'').trim();
     if (!v) return;
     const real = parseInt(v) || 0;
-    sn['실잔_'+name] = real; // 토스 실잔액 저장 (참고용)
+    sn['실잔_'+name] = real;
     const screen = name==='결제' ? c.결제
                  : name==='생활비' ? c.생활비
                  : name==='자물쇠' ? c.고정자물쇠
@@ -6171,28 +6176,23 @@ function applyReconcile() {
     const diff = screen - real;
     if (diff === 0) return;
 
-    if (mode === 'adjust') {
-      // 월초 스냅샷 직접 조정 (모든 값 동일 방식)
+    if (mode === 'adjust' || name === '자물쇠') {
+      // 월초 snapshot 보정 (자물쇠는 거래로 보정 불가하므로 항상 snapshot)
       const snKey = name==='결제' ? '결제통장'
                   : name==='생활비' ? '생활비통장'
                   : name==='자물쇠' ? '고정자물쇠'
                   : '도형신한';
-      sn[snKey] = (sn[snKey] || 0) - diff;
+      const newSnapVal = (sn[snKey] || 0) - diff;
+      sn[snKey] = newSnapVal;
+      console.log('[잔액보정] '+name+': 화면'+screen+' → 목표'+real+' (diff '+diff+'). snapshot '+(sn[snKey]+diff)+' → '+newSnapVal);
       touched++;
     } else {
-      // 자물쇠는 보정 거래로 처리 불가 → snapshot 보정만
-      if (name === '자물쇠') {
-        sn.고정자물쇠 = (sn.고정자물쇠 || 0) - diff;
-        touched++;
-        return;
-      }
       // 보정 거래 자동 생성
       const today = new Date();
       const pad = n => String(n).padStart(2,'0');
       const dateStr = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
       const id = 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
       if (diff > 0) {
-        // 화면이 실제보다 많음 → 지출 누락 → 변동지출 거래 추가
         const method = name==='결제' ? '이체' : (name==='신한' ? '이체' : '체크카드');
         md.transactions.push({
           id, date: dateStr, type:'variable', cat:'기타',
@@ -6200,7 +6200,6 @@ function applyReconcile() {
           memo: '['+name+'] 잔액 편집 보정'
         });
       } else {
-        // 화면이 실제보다 적음 → 수입 누락 → 수입 거래 추가
         md.transactions.push({
           id, date: dateStr, type:'income', cat:'부수입',
           amt: Math.abs(diff), method:'이체',
@@ -6211,7 +6210,18 @@ function applyReconcile() {
     }
   });
 
+  // setState 사용해서 데이터 저장 (가드 통과)
   setState(state);
+
+  // 즉시 재계산하여 결과 검증
+  const c2 = compute(mon);
+  console.log('[잔액보정 검증]',
+    '결제:', c2.결제,
+    '생활비:', c2.생활비,
+    '자물쇠:', c2.고정자물쇠,
+    '신한:', c2.신한
+  );
+
   closeDrawer();
   if (touched > 0) {
     showToast('✅ '+touched+'개 통장 보정 완료');
@@ -8611,30 +8621,76 @@ function fmtUsdInput(inp) {
 
 // ━━ INIT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function init() {
-  // ━━━ 🔄 일회성 자동 복원 v4 (월초 snapshot 역산) ━━━
-  // 사용자 토스 실잔 (4값) = 월초 snapshot + 5월 거래 델타
-  // 따라서 월초 snapshot = 4값 - 델타 (사전 계산)
+  // ━━━ 🔄 자동 복원 v5 — 사용자 토스 실잔 강제 동기화 ━━━
+  // 목표: 거래 적용 후 결과가 토스 4값과 정확히 일치
+  // 방식: 사용자가 입력한 5월 모든 거래의 델타를 역산해 월초 snapshot 셋업
   try {
-    const already = localStorage.getItem('ml_emergency_restored_v4');
+    const already = localStorage.getItem('ml_emergency_restored_v5');
     if (!already) {
       let existingState = {};
       try { existingState = JSON.parse(localStorage.getItem('ml_v4') || '{}'); } catch(_){}
       if (existingState['2026-05'] && existingState['2026-05'].snapshot) {
-        // 2026-05 월초 snapshot 역산값 셋업
-        existingState['2026-05'].snapshot.결제통장 = 2828191;
-        existingState['2026-05'].snapshot.카드자물쇠 = 4890;
-        existingState['2026-05'].snapshot.생활비통장 = 1006224;
-        existingState['2026-05'].snapshot.고정자물쇠 = 3738808;
-        ['실잔_결제','실잔_생활비','실잔_자물쇠','실잔_신한'].forEach(k => {
-          delete existingState['2026-05'].snapshot[k];
+        const sn = existingState['2026-05'].snapshot;
+        const txs = existingState['2026-05'].transactions || [];
+
+        // 거래 델타 계산 (compute와 동일 로직)
+        const CARD_PAY_DAY = 14;
+        function isCC(m){if(!m)return false;if(/체크|체카|현금|이체|페이|카드대금/.test(m))return false;if(/신용|신카/.test(m))return true;if(/카드/.test(m))return true;return false;}
+        let 결제델타=0, 생활비델타=0, 신한델타=0, 카드자물쇠델타=0, 고정자물쇠델타=0;
+        txs.forEach(t=>{
+          const amt = Math.abs(Number(t.amt)||0); if(amt===0)return;
+          const txDay = parseInt((t.date||'').split('-')[2],10)||1;
+          const goesToLock = txDay <= CARD_PAY_DAY;
+          const isCredit = isCC(t.method);
+          if(t.type==='income'){
+            const acc=t.toAcc||t.fromAcc||'생활비';
+            if(acc==='결제')결제델타+=amt;
+            else if(acc==='신한')신한델타+=amt;
+            else 생활비델타+=amt;
+          }
+          else if(t.type==='card'){결제델타-=amt;카드자물쇠델타-=amt;}
+          else if(t.type==='transfer'){
+            const f=t.fromAcc||'',tt=t.toAcc||'';
+            if(f==='결제')결제델타-=amt;else if(f==='생활비')생활비델타-=amt;else if(f==='신한')신한델타-=amt;
+            else if(f==='생활비자물쇠')고정자물쇠델타-=amt;else if(f==='결제자물쇠')카드자물쇠델타-=amt;
+            if(tt==='결제')결제델타+=amt;else if(tt==='생활비')생활비델타+=amt;else if(tt==='신한')신한델타+=amt;
+            else if(tt==='생활비자물쇠')고정자물쇠델타+=amt;else if(tt==='결제자물쇠')카드자물쇠델타+=amt;
+          }
+          else if(t.type==='fixed'){
+            if(isCredit){고정자물쇠델타-=amt;if(goesToLock)카드자물쇠델타+=amt;else 결제델타+=amt;}
+            else{고정자물쇠델타-=amt;}
+          }
+          else if(t.type==='saving'||t.type==='invest'){고정자물쇠델타-=amt;}
+          else{
+            if(isCredit){생활비델타-=amt;if(goesToLock)카드자물쇠델타+=amt;else 결제델타+=amt;}
+            else{
+              const acc=t.fromAcc||'생활비';
+              if(acc==='결제')결제델타-=amt;else if(acc==='신한')신한델타-=amt;else 생활비델타-=amt;
+            }
+          }
         });
+
+        // 목표 잔액 (사용자 토스 실잔) - 델타 = 월초 snapshot
+        sn.결제통장 = 2828191 - 결제델타;
+        sn.카드자물쇠 = 676593 - 카드자물쇠델타;
+        sn.생활비통장 = 221161 - 생활비델타;
+        sn.고정자물쇠 = 382202 - 고정자물쇠델타;
+
+        // 옛 실잔 키 제거
+        ['실잔_결제','실잔_생활비','실잔_자물쇠','실잔_신한'].forEach(k=>delete sn[k]);
+
         localStorage.setItem('ml_v4', JSON.stringify(existingState));
-        console.log('[자동복원v4] 월초 snapshot 역산값 적용 — 거래 후 토스 실잔과 일치');
+        console.log('[자동복원v5] 거래 델타 역산 완료');
+        console.log('  결제델타:', 결제델타, '→ 월초 결제통장:', sn.결제통장);
+        console.log('  생활비델타:', 생활비델타, '→ 월초 생활비통장:', sn.생활비통장);
+        console.log('  카드자물쇠델타:', 카드자물쇠델타, '→ 월초 카드자물쇠:', sn.카드자물쇠);
+        console.log('  고정자물쇠델타:', 고정자물쇠델타, '→ 월초 고정자물쇠:', sn.고정자물쇠);
+        console.log('  최종 결과 = 목표 4값 (2,828,191 / 221,161 / 676,593 / 382,202)');
       }
-      localStorage.setItem('ml_emergency_restored_v4', '1');
+      localStorage.setItem('ml_emergency_restored_v5', '1');
     }
   } catch (e) {
-    console.error('[자동복원v4] 실패:', e);
+    console.error('[자동복원v5] 실패:', e);
   }
   buildMonthOptions();
   // 🔄 데이터 마이그레이션 (ISA 연간 → 월간)
