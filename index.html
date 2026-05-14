@@ -2706,6 +2706,70 @@ function escapeHTML(s) {
     .replace(/'/g, '&#39;');
 }
 function esc(s) { return escapeHTML(s); }  // 단축 별칭
+
+// ━━ 샘플 거래 자동 청소 (전역) ━━━━━━━━━━━━━━━━━━━━━━
+// 옛 버전 샘플 거래 + 정기거래 자동생성 잔재를 제거
+// 호출 시점: 1) 앱 시작 시 2) Supabase pull 직후 3) 사용자 새로고침 시
+function cleanSampleTransactions() {
+  try {
+    let state = {};
+    try { state = JSON.parse(localStorage.getItem('ml_v4') || '{}'); } catch(_) { return; }
+    let removedTotal = 0;
+    let removedDetails = [];
+    
+    // 알려진 샘플 메모 (옛 코드에서 하드코딩됐던 거래들)
+    const sampleMemos = new Set([
+      '반포한강 피크닉',
+      '프랭크버거 남위례역점',
+      '스타벅스',
+      '도형 월급',
+      '예진 월급',
+      '월세',
+      '도형 청도계',
+      '예진 청도계',
+    ]);
+    
+    Object.keys(state).forEach(mon => {
+      const md = state[mon];
+      if (!md || !Array.isArray(md.transactions)) return;
+      const before = md.transactions.length;
+      
+      md.transactions = md.transactions.filter(t => {
+        // 1) _sample:true 플래그
+        if (t._sample === true) {
+          removedDetails.push(mon + ' ' + (t.memo || t.cat) + ' (_sample)');
+          return false;
+        }
+        // 2) 옛 샘플 ID (id 1~8은 옛 하드코딩의 ID 범위)
+        if (t.id >= 1 && t.id <= 8 && sampleMemos.has(t.memo)) {
+          removedDetails.push(mon + ' ' + (t.memo || t.cat) + ' (id=' + t.id + ')');
+          return false;
+        }
+        // 3) 옛 정기거래 자동생성 ID (1001~1009)
+        if (t.id >= 1001 && t.id <= 1099) {
+          removedDetails.push(mon + ' ' + (t.memo || t.cat) + ' (정기거래 잔재 id=' + t.id + ')');
+          return false;
+        }
+        return true;
+      });
+      removedTotal += (before - md.transactions.length);
+    });
+    
+    if (removedTotal > 0) {
+      localStorage.setItem('ml_v4', JSON.stringify(state));
+      localStorage.setItem('ml_last_local_modified', String(Date.now()));
+      console.log('[샘플청소] ' + removedTotal + '건 제거됨:', removedDetails);
+      // Supabase에도 즉시 push (재오염 방지)
+      if (typeof sbPush === 'function') {
+        setTimeout(() => sbPush(true), 500);
+      }
+    }
+    return removedTotal;
+  } catch(e) {
+    console.error('cleanSampleTransactions 오류:', e);
+    return 0;
+  }
+}
 function getCatMap() {
   const raw = LS('ml_cats') || {
     income:['도형 월급','예진 월급','인센티브/상여','부수입','기타 수입'],
@@ -4510,6 +4574,8 @@ function openRecAdd() {
 
 // 날짜별 그룹 거래 내역 렌더
 function renderRecordPage() {
+  // 🧹 페이지 진입 시마다 옛 샘플 거래 청소 (Supabase에서 다시 끌어왔어도 즉시 제거)
+  cleanSampleTransactions();
   const mon=currentMonth(), label=$('rec-mon-label');
   if(label) label.textContent=mon.replace('-','년 ')+'월';
   const state=getState(), md=state[mon]||{transactions:[]};
@@ -8037,6 +8103,8 @@ async function sbPull(silent = false) {
     }
 
     applyAllData(parsed);
+    // 🧹 pull한 데이터에 옛 샘플 거래가 섞여있을 수 있으니 즉시 청소
+    cleanSampleTransactions();
     const now = new Date().toLocaleString('ko-KR');
     localStorage.setItem('sb_last_pull', now);
     updateSyncStatus();
@@ -8755,33 +8823,29 @@ async function init() {
     }
   } catch(e) { console.error('강제 초기화 오류:', e); }
 
-  // ━━━ 🧹 샘플 데이터 자동 청소 (앱 시작 시 1회) ━━━━━━
-  // 옛 버전에서 생성된 _sample:true 거래 자동 제거
-  // (사용자가 직접 추가한 거래는 _sample 플래그 없으므로 안전)
-  try {
-    const cleanedFlag = localStorage.getItem('ml_sample_cleaned_v4');
-    if (!cleanedFlag) {
-      let state = {};
-      try { state = JSON.parse(localStorage.getItem('ml_v4') || '{}'); } catch(_){}
-      let removedTotal = 0;
-      Object.keys(state).forEach(mon => {
-        const md = state[mon];
-        if (!md || !Array.isArray(md.transactions)) return;
-        const before = md.transactions.length;
-        // _sample:true OR 알려진 샘플 메모 (호환성)
-        const sampleMemos = ['반포한강 피크닉', '프랭크버거 남위례역점'];
-        md.transactions = md.transactions.filter(t => {
-          if (t._sample === true) return false;
-          if (sampleMemos.includes(t.memo)) return false;
-          return true;
-        });
-        removedTotal += (before - md.transactions.length);
+  // ━━━ 🔍 진단 모드 (?debug=1) — 모든 거래의 실제 데이터 콘솔 출력 ━━━
+  if (location.search.includes('debug=1')) {
+    try {
+      const s = JSON.parse(localStorage.getItem('ml_v4')||'{}');
+      console.log('━━━ [DEBUG] localStorage 거래 전체 ━━━');
+      Object.keys(s).forEach(mon => {
+        const txs = s[mon]?.transactions || [];
+        console.log(mon, ': 거래', txs.length, '건');
+        txs.forEach(t => console.log('  id=' + t.id, '| ' + (t.date||'?'), '| ' + (t.cat||'?'), '| ' + (t.memo||''), '| ' + t.amt + '원', '| method=' + (t.method||''), t._sample ? '[샘플]' : ''));
       });
-      localStorage.setItem('ml_v4', JSON.stringify(state));
-      localStorage.setItem('ml_sample_cleaned_v4', '1');
-      if (removedTotal > 0) console.log('[샘플청소] ' + removedTotal + '건 제거됨');
-    }
-  } catch(e) { console.error('샘플청소 오류:', e); }
+      console.log('━━━ [DEBUG] 정기거래 ━━━');
+      try { console.log(JSON.parse(localStorage.getItem('ml_recurring')||'[]')); } catch(_){}
+      console.log('━━━ [DEBUG] 모든 localStorage 키 ━━━');
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        console.log(k, '=', localStorage.getItem(k).slice(0,100));
+      }
+    } catch(e) { console.error('debug 오류:', e); }
+  }
+
+  // ━━━ 🧹 샘플 데이터 자동 청소 (매 앱 시작 시 + pull 후) ━━━
+  // 옛 버전에서 생성된 샘플 거래 자동 제거 (Supabase에서 끌어왔어도 다시 제거)
+  cleanSampleTransactions();
 
   buildMonthOptions();
   // 🔄 데이터 마이그레이션 (ISA 연간 → 월간)
