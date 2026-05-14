@@ -5378,18 +5378,9 @@ function renderAssetPage() {
 
 // ━━ RECURRING ━━━━━━━━━━━━━━━━━━━━━━━━
 function initRecurring() {
-  if(getRecurring().length>0) return;
-  saveRecurring([
-    {id:1001,name:'도형 월급',type:'income',cat:'도형 월급',amt:4100000,day:15,method:'이체',active:true},
-    {id:1002,name:'예진 월급',type:'income',cat:'예진 월급',amt:2830000,day:15,method:'이체',active:true},
-    {id:1003,name:'월세',type:'fixed',cat:'월세',amt:250000,day:1,method:'자동이체',active:true},
-    {id:1004,name:'전세대출이자',type:'fixed',cat:'전세대출이자',amt:256700,day:1,method:'자동이체',active:true},
-    {id:1005,name:'도형 청도계',type:'saving',cat:'도형 청도계',amt:300000,day:5,method:'자동이체',active:true},
-    {id:1006,name:'예진 청도계',type:'saving',cat:'예진 청도계',amt:700000,day:5,method:'자동이체',active:true},
-    {id:1007,name:'ISA',type:'invest',cat:'ISA',amt:1670000,day:5,method:'자동이체',active:true},
-    {id:1008,name:'CMA 주식',type:'invest',cat:'CMA 주식',amt:170000,day:5,method:'자동이체',active:true},
-    {id:1009,name:'학자금대출',type:'fixed',cat:'학자금대출',amt:35280,day:11,method:'자동이체',active:true},
-  ]);
+  // 정기거래 기본값 없음 — 사용자가 직접 추가
+  // (이전: 도형/예진 월급, 월세 등 9개 자동 생성 → 데이터 오염 원인이라 제거)
+  return;
 }
 // (renderRecurringList, openRecAdd, submitRec, setRT, updateRTCats — 기록탭 새 함수에서 정의)
 
@@ -8792,37 +8783,14 @@ function init() {
   migrateBadDates();
   // 빈 월 데이터 + 2026-04 이전 데이터 정리 (1회만)
   cleanupOldMonths();
-  // 기본 데이터
+  // 기본 데이터 (빈 상태)
+  // ※ 샘플 거래는 절대 자동 생성하지 않음 (사용자 데이터만 표시)
   const state=getState();
   if(!Object.keys(state).length) {
     const mon=getMonthKey(), md=ensureMonth(state,mon);
-    md.snapshot={
-      결제통장:1204407,카드자물쇠:45001,생활비통장:1044043,고정자물쇠:4023744,도형신한:508000,
-      도형마통:21809146,도형마통금리:4.5,예진마통:0,예진마통금리:0,
-      청약대출:7500000,청약대출금리:3.1,청약대출만기:'',청약대출상환:'이자만',
-      학자금:2895383,학자금금리:2.2,학자금월상환:35280,학자금만기:'',
-      도형청약:8400000,도형청약횟수:96,예진청약:4315000,예진청약횟수:60,
-      도형청도계:9700000,도형청도계납입:300000,도형청도계만기:'',
-      예진청도계:10500000,예진청도계납입:700000,예진청도계만기:'',
-      도형ISA평가:8898610,도형ISA월간:500000,도형ISA만기:'',
-      예진ISA평가:1282655,예진ISA월간:500000,예진ISA만기:'',
-      도형가족모임:50000,예진가족모임:100000,
-      월드컵납입:8918861,월드컵평가:8877861,
-      퇴직연금납입:25382800,퇴직연금평가:25730800,퇴직연금상품:'TIGER 미국S&P500, KODEX 나스닥100',
-      CMA납입:17005856,CMA:17005856,
-      Abbott납입:0,Abbott:0,Medtronic납입:0,Medtronic:0
-    };
-    md.budget={도형월급:4100000,예진월급:2830000,인센:0,부수입:0,월세:250000,관리비:160000,전세이자:256700,식자재:150000,교통:70000,통신:73000,인터넷:83490,도형운동:300000,예진운동:180000,외식비:100000,간식:100000,예진점심:130000,소모품:80000,쇼핑:100000,미용:100000,유니:80000,경조사:50000,용돈:100000,기타:0,도형청도계:300000,예진청도계:700000,비상금:100000,IRP:200000,ISA:1670000,CMA주식:170000};
-    md.transactions=[
-      {id:1,date:mon+'-15',type:'income',cat:'도형 월급',amt:4100000,memo:'도형 월급',method:'이체',_sample:true},
-      {id:2,date:mon+'-15',type:'income',cat:'예진 월급',amt:2830000,memo:'예진 월급',method:'이체',_sample:true},
-      {id:3,date:mon+'-01',type:'fixed',cat:'월세',amt:250000,memo:'월세',method:'자동이체',_sample:true},
-      {id:4,date:mon+'-20',type:'variable',cat:'외식비',amt:38000,memo:'반포한강 피크닉',method:'카드',_sample:true},
-      {id:5,date:mon+'-22',type:'variable',cat:'간식/음료',amt:12000,memo:'스타벅스',method:'카드',_sample:true},
-      {id:6,date:mon+'-25',type:'saving',cat:'도형 청도계',amt:300000,memo:'도형 청도계',method:'자동이체',_sample:true},
-      {id:7,date:mon+'-25',type:'saving',cat:'예진 청도계',amt:700000,memo:'예진 청도계',method:'자동이체',_sample:true},
-      {id:8,date:mon+'-27',type:'variable',cat:'외식비',amt:8400,memo:'프랭크버거 남위례역점',method:'카드',_sample:true},
-    ];
+    md.snapshot={};
+    md.budget={};
+    md.transactions=[];
     setState(state);
   }
   initRecurring();
