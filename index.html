@@ -6052,73 +6052,32 @@ function openReconcileSheet() {
   const c = compute(currentMonth());
   const sn = (getState()[currentMonth()]||{}).snapshot||{};
   const toss결제 = sn.실잔_결제 != null ? sn.실잔_결제 : '';
+  const toss결제자물쇠 = sn.실잔_결제자물쇠 != null ? sn.실잔_결제자물쇠 : '';
   const toss생활비 = sn.실잔_생활비 != null ? sn.실잔_생활비 : '';
   const toss자물쇠 = sn.실잔_자물쇠 != null ? sn.실잔_자물쇠 : '';
   const toss신한 = sn.실잔_신한 != null ? sn.실잔_신한 : '';
 
+  const row = (key, name, screen, value) =>
+    '<div class="rec-row">'
+    +   '<div class="rec-row-head"><span class="rec-row-name">'+name+'</span></div>'
+    +   '<div class="rec-row-grid">'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">현재</div><div class="rec-cell-val cbl">'+fmtW(screen)+'</div></div>'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">토스 잔액</div><input class="fi rec-cell-in" id="rec-'+key+'" placeholder="0" inputmode="numeric" value="'+(value!==''?Number(value).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
+    +     '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-'+key+'">—</div></div>'
+    +   '</div>'
+    + '</div>';
+
   $('dtitle').textContent = '잔액 편집';
   $('dbody').innerHTML =
-    '<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:14px;padding:12px 14px;background:var(--bg);border-radius:10px;">'
-    + '<b style="color:var(--text);">📱 토스 앱에서 본 그대로 입력하세요</b><br>'
-    + '생활비 통장과 자물쇠는 <b>별개 항목</b>입니다 (합치지 마세요)'
-    + '</div>'
-
-    // 결제 통장
-    + '<div class="rec-row">'
-    +   '<div class="rec-row-head"><span class="bdg bdg-bl">결제</span><span class="rec-row-name">결제 통장</span></div>'
-    +   '<div class="rec-row-grid">'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val cbl">'+fmtW(c.결제)+'</div></div>'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">실제 잔액</div><input class="fi rec-cell-in" id="rec-결제" placeholder="0" inputmode="numeric" value="'+(toss결제!==''?Number(toss결제).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-결제">—</div></div>'
-    +   '</div>'
-    + '</div>'
-
-    // 생활비 통장 (토스 잔액 그대로)
-    + '<div class="rec-row">'
-    +   '<div class="rec-row-head"><span class="bdg bdg-tl">생활</span><span class="rec-row-name">생활비 통장</span></div>'
-    +   '<div class="rec-row-grid">'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val cbl">'+fmtW(c.생활비)+'</div></div>'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">토스 잔액</div><input class="fi rec-cell-in" id="rec-생활비" placeholder="0" inputmode="numeric" value="'+(toss생활비!==''?Number(toss생활비).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-생활비">—</div></div>'
-    +   '</div>'
-
-    //   └ 자물쇠 (별개 — 통장과 따로)
-    +   '<div class="rec-row-sub">'
-    +     '<div class="rec-row-head"><span class="rec-sub-icon">🔒</span><span class="rec-row-name-sub">└ 생활비 자물쇠 (별개)</span></div>'
-    +     '<div class="rec-row-grid">'
-    +       '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val csb">'+fmtW(c.고정자물쇠)+'</div></div>'
-    +       '<div class="rec-cell"><div class="rec-cell-lbl">토스 보관액</div><input class="fi rec-cell-in" id="rec-자물쇠" placeholder="0" inputmode="numeric" value="'+(toss자물쇠!==''?Number(toss자물쇠).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
-    +       '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-자물쇠">—</div></div>'
-    +     '</div>'
-    +   '</div>'
-    + '</div>'
-
-    // 도형 신한
-    + '<div class="rec-row">'
-    +   '<div class="rec-row-head"><span class="bdg bdg-gy">신한</span><span class="rec-row-name">도형 신한</span></div>'
-    +   '<div class="rec-row-grid">'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">화면 잔액</div><div class="rec-cell-val cbl">'+fmtW(c.신한)+'</div></div>'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">실잔액</div><input class="fi rec-cell-in" id="rec-신한" placeholder="0" inputmode="numeric" value="'+(toss신한!==''?Number(toss신한).toLocaleString():'')+'" oninput="fmtInput(this);recalcReconcileDiff()"></div>'
-    +     '<div class="rec-cell"><div class="rec-cell-lbl">차이</div><div class="rec-cell-val" id="rec-diff-신한">—</div></div>'
-    +   '</div>'
-    + '</div>'
-
-    // 보정 옵션
-    + '<div style="margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:10px;font-size:12px;color:var(--sub);line-height:1.6;">'
-    +   '<b style="color:var(--text);">차액 보정 방식 선택</b><br>'
-    +   '<label style="display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer;">'
-    +     '<input type="radio" name="rec-mode" value="adjust" checked> '
-    +     '<span><b>월초 잔액 조정</b> (snapshot 보정 — 거래 안 만들고 잔액만 맞춤)</span>'
-    +   '</label>'
-    +   '<label style="display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer;">'
-    +     '<input type="radio" name="rec-mode" value="tx"> '
-    +     '<span><b>보정 거래 자동 추가</b> (차이만큼 변동지출/수입 거래 1건 자동 생성 — <span style="color:var(--faint);">자물쇠는 snapshot 보정만 가능</span>)</span>'
-    +   '</label>'
-    + '</div>'
-
-    + '<div style="margin-top:14px;display:flex;gap:8px;">'
+      row('결제',     '결제 통장',     c.결제,       toss결제)
+    + row('결제자물쇠','└ 결제 자물쇠', c.카드자물쇠, toss결제자물쇠)
+    + row('생활비',   '생활비 통장',   c.생활비,     toss생활비)
+    + row('자물쇠',   '└ 생활비 자물쇠', c.고정자물쇠, toss자물쇠)
+    + row('신한',     '도형 신한',     c.신한,       toss신한)
+    + '<div style="display:none;"><input type="radio" name="rec-mode" value="adjust" checked></div>'
+    + '<div style="margin-top:18px;display:flex;gap:8px;">'
     +   '<button class="btn-secondary" style="flex:1;" onclick="closeDrawer()">취소</button>'
-    +   '<button class="btn-primary" style="flex:2;" onclick="applyReconcile()">실잔액 저장 + 보정 적용</button>'
+    +   '<button class="btn-primary" style="flex:2;" onclick="applyReconcile()">저장</button>'
     + '</div>';
 
   openDrawer();
@@ -6127,8 +6086,9 @@ function openReconcileSheet() {
 
 function recalcReconcileDiff() {
   const c = compute(currentMonth());
-  ['결제','생활비','자물쇠','신한'].forEach(name => {
+  ['결제','결제자물쇠','생활비','자물쇠','신한'].forEach(name => {
     const screen = name==='결제' ? c.결제
+                 : name==='결제자물쇠' ? c.카드자물쇠
                  : name==='생활비' ? c.생활비
                  : name==='자물쇠' ? c.고정자물쇠
                  : c.신한;
@@ -6148,87 +6108,90 @@ function recalcReconcileDiff() {
 }
 
 function applyReconcile() {
-  const mode = document.querySelector('input[name="rec-mode"]:checked').value;
   const mon = currentMonth();
   const state = getState();
   if (!state[mon]) state[mon] = {snapshot:{}, budget:{}, transactions:[]};
   const md = state[mon];
   const sn = md.snapshot;
-  const c = compute(mon);
 
-  // 거래 델타 역산: snapshot = 입력값(목표 결과) - 거래델타
-  // c.X = sn.X_초 + 델타 → sn.X_초 = c.X - 델타
-  // 새 snapshot = 입력값 - 델타 = 입력값 - (c.X - sn.X_초)
-  // 즉 sn.X_새 = sn.X_기존 + (입력값 - c.X) = sn.X_기존 - (c.X - 입력값) = sn.X_기존 - diff
-
-  let touched = 0;
-  ['결제','생활비','자물쇠','신한'].forEach(name => {
+  // 입력값 수집
+  const inputs = {};
+  ['결제','결제자물쇠','생활비','자물쇠','신한'].forEach(name => {
     const inp = $('rec-'+name);
     if (!inp) return;
     const v = inp.value.replace(/,/g,'').trim();
     if (!v) return;
-    const real = parseInt(v) || 0;
-    sn['실잔_'+name] = real;
+    inputs[name] = parseInt(v) || 0;
+  });
+
+  if (Object.keys(inputs).length === 0) {
+    showToast('보정할 통장이 없습니다');
+    return;
+  }
+
+  // 1차 시도: snapshot에서 diff 빼기
+  let c = compute(mon);
+  Object.keys(inputs).forEach(name => {
+    const target = inputs[name];
+    sn['실잔_'+name] = target;
     const screen = name==='결제' ? c.결제
+                 : name==='결제자물쇠' ? c.카드자물쇠
                  : name==='생활비' ? c.생활비
                  : name==='자물쇠' ? c.고정자물쇠
                  : c.신한;
-    const diff = screen - real;
+    const diff = screen - target;
     if (diff === 0) return;
-
-    if (mode === 'adjust' || name === '자물쇠') {
-      // 월초 snapshot 보정 (자물쇠는 거래로 보정 불가하므로 항상 snapshot)
-      const snKey = name==='결제' ? '결제통장'
-                  : name==='생활비' ? '생활비통장'
-                  : name==='자물쇠' ? '고정자물쇠'
-                  : '도형신한';
-      const newSnapVal = (sn[snKey] || 0) - diff;
-      sn[snKey] = newSnapVal;
-      console.log('[잔액보정] '+name+': 화면'+screen+' → 목표'+real+' (diff '+diff+'). snapshot '+(sn[snKey]+diff)+' → '+newSnapVal);
-      touched++;
-    } else {
-      // 보정 거래 자동 생성
-      const today = new Date();
-      const pad = n => String(n).padStart(2,'0');
-      const dateStr = today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate());
-      const id = 'tx_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
-      if (diff > 0) {
-        const method = name==='결제' ? '이체' : (name==='신한' ? '이체' : '체크카드');
-        md.transactions.push({
-          id, date: dateStr, type:'variable', cat:'기타',
-          amt: Math.abs(diff), method,
-          memo: '['+name+'] 잔액 편집 보정'
-        });
-      } else {
-        md.transactions.push({
-          id, date: dateStr, type:'income', cat:'부수입',
-          amt: Math.abs(diff), method:'이체',
-          memo: '['+name+'] 잔액 편집 보정'
-        });
-      }
-      touched++;
-    }
+    const snKey = name==='결제' ? '결제통장'
+                : name==='결제자물쇠' ? '카드자물쇠'
+                : name==='생활비' ? '생활비통장'
+                : name==='자물쇠' ? '고정자물쇠'
+                : '도형신한';
+    sn[snKey] = (sn[snKey] || 0) - diff;
   });
 
-  // setState 사용해서 데이터 저장 (가드 통과)
-  setState(state);
+  // 2차: 적용 후 결과 검증, 안 맞으면 강제 재시도 (fool-proof)
+  for (let attempt = 0; attempt < 3; attempt++) {
+    setState(state);
+    const c2 = compute(mon);
+    let allMatch = true;
+    Object.keys(inputs).forEach(name => {
+      const target = inputs[name];
+      const result = name==='결제' ? c2.결제
+                   : name==='결제자물쇠' ? c2.카드자물쇠
+                   : name==='생활비' ? c2.생활비
+                   : name==='자물쇠' ? c2.고정자물쇠
+                   : c2.신한;
+      if (result !== target) {
+        allMatch = false;
+        const snKey = name==='결제' ? '결제통장'
+                    : name==='결제자물쇠' ? '카드자물쇠'
+                    : name==='생활비' ? '생활비통장'
+                    : name==='자물쇠' ? '고정자물쇠'
+                    : '도형신한';
+        const adjust = result - target;
+        sn[snKey] = (sn[snKey] || 0) - adjust;
+        console.log('[잔액보정 재시도'+attempt+'] '+name+': 결과'+result+' 목표'+target+' adjust'+adjust+' → '+snKey+'='+sn[snKey]);
+      }
+    });
+    if (allMatch) {
+      console.log('[잔액보정 ✅ 일치] attempt '+attempt);
+      break;
+    }
+  }
 
-  // 즉시 재계산하여 결과 검증
-  const c2 = compute(mon);
-  console.log('[잔액보정 검증]',
-    '결제:', c2.결제,
-    '생활비:', c2.생활비,
-    '자물쇠:', c2.고정자물쇠,
-    '신한:', c2.신한
-  );
+  // 최종 검증 로그
+  const cFinal = compute(mon);
+  console.log('[잔액보정 최종]',
+    '결제:', cFinal.결제,
+    '결제자물쇠:', cFinal.카드자물쇠,
+    '생활비:', cFinal.생활비,
+    '생활비자물쇠:', cFinal.고정자물쇠,
+    '신한:', cFinal.신한,
+    '목표:', inputs);
 
   closeDrawer();
-  if (touched > 0) {
-    showToast('✅ '+touched+'개 통장 보정 완료');
-    renderAll();
-  } else {
-    showToast('보정할 통장이 없습니다');
-  }
+  showToast('✅ 잔액 보정 완료');
+  renderAll();
 }
 
 function reconcileBank(name) {
