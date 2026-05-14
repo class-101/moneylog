@@ -2694,6 +2694,18 @@ function setState(s, silent) {
 }
 function getMonthKey(d) { d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function ensureMonth(s,k) { if(!s[k]) s[k]={snapshot:{},budget:{},transactions:[]}; return s[k]; }
+// ━━ HTML escape (XSS 방지) ━━━━━━━━━━━━━━━━━━━━━━━━
+// 사용자 입력값(memo, cat, name 등)을 innerHTML에 삽입할 때 반드시 통과시켜야 함
+function escapeHTML(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function esc(s) { return escapeHTML(s); }  // 단축 별칭
 function getCatMap() {
   const raw = LS('ml_cats') || {
     income:['도형 월급','예진 월급','인센티브/상여','부수입','기타 수입'],
@@ -4378,14 +4390,14 @@ function openRecEdit(id) {
     + '<div class="fg"><label>출금일 (매달)</label><input class="fi" id="rta-day" value="'+r.day+'" inputmode="numeric" placeholder="0"></div>'
     + '</div>'
     + '<div class="fg"><label>결제 수단</label><select class="fsel fi" id="rta-method">'+getPayMethods().map(m=>'<option'+(m===r.method?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
-    + '<div class="fg"><label>메모 (선택)</label><input class="fi" id="rta-memo" value="'+(r.memo||'').replace(/"/g,'&quot;')+'" placeholder="예: 청년도약, 주차비 등"></div>'
+    + '<div class="fg"><label>메모 (선택)</label><input class="fi" id="rta-memo" value="'+esc(r.memo||'')+'" placeholder="예: 청년도약, 주차비 등"></div>'
     + '<div class="btnrow"><button class="btn btn-blue" onclick="submitRecEdit()">수정 완료</button>'
     + '<button onclick="deleteRecFromEdit('+id+')" style="flex:0 0 auto;height:44px;padding:0 16px;border:1.5px solid #fecaca;background:var(--red-light);color:var(--red);border-radius:var(--rsm);font-size:13px;font-weight:700;cursor:pointer;">삭제</button></div>';
 
   // 카테고리 채우기 + 현재값 선택
   const s=$('rta-cat');
   if(s) {
-    s.innerHTML=(getCatMap()[r.type]||[]).map(cat=>'<option'+(cat===r.name||cat===r.cat?' selected':'')+'>'+cat+'</option>').join('');
+    s.innerHTML=(getCatMap()[r.type]||[]).map(cat=>'<option'+(cat===r.name||cat===r.cat?' selected':'')+'>'+esc(cat)+'</option>').join('');
   }
   openDrawer();
 }
@@ -4446,8 +4458,8 @@ function renderRecurringList() {
       + '<div onclick="openRecEdit('+r.id+')" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;">'
       + '<div class="fi-item-icon">'+TI[r.type]+'</div>'
       + '<div class="fi-item-body">'
-      + '<div class="fi-item-name">'+r.cat+'</div>'
-      + '<div class="fi-item-meta">매달 '+r.day+'일'+(r.memo?' · '+r.memo:'')+' · '+r.method+'</div>'
+      + '<div class="fi-item-name">'+esc(r.cat)+'</div>'
+      + '<div class="fi-item-meta">매달 '+r.day+'일'+(r.memo?' · '+esc(r.memo):'')+' · '+esc(r.method||'')+'</div>'
       + '</div>'
       + '<div class="fi-item-right">'
       + '<div class="fi-item-amt '+ac+'">'+sign+fmtW(r.amt)+'</div>'
@@ -4703,8 +4715,8 @@ function txRow(t,mon,showDel) {
   // 위계: 카테고리=제목(1차), 날짜·메모·결제수단=메타(2차)
   const metaItems = [];
   if (dateStr) metaItems.push('<span class="txmeta-date">'+dateStr+'</span>');
-  if (t.memo) metaItems.push('<span>'+t.memo+'</span>');
-  if (t.method) metaItems.push('<span>'+t.method+'</span>');
+  if (t.memo) metaItems.push('<span>'+esc(t.memo)+'</span>');
+  if (t.method) metaItems.push('<span>'+esc(t.method)+'</span>');
   const metaHtml = metaItems.join('<span class="txmeta-dot">·</span>');
   // 부호
   const signStr = t.type==='income'?'+':t.type==='transfer'?'':'-';
@@ -4712,7 +4724,7 @@ function txRow(t,mon,showDel) {
     +checkbox
     +'<div class="txdot" style="background:'+TC[t.type]+'18;color:'+TC[t.type]+';">'+TI[t.type]+'</div>'
     +'<div class="txbody">'
-    +'<div class="txname">'+(t.cat||t.memo||'거래')+'</div>'
+    +'<div class="txname">'+esc(t.cat||t.memo||'거래')+'</div>'
     +(metaHtml?'<div class="txmeta">'+metaHtml+'</div>':'')
     +'</div>'
     +'<div class="txright"><div class="txamt '+ac+'">'+signStr+fmtW(t.amt)+'</div></div>'
@@ -4729,16 +4741,16 @@ function openEditTx(mon, id) {
     '<option value="'+tp+'"'+(tp===tx.type?' selected':'')+'>'+TI[tp]+' '+TL[tp]+'</option>'
   ).join('');
   const curCats=(getCatMap()[tx.type]||[]);
-  const catOpts=curCats.map(cat=>'<option value="'+cat+'"'+(cat===tx.cat?' selected':'')+'>'+cat+'</option>').join('');
+  const catOpts=curCats.map(cat=>'<option value="'+esc(cat)+'"'+(cat===tx.cat?' selected':'')+'>'+esc(cat)+'</option>').join('');
   $('dbody').innerHTML=
     '<div class="fg2">'
-    +'<div class="fg"><label>날짜</label><input class="fi" type="date" id="et-date" data-no-fp value="'+tx.date+'"></div>'
+    +'<div class="fg"><label>날짜</label><input class="fi" type="date" id="et-date" data-no-fp value="'+esc(tx.date)+'"></div>'
     +'<div class="fg"><label>금액</label><input class="fi" id="et-amt" value="'+fmt(tx.amt)+'" inputmode="numeric"></div>'
     +'</div>'
     +'<div class="fg"><label>유형</label><select class="fsel fi" id="et-type" onchange="updateEditCats()">'+typeOpts+'</select></div>'
     +'<div class="fg"><label>카테고리</label><select class="fsel fi" id="et-cat">'+catOpts+'</select></div>'
-    +'<div class="fg"><label>메모</label><input class="fi" id="et-memo" value="'+(tx.memo||'')+'" placeholder="메모 (선택)"></div>'
-    +'<div class="fg"><label>결제 수단</label><select class="fsel fi" id="et-method">'+getPayMethods().map(m=>'<option'+(m===tx.method?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
+    +'<div class="fg"><label>메모</label><input class="fi" id="et-memo" value="'+esc(tx.memo||'')+'" placeholder="메모 (선택)"></div>'
+    +'<div class="fg"><label>결제 수단</label><select class="fsel fi" id="et-method">'+getPayMethods().map(m=>'<option'+(m===tx.method?' selected':'')+'>'+esc(m)+'</option>').join('')+'</select></div>'
     +'<div class="btnrow" style="margin-top:8px;gap:8px;">'
     +'<button class="btn btn-blue" onclick="submitEditTx(\''+mon+'\','+id+')" style="flex:1;">수정 완료</button>'
     +'<button onclick="deleteTxFromEdit(\''+mon+'\','+id+')" style="flex:0 0 auto;height:48px;padding:0 16px;border:1.5px solid #fecaca;background:var(--red-light);color:var(--red);border-radius:var(--rsm);font-size:13px;font-weight:700;cursor:pointer;">삭제</button>'
@@ -6012,13 +6024,13 @@ function showImageResults(txList, rawText) {
       // 위계: 카테고리=제목(1차), 날짜·메모·결제수단=메타(2차)
       const metaParts = [];
       metaParts.push('<span style="color:var(--sub);font-weight:600;">'+dateStr+'</span>');
-      if (t.memo) metaParts.push('<span>'+t.memo+'</span>');
+      if (t.memo) metaParts.push('<span>'+esc(t.memo)+'</span>');
       metaParts.push('<span>체크카드</span>');
       const metaHtml = metaParts.join('<span style="color:var(--border2);">·</span>');
       return '<label id="img-row-'+i+'" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg);border-radius:var(--rsm);margin-bottom:5px;cursor:pointer;transition:background .1s;">'
         +'<input type="checkbox" id="img-chk-'+i+'" checked style="width:18px;height:18px;flex-shrink:0;accent-color:var(--blue);" onchange="imgUpdateCount('+txList.length+')">'
         +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;">'+auto.cat+'</div>'
+        +'<div style="font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.2px;">'+esc(auto.cat)+'</div>'
         +'<div style="font-size:12px;color:var(--faint);display:flex;align-items:center;gap:6px;margin-top:3px;">'+metaHtml+'</div>'
         +'</div>'
         +'<div style="font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-0.3px;color:'+amtColor+';flex-shrink:0;">'+(isInc?'+':'-')+fmtW(t.amt)+'</div>'
@@ -6416,12 +6428,11 @@ function renderCatList() {
 
 // 결제수단 접두어 ([계좌], [체카], [신카] 등)를 회색으로 분리해 시각 노이즈 감소
 function fmtMethodLabel(m) {
-  const safe = m.replace(/"/g, '&quot;');
-  const match = m.match(/^(\[[^\]]+\])\s*(.+)$/);
+  const match = String(m||'').match(/^(\[[^\]]+\])\s*(.+)$/);
   if (match) {
-    return '<span style="color:var(--faint);font-size:.85em;">'+match[1]+'</span> '+match[2];
+    return '<span style="color:var(--faint);font-size:.85em;">'+esc(match[1])+'</span> '+esc(match[2]);
   }
-  return safe;
+  return esc(m);
 }
 
 function renderMethodList() {
@@ -6856,8 +6867,8 @@ function renderGoals() {
     const deadline = g.deadline ? '목표일: ' + g.deadline : '';
     return '<div style="border:1px solid var(--border);border-radius:var(--rsm);padding:14px;margin-bottom:10px;">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'
-      + '<div><div style="font-size:15px;font-weight:700;">' + icon + ' ' + g.name + '</div>'
-      + '<div style="font-size:11px;color:var(--faint);margin-top:2px;">' + deadline + (g.note ? (deadline ? ' · ' : '') + g.note : '') + '</div></div>'
+      + '<div><div style="font-size:15px;font-weight:700;">' + icon + ' ' + esc(g.name) + '</div>'
+      + '<div style="font-size:11px;color:var(--faint);margin-top:2px;">' + esc(deadline) + (g.note ? (deadline ? ' · ' : '') + esc(g.note) : '') + '</div></div>'
       + '<div style="display:flex;gap:5px;">'
       + '<span class="bdg ' + (done ? 'bdg-gr' : 'bdg-bl') + '">' + (done ? '달성 ✓' : pct + '%') + '</span>'
       + '<button onclick="editGoal(' + g.id + ')" style="border:none;background:var(--border);color:var(--sub);padding:3px 8px;border-radius:99px;font-size:11px;cursor:pointer;">편집</button>'
@@ -6890,10 +6901,10 @@ function openGoalAdd(id) {
   $('dtitle').textContent = goal ? '목표 편집' : '목표 추가';
   const typeOpts = GOAL_TYPES.map(t => '<option value="' + t.v + '"' + (goal && goal.type === t.v ? ' selected' : '') + '>' + t.icon + ' ' + t.l + '</option>').join('');
   $('dbody').innerHTML = '<div class="fg"><label>목표 유형</label><select class="fsel fi" id="goal-type">' + typeOpts + '</select></div>'
-    + '<div class="fg"><label>목표 이름</label><input class="fi" id="goal-name" value="' + (goal ? goal.name : '') + '" placeholder="예: 2028 부동산 매수 준비"></div>'
+    + '<div class="fg"><label>목표 이름</label><input class="fi" id="goal-name" value="' + (goal ? esc(goal.name) : '') + '" placeholder="예: 2028 부동산 매수 준비"></div>'
     + '<div class="fg"><label>목표 금액 (원)</label><input class="fi" id="goal-target" value="' + (goal ? fmt(goal.target) : '') + '" inputmode="numeric"></div>'
-    + '<div class="fg"><label>목표일 (선택)</label><input class="fi" type="date" id="goal-deadline" value="' + (goal ? goal.deadline || '' : '') + '"></div>'
-    + '<div class="fg"><label>메모 (선택)</label><input class="fi" id="goal-note" value="' + (goal ? goal.note || '' : '') + '" placeholder="예: 용인 수지/죽전 6~7억 아파트"></div>'
+    + '<div class="fg"><label>목표일 (선택)</label><input class="fi" type="date" id="goal-deadline" value="' + (goal ? esc(goal.deadline || '') : '') + '"></div>'
+    + '<div class="fg"><label>메모 (선택)</label><input class="fi" id="goal-note" value="' + (goal ? esc(goal.note || '') : '') + '" placeholder="예: 용인 수지/죽전 6~7억 아파트"></div>'
     + '<button class="btn btn-blue" onclick="submitGoal(' + (goal ? goal.id : 'null') + ')">저장하기</button>';
   openDrawer();
 }
@@ -7180,7 +7191,7 @@ function renderDiagnosis() {
       diagMiss.innerHTML = mkAlert('ok','✅','이번달 필수 고정지출이 모두 입력되어 있습니다.');
     } else {
       diagMiss.innerHTML = mkAlert('danger','⚠️','<b>'+missing.length+'개 항목</b>이 이번달 내역에 없습니다. 정기거래로 등록하거나 수동 입력하세요.')
-        + missing.map(r=>'<div class="rl"><span class="rk">'+r.name+'</span><span class="rv crd">월 '+fmtW(r.expected)+'</span></div>').join('');
+        + missing.map(r=>'<div class="rl"><span class="rk">'+esc(r.name)+'</span><span class="rv crd">월 '+fmtW(r.expected)+'</span></div>').join('');
     }
   }
 }
@@ -8703,78 +8714,75 @@ function fmtUsdInput(inp) {
 }
 
 // ━━ INIT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function init() {
-  // ━━━ 🔄 자동 복원 v5 — 사용자 토스 실잔 강제 동기화 ━━━
-  // 목표: 거래 적용 후 결과가 토스 4값과 정확히 일치
-  // 방식: 사용자가 입력한 5월 모든 거래의 델타를 역산해 월초 snapshot 셋업
+async function init() {
+  // ━━━ 🚨 강제 초기화 모드 (?reset=1) ━━━━━━━━━━━━━━
+  // URL에 ?reset=1 붙이면 localStorage + Supabase + 캐시 모두 초기화
+  // 사용: https://your-site.com/?reset=1
   try {
-    const already = localStorage.getItem('ml_emergency_restored_v5');
-    if (!already) {
-      let existingState = {};
-      try { existingState = JSON.parse(localStorage.getItem('ml_v4') || '{}'); } catch(_){}
-      if (existingState['2026-05'] && existingState['2026-05'].snapshot) {
-        const sn = existingState['2026-05'].snapshot;
-        const txs = existingState['2026-05'].transactions || [];
-
-        // 거래 델타 계산 (compute와 동일 로직)
-        const CARD_PAY_DAY = 14;
-        function isCC(m){if(!m)return false;if(/체크|체카|현금|이체|페이|카드대금/.test(m))return false;if(/신용|신카/.test(m))return true;if(/카드/.test(m))return true;return false;}
-        let 결제델타=0, 생활비델타=0, 신한델타=0, 카드자물쇠델타=0, 고정자물쇠델타=0;
-        txs.forEach(t=>{
-          const amt = Math.abs(Number(t.amt)||0); if(amt===0)return;
-          const txDay = parseInt((t.date||'').split('-')[2],10)||1;
-          const goesToLock = txDay <= CARD_PAY_DAY;
-          const isCredit = isCC(t.method);
-          if(t.type==='income'){
-            const acc=t.toAcc||t.fromAcc||'생활비';
-            if(acc==='결제')결제델타+=amt;
-            else if(acc==='신한')신한델타+=amt;
-            else 생활비델타+=amt;
+    if (location.search.includes('reset=1')) {
+      if (confirm('🚨 강제 초기화 모드\n\nlocalStorage, Supabase, 모든 데이터를 완전 삭제합니다.\n진행할까요?')) {
+        // 1) localStorage 전체 삭제
+        localStorage.clear();
+        sessionStorage.clear();
+        // 2) IndexedDB 삭제 (있는 경우)
+        try {
+          const dbs = await indexedDB.databases();
+          for (const db of dbs) {
+            if (db.name) indexedDB.deleteDatabase(db.name);
           }
-          else if(t.type==='card'){결제델타-=amt;카드자물쇠델타-=amt;}
-          else if(t.type==='transfer'){
-            const f=t.fromAcc||'',tt=t.toAcc||'';
-            if(f==='결제')결제델타-=amt;else if(f==='생활비')생활비델타-=amt;else if(f==='신한')신한델타-=amt;
-            else if(f==='생활비자물쇠')고정자물쇠델타-=amt;else if(f==='결제자물쇠')카드자물쇠델타-=amt;
-            if(tt==='결제')결제델타+=amt;else if(tt==='생활비')생활비델타+=amt;else if(tt==='신한')신한델타+=amt;
-            else if(tt==='생활비자물쇠')고정자물쇠델타+=amt;else if(tt==='결제자물쇠')카드자물쇠델타+=amt;
+        } catch(_){}
+        // 3) Service Worker 삭제 (있는 경우)
+        try {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (const r of regs) await r.unregister();
+        } catch(_){}
+        // 4) 캐시 스토리지 삭제
+        try {
+          const cacheNames = await caches.keys();
+          for (const name of cacheNames) await caches.delete(name);
+        } catch(_){}
+        // 5) Supabase 삭제 시도 (실패해도 진행)
+        try {
+          if (typeof getSB === 'function') {
+            const sb = getSB();
+            await sb.from('moneylog').delete().eq('id', 1);
           }
-          else if(t.type==='fixed'){
-            if(isCredit){고정자물쇠델타-=amt;if(goesToLock)카드자물쇠델타+=amt;else 결제델타+=amt;}
-            else{고정자물쇠델타-=amt;}
-          }
-          else if(t.type==='saving'||t.type==='invest'){고정자물쇠델타-=amt;}
-          else{
-            if(isCredit){생활비델타-=amt;if(goesToLock)카드자물쇠델타+=amt;else 결제델타+=amt;}
-            else{
-              const acc=t.fromAcc||'생활비';
-              if(acc==='결제')결제델타-=amt;else if(acc==='신한')신한델타-=amt;else 생활비델타-=amt;
-            }
-          }
-        });
-
-        // 목표 잔액 (사용자 토스 실잔) - 델타 = 월초 snapshot
-        sn.결제통장 = 2828191 - 결제델타;
-        sn.카드자물쇠 = 676593 - 카드자물쇠델타;
-        sn.생활비통장 = 221161 - 생활비델타;
-        sn.고정자물쇠 = 382202 - 고정자물쇠델타;
-
-        // 옛 실잔 키 제거
-        ['실잔_결제','실잔_생활비','실잔_자물쇠','실잔_신한'].forEach(k=>delete sn[k]);
-
-        localStorage.setItem('ml_v4', JSON.stringify(existingState));
-        console.log('[자동복원v5] 거래 델타 역산 완료');
-        console.log('  결제델타:', 결제델타, '→ 월초 결제통장:', sn.결제통장);
-        console.log('  생활비델타:', 생활비델타, '→ 월초 생활비통장:', sn.생활비통장);
-        console.log('  카드자물쇠델타:', 카드자물쇠델타, '→ 월초 카드자물쇠:', sn.카드자물쇠);
-        console.log('  고정자물쇠델타:', 고정자물쇠델타, '→ 월초 고정자물쇠:', sn.고정자물쇠);
-        console.log('  최종 결과 = 목표 4값 (2,828,191 / 221,161 / 676,593 / 382,202)');
+        } catch(e) { console.warn('Supabase 삭제 실패 (무시 가능):', e); }
+        alert('✅ 완전 초기화 완료\n\n3초 후 깨끗한 상태로 새로고침합니다.');
+        setTimeout(() => { location.href = location.pathname; }, 3000);
+        return;
       }
-      localStorage.setItem('ml_emergency_restored_v5', '1');
     }
-  } catch (e) {
-    console.error('[자동복원v5] 실패:', e);
-  }
+  } catch(e) { console.error('강제 초기화 오류:', e); }
+
+  // ━━━ 🧹 샘플 데이터 자동 청소 (앱 시작 시 1회) ━━━━━━
+  // 옛 버전에서 생성된 _sample:true 거래 자동 제거
+  // (사용자가 직접 추가한 거래는 _sample 플래그 없으므로 안전)
+  try {
+    const cleanedFlag = localStorage.getItem('ml_sample_cleaned_v4');
+    if (!cleanedFlag) {
+      let state = {};
+      try { state = JSON.parse(localStorage.getItem('ml_v4') || '{}'); } catch(_){}
+      let removedTotal = 0;
+      Object.keys(state).forEach(mon => {
+        const md = state[mon];
+        if (!md || !Array.isArray(md.transactions)) return;
+        const before = md.transactions.length;
+        // _sample:true OR 알려진 샘플 메모 (호환성)
+        const sampleMemos = ['반포한강 피크닉', '프랭크버거 남위례역점'];
+        md.transactions = md.transactions.filter(t => {
+          if (t._sample === true) return false;
+          if (sampleMemos.includes(t.memo)) return false;
+          return true;
+        });
+        removedTotal += (before - md.transactions.length);
+      });
+      localStorage.setItem('ml_v4', JSON.stringify(state));
+      localStorage.setItem('ml_sample_cleaned_v4', '1');
+      if (removedTotal > 0) console.log('[샘플청소] ' + removedTotal + '건 제거됨');
+    }
+  } catch(e) { console.error('샘플청소 오류:', e); }
+
   buildMonthOptions();
   // 🔄 데이터 마이그레이션 (ISA 연간 → 월간)
   migrateISA();
