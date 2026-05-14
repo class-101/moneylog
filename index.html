@@ -3384,54 +3384,52 @@ function attachSnapAutoSave() {
 }
 
 // ━━ COMPUTE ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 거래의 결제수단 → 통장 자동 매핑
-// - 신용카드("카드"): 생활비 통장 -, 결제 통장 + (외상이지만 즉시 결제대금에 모임)
-// - 체크카드/현금/페이/자동이체/그 외: 생활비 통장 -
-// - 수입: 결제 통장 +
-// - 이체: t.fromAcc / t.toAcc 가 있으면 양쪽 반영, 없으면 변화 없음
-// 자물쇠: 거래 유형이 fixed/saving/invest 면 고정자물쇠 - (음수 허용, 경고만)
+// 【도형·예진 가계부 정합성 룰 v4 — 2026.05.14 — 사용자 최종 확정】
+//
+// 5개 계좌:
+//   1) 결제 통장 — 카드값 모이는 곳 + 수입 입금처 (선택)
+//   2) 결제 자물쇠 — 다음달 나갈 카드값 거치
+//   3) 생활비 통장 — 모든 변동지출 출금처 (체카·신카 무관)
+//   4) 생활비 자물쇠 — 이번달 고정비/저축/투자 거치 (자동 차감)
+//   5) 도형 신한 — 별도 계좌
+//
+// 거래 처리 규칙 (사용자는 신카도 체카처럼 사용 → 즉시 차감):
+//   ▸ 고정비/저축/투자 (모두) → 생활비 자물쇠 -amt
+//   ▸ 신카 변동, ≤14일 → 생활비통장 -amt, 결제 자물쇠 +amt
+//   ▸ 신카 변동, >14일 → 생활비통장 -amt, 결제 통장 +amt
+//   ▸ 체카/현금/이체 변동 → 생활비통장 -amt
+//   ▸ 수입 → 사용자 선택 (결제통장 또는 생활비통장)
+//   ▸ 카드값 자동출금 → 계산 반영 X (이미 결제통장에 모여있으므로 중복 처리 X)
+//   ▸ 이체 (transfer) → fromAcc -amt, toAcc +amt
+//
+// 자유잔액 = 생활비 통장 + 도형 신한 (자물쇠 무관, 단순)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 function _isCardCredit(method) {
-  // 신용카드 식별 (확장):
-  // - 명시적 제외: '체크/체카/현금/이체/페이/카드대금'
-  // - 명시적 포함: '신용/신카' 또는 '카드' 단독 또는 카드사명(신한/국민/삼성/현대/롯데/우리/하나/BC/농협/씨티/카카오뱅크 + '카드')
   if (!method) return false;
   const m = String(method).trim();
-  // 명시적 제외 (체크/현금/이체/페이/카드대금)
   if (/체크|체카|현금|이체|페이|카드대금/.test(m)) return false;
-  // 명시적 포함
   if (/신용|신카/.test(m)) return true;
-  // '카드' 단독 또는 카드사명+카드
   if (/카드/.test(m)) return true;
   return false;
-}
-function _outflowAcc(t) {
-  // 거래의 출금 통장 결정 — 신용카드든 체크카드든 모두 생활비 통장에서 차감
-  // 카드값 수동 이체는 별도 transfer 거래로 입력 (생활비 → 결제대금)
-  if (t.type === 'income') return null;
-  if (t.type === 'transfer') return null;
-  return '생활비';
 }
 
 function compute(mon) {
   const state=getState(), md=state[mon]||{snapshot:{},budget:{},transactions:[]};
   const sn=md.snapshot, bgt=md.budget, txs=md.transactions||[];
-  // 월초 입력값 (스냅샷) — 사용자가 직접 관리하는 통장 잔액
+  // 월초 입력값 (스냅샷) — 토스 화면 그대로
   const 결제초=sn.결제통장||0, 생활비초=sn.생활비통장||0, 신한=sn.도형신한||0;
   const 카드자물쇠초=sn.카드자물쇠||0;
   const 고정자물쇠초=sn.고정자물쇠||0;
-  // ━━━ 도형·예진 가계부 흐름 ━━━━━━━━━━━━━━━━━━
-  // 통장 잔액은 사용자가 snapshot으로 월초에 직접 입력. 
-  // 거래는 그 이후의 변화로만 적용. 자동 이체 시뮬레이션은 하지 않음.
-  // (사용자가 자물쇠도 직접 입력하여 관리)
-  // 단, 카드값 출금일 기준 분기는 cardSpend 계산에 반영
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
   const CARD_PAY_DAY = 14;
 
   let 결제델타=0, 생활비델타=0, 신한델타=0;
   let 카드자물쇠델타=0, 고정자물쇠델타=0;
-  let 자물쇠사용=0; // 호환성 (고정자물쇠델타와 동일 의미)
-  let cardSpend=0; // 이달 신용카드 사용 누적 (다음달 나갈 카드값)
+  let cardSpend=0;
+  let cardSpendToLock=0, cardSpendToAcc=0;
   const savInvDelta = {};
+
   txs.forEach(t=>{
     const amt = Math.abs(Number(t.amt) || 0);
     if (amt === 0) return;
@@ -3440,12 +3438,13 @@ function compute(mon) {
     const isCredit = _isCardCredit(t.method);
 
     if (t.type === 'income') {
-      // ⑧ 수입 → 생활비 통장 + (또는 fromAcc/toAcc 명시)
-      const acc = t.toAcc || t.fromAcc || '생활비';
-      if (acc === '결제') 결제델타 += amt;
+      // 수입 → 사용자 선택 (결제 또는 생활비), default 결제
+      const acc = t.toAcc || t.fromAcc || '결제';
+      if (acc === '생활비') 생활비델타 += amt;
       else if (acc === '신한') 신한델타 += amt;
-      else 생활비델타 += amt;
+      else 결제델타 += amt;
     } else if (t.type === 'transfer') {
+      // 이체 — 사용자 직접 지정
       const from = t.fromAcc || '', to = t.toAcc || '';
       if (from === '결제') 결제델타 -= amt;
       else if (from === '생활비') 생활비델타 -= amt;
@@ -3458,36 +3457,27 @@ function compute(mon) {
       else if (to === '생활비자물쇠') 고정자물쇠델타 += amt;
       else if (to === '결제자물쇠') 카드자물쇠델타 += amt;
     } else if (t.type === 'card') {
-      // ⑨ 카드대금 자동출금 → 결제 통장 -, 결제 자물쇠 -
-      결제델타 -= amt;
-      카드자물쇠델타 -= amt;
-    } else if (t.type === 'fixed') {
-      if (isCredit) {
-        // ④⑤ 신카 고정 → 생활비 자물쇠 -, (≤14 결제 자물쇠 +, >14 결제 통장 +)
-        cardSpend += amt;
-        고정자물쇠델타 -= amt;
-        if (goesToLock) 카드자물쇠델타 += amt;
-        else 결제델타 += amt;
-      } else {
-        // ⑥ 체카/이체 고정 → 생활비 자물쇠 - (생활비 통장 X)
-        고정자물쇠델타 -= amt;
-      }
-    } else if (t.type === 'saving' || t.type === 'invest') {
-      // ⑦ 저축/투자 자동이체 → 생활비 자물쇠 - (생활비 통장 X)
+      // 카드값 자동출금 → 계산 반영 X (이미 신카 사용시 결제통장에 모여있으므로 중복 처리 안 함)
+      // ※ 거래 자체는 기록되어 있지만 잔액에 추가 영향 없음
+    } else if (t.type === 'fixed' || t.type === 'saving' || t.type === 'invest') {
+      // 고정비/저축/투자 (모두 결제수단 무관) → 생활비 자물쇠 -amt
       고정자물쇠델타 -= amt;
-      const cat = t.cat || '';
-      if (!savInvDelta[cat]) savInvDelta[cat] = 0;
-      savInvDelta[cat] += amt;
+      if (t.type === 'saving' || t.type === 'invest') {
+        const cat = t.cat || '';
+        if (!savInvDelta[cat]) savInvDelta[cat] = 0;
+        savInvDelta[cat] += amt;
+      }
     } else {
       // 변동지출
       if (isCredit) {
-        // ②③ 신카 변동 → 생활비 통장 -, (≤14 결제 자물쇠 +, >14 결제 통장 +)
+        // 신카 변동 → 생활비통장 -amt, 결제자물쇠(≤14) 또는 결제통장(>14) +amt
+        // (사용자가 신카 결제 직후 수동 이체하는 패턴 자동화)
         cardSpend += amt;
         생활비델타 -= amt;
-        if (goesToLock) 카드자물쇠델타 += amt;
-        else 결제델타 += amt;
+        if (goesToLock) { 카드자물쇠델타 += amt; cardSpendToLock += amt; }
+        else            { 결제델타 += amt;       cardSpendToAcc += amt;  }
       } else {
-        // ① 체카 변동 → 생활비 통장 - (또는 fromAcc)
+        // 체카/현금/이체 변동 → 생활비통장 -amt (또는 fromAcc)
         const acc = t.fromAcc || '생활비';
         if (acc === '결제') 결제델타 -= amt;
         else if (acc === '신한') 신한델타 -= amt;
@@ -3496,26 +3486,28 @@ function compute(mon) {
     }
   });
   cardSpend = Math.max(0, cardSpend);
+
   const 결제 = 결제초 + 결제델타;
   const 생활비 = 생활비초 + 생활비델타;
   const 카드자물쇠 = 카드자물쇠초 + 카드자물쇠델타;
   const 고정자물쇠 = 고정자물쇠초 + 고정자물쇠델타;
-  자물쇠사용 = -고정자물쇠델타; // 호환성 (양수로)
+  const 자물쇠사용 = -고정자물쇠델타;
   const 신한_now = 신한 + 신한델타;
-  const 가용현금 = 결제 + 생활비 + 신한_now;
-  // ━━━━━ 이번달 자유잔액 ━━━━━
-  // 생활비 통장과 자물쇠는 별개 항목 — 자물쇠는 따로 보관, 생활비 통장 전체가 자유 사용 가능
-  // (자물쇠는 이번달 나갈 고정비/저축/투자로 따로 준비된 돈 — 생활비에서 차감 X)
-  const 결제자유 = 0; // 결제 통장은 카드값용
-  const 생활비자유 = 생활비; // 토스 화면 생활비 잔액 그대로
+
+  // 가용현금 = 모든 통장 합
+  const 가용현금 = 결제 + 생활비 + 신한_now + 카드자물쇠 + 고정자물쇠;
+
+  // ━━━━━ 자유잔액 ━━━━━
+  // = 생활비 통장 + 도형 신한
+  // 자물쇠 무관. 단순.
+  const 결제자유 = 0;
+  const 생활비자유 = 생활비;
   const 신한자유 = 신한_now;
-  const 자유잔액 = 결제자유 + 생활비자유 + 신한자유;
-  // 자물쇠 관련 (호환성 유지)
-  const 자물쇠유효 = Math.max(고정자물쇠, 0);
-  const 자물쇠부족 = 고정자물쇠 < 0 ? Math.abs(고정자물쇠) : 0;
-  const 카드미결제 = Math.max(0, cardSpend - 결제);
-  const 자물쇠초과 = false; // 별개 모델에서는 초과 개념 없음
-  const 다음달용 = 결제;
+  const 자유잔액 = 생활비자유 + 신한자유;
+
+  const 카드미결제 = Math.max(0, cardSpend - 결제 - 카드자물쇠);
+  const 자물쇠초과 = 고정자물쇠 < 0;
+  const 다음달용 = 결제 + 카드자물쇠;
   const 이번달예정 = Math.max(고정자물쇠, 0);
   // ━━━━━ 카테고리 → 자산 매핑 ━━━━━
   // 거래 1개를 1개 자산에만 매칭 (중복 합산 방지)
@@ -3633,6 +3625,7 @@ function compute(mon) {
     가용현금, 저축, 투자, 변동대출, 순자산,
     결제, 카드자물쇠, 생활비, 고정자물쇠, 신한: 신한_now,
     결제초, 생활비초, 고정자물쇠초, 자물쇠사용, cardSpend,
+    cardSpendToLock, cardSpendToAcc, 카드미결제,
     자유잔액, 다음달용, 이번달예정, 자물쇠초과, 결제자유, 생활비자유, 신한자유,
     income, fixed, variable, saving, invest, card, totalExp, realSpend, saveRate, saveRateAbnormal, bIncome,
     // 자산별 계산값 (snapshot + 거래 합산)
@@ -3686,7 +3679,15 @@ function renderHome() {
   // 히어로 — 자유잔액
   set('h-cash',fmtW(c.자유잔액)); $('h-cash').style.color=c.자유잔액>=0?'#fff':'#fca5a5';
   const subEl = $('h-cash-sub');
-  if (subEl) subEl.textContent = '';
+  if (subEl) {
+    let subTxt = '';
+    if (c.고정자물쇠 < 0) {
+      subTxt = '⚠️ 생활비 자물쇠 ' + fmtW(Math.abs(c.고정자물쇠)) + ' 초과 사용';
+    } else if (c.cardSpend > 0) {
+      subTxt = '💳 이달 신카 ' + fmtW(c.cardSpend) + ' 결제대금 거치 중';
+    }
+    subEl.textContent = subTxt;
+  }
   // 칩: 카드값과 순자산만
   const chips=$('h-chips');
   let chipsHtml = '';
@@ -4169,8 +4170,10 @@ function openTxDrawer() {
     // 메모
     + '<div class="fg"><label>메모 <span style="color:var(--faint);font-weight:400;">(선택)</span></label><input class="fi" id="drw-memo" placeholder="예: 스타벅스 강남역"></div>'
     // 결제수단
-    + '<div class="fg" id="drw-method-wrap" style="margin-bottom:16px;"><label>결제 수단</label>'
-    + '<select class="fsel fi" id="drw-method">'+getPayMethods().map(m=>'<option'+(m==='체크카드'?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
+    + '<div class="fg" id="drw-method-wrap" style="margin-bottom:8px;"><label>결제 수단</label>'
+    + '<select class="fsel fi" id="drw-method" onchange="updateMethodHint()">'+getPayMethods().map(m=>'<option'+(m==='체크카드'?' selected':'')+'>'+m+'</option>').join('')+'</select></div>'
+    // 결제수단 안내 박스 (신카 외상 안내 등)
+    + '<div id="drw-method-hint" style="display:none;margin-bottom:12px;padding:10px 12px;border-radius:8px;font-size:11.5px;line-height:1.5;"></div>'
     // 출금 통장 (변동/고정지출 시) — 기본 생활비, 사용자가 신한/결제 직접 출금 시 선택
     + '<div class="fg" id="drw-fromacc-wrap" style="margin-bottom:16px;display:none;"><label>출금 통장 <span style="color:var(--faint);font-weight:400;">(체크카드/현금/이체일 때만)</span></label>'
     + '<select class="fsel fi" id="drw-fromacc">'
@@ -4178,16 +4181,27 @@ function openTxDrawer() {
     +   '<option value="결제">결제 통장</option>'
     +   '<option value="신한">도형 신한</option>'
     + '</select></div>'
+    // 입금 통장 (수입 시) — 결제/생활비/신한 선택
+    + '<div class="fg" id="drw-toacc-wrap" style="margin-bottom:16px;display:none;"><label>입금 통장</label>'
+    + '<select class="fsel fi" id="drw-toacc">'
+    +   '<option value="결제" selected>결제 통장</option>'
+    +   '<option value="생활비">생활비 통장</option>'
+    +   '<option value="신한">도형 신한</option>'
+    + '</select></div>'
     // 이체 시 출처/도착 통장 (transfer 유형일 때만 표시)
     + '<div class="fg2" id="drw-transfer-wrap" style="display:none;margin-bottom:16px;">'
     + '<div class="fg"><label>출처 통장</label><select class="fsel fi" id="drw-from">'
-    +   '<option value="생활비" selected>생활비 통장</option>'
-    +   '<option value="결제">결제 통장</option>'
+    +   '<option value="결제" selected>결제 통장</option>'
+    +   '<option value="결제자물쇠">└ 결제 자물쇠</option>'
+    +   '<option value="생활비">생활비 통장</option>'
+    +   '<option value="생활비자물쇠">└ 생활비 자물쇠</option>'
     +   '<option value="신한">도형 신한</option>'
     + '</select></div>'
     + '<div class="fg"><label>도착 통장</label><select class="fsel fi" id="drw-to">'
-    +   '<option value="결제" selected>결제 통장</option>'
-    +   '<option value="생활비">생활비 통장</option>'
+    +   '<option value="생활비" selected>생활비 통장</option>'
+    +   '<option value="생활비자물쇠">└ 생활비 자물쇠</option>'
+    +   '<option value="결제">결제 통장</option>'
+    +   '<option value="결제자물쇠">└ 결제 자물쇠</option>'
     +   '<option value="신한">도형 신한</option>'
     + '</select></div>'
     + '</div>'
@@ -4195,8 +4209,13 @@ function openTxDrawer() {
 
   updateDrwCats();
   openDrawer();
-  // 금액 필드 자동 포커스
-  setTimeout(() => { const a=$('drw-amt'); if(a) a.focus(); }, 300);
+  // 금액 필드 자동 포커스 + 초기 안내 갱신
+  setTimeout(() => { 
+    const a=$('drw-amt'); if(a) a.focus(); 
+    updateMethodHint();
+    const dateEl = $('drw-date');
+    if (dateEl) dateEl.addEventListener('change', updateMethodHint);
+  }, 300);
 }
 
 function setDrwType(type, el) {
@@ -4208,15 +4227,80 @@ function setDrwType(type, el) {
   const methodWrap = $('drw-method-wrap');
   const transferWrap = $('drw-transfer-wrap');
   const fromAccWrap = $('drw-fromacc-wrap');
+  const toAccWrap = $('drw-toacc-wrap');
   if (type === 'transfer') {
     if (methodWrap) methodWrap.style.display = 'none';
     if (fromAccWrap) fromAccWrap.style.display = 'none';
+    if (toAccWrap) toAccWrap.style.display = 'none';
     if (transferWrap) transferWrap.style.display = 'grid';
+    const hint = $('drw-method-hint');
+    if (hint) {
+      hint.style.display = 'block';
+      hint.style.background = '#fef3c7';
+      hint.style.color = '#92400e';
+      hint.innerHTML = '💡 <b>이체</b> — 통장 간 이동만 (지출/수입 X). 예: 결제통장 → 생활비통장.';
+    }
   } else {
     if (methodWrap) methodWrap.style.display = '';
     if (transferWrap) transferWrap.style.display = 'none';
-    // 변동/고정지출일 때만 출금 통장 노출 (수입/저축/투자/카드는 자동 처리됨)
+    // 변동/고정지출일 때만 출금 통장 노출
     if (fromAccWrap) fromAccWrap.style.display = (type === 'variable' || type === 'fixed') ? '' : 'none';
+    // 수입일 때만 입금 통장 노출
+    if (toAccWrap) toAccWrap.style.display = (type === 'income') ? '' : 'none';
+    updateMethodHint();
+  }
+}
+
+// 결제수단/거래유형 변화 시 안내 갱신
+function updateMethodHint() {
+  const hint = $('drw-method-hint');
+  if (!hint) return;
+  const type = window._recType || 'variable';
+  const method = $('drw-method') ? $('drw-method').value : '';
+  const isCredit = _isCardCredit(method);
+  const dateStr = _readDateInput('drw-date') || '';
+  const txDay = parseInt((dateStr || '').split('-')[2], 10) || (new Date()).getDate();
+  const goesToLock = txDay <= 14;
+
+  if (type === 'transfer') return;  // transfer는 setDrwType에서 처리
+
+  if (type === 'variable' && isCredit) {
+    const target = goesToLock ? '결제 자물쇠' : '결제 통장';
+    hint.style.display = 'block';
+    hint.style.background = '#dbeafe';
+    hint.style.color = '#1e40af';
+    hint.innerHTML = '💳 <b>신카 변동지출</b> — 생활비통장 −, '+target+' + ('+txDay+'일 거래)';
+  } else if (type === 'fixed') {
+    hint.style.display = 'block';
+    hint.style.background = '#fce7f3';
+    hint.style.color = '#9d174d';
+    hint.innerHTML = '🔒 <b>고정비</b> — 생활비 자물쇠에서 자동 차감 (결제수단 무관)';
+  } else if (type === 'saving') {
+    hint.style.display = 'block';
+    hint.style.background = '#dcfce7';
+    hint.style.color = '#166534';
+    hint.innerHTML = '🔒 <b>저축</b> — 생활비 자물쇠에서 자동 차감';
+  } else if (type === 'invest') {
+    hint.style.display = 'block';
+    hint.style.background = '#fae8ff';
+    hint.style.color = '#86198f';
+    hint.innerHTML = '🔒 <b>투자</b> — 생활비 자물쇠에서 자동 차감';
+  } else if (type === 'income') {
+    hint.style.display = 'block';
+    hint.style.background = '#dcfce7';
+    hint.style.color = '#166534';
+    hint.innerHTML = '💰 <b>수입</b> — 기본 결제 통장 입금 (수입 통장 선택 가능)';
+  } else if (type === 'card') {
+    hint.style.display = 'block';
+    hint.style.background = '#f1f5f9';
+    hint.style.color = '#475569';
+    hint.innerHTML = '🏦 <b>카드값 자동출금</b> — 기록만. 잔액 계산엔 미반영 (신카 사용시 이미 결제통장에 모임)';
+  } else {
+    // 체카/현금/이체 변동
+    hint.style.display = 'block';
+    hint.style.background = '#f1f5f9';
+    hint.style.color = '#475569';
+    hint.innerHTML = '💵 <b>'+(method||'체크카드')+' 변동지출</b> — 생활비통장에서 즉시 −';
   }
 }
 function updateDrwCats() {
@@ -4238,6 +4322,11 @@ function submitTxDrawer() {
   if ((type === 'variable' || type === 'fixed') && $('drw-fromacc')) {
     const fromAcc = $('drw-fromacc').value;
     if (fromAcc && fromAcc !== '생활비') tx.fromAcc = fromAcc;
+  }
+  // 수입에서 입금 통장 명시 (결제 외)
+  if (type === 'income' && $('drw-toacc')) {
+    const toAcc = $('drw-toacc').value;
+    if (toAcc) tx.toAcc = toAcc;
   }
   if (type === 'transfer') {
     tx.fromAcc = $('drw-from')?$('drw-from').value:'생활비';
@@ -5061,15 +5150,27 @@ function renderAssetPage() {
   const formulaBody = $('as-free-formula-body');
   if (formulaBody) {
     let html = '';
-    html += '<div class="free-formula-title">계산식</div>';
+    html += '<div class="free-formula-title">계산식 — 이번달 실제 쓸 수 있는 돈</div>';
     html += '<div class="formula-row"><span class="fk">생활비 통장</span><span class="fv">'+fmtW(c.생활비)+'</span></div>';
     if (c.신한자유 !== 0) {
-      html += '<div class="formula-row op"><span class="fk">+ 신한 통장</span><span class="fv">'+fmtW(c.신한자유)+'</span></div>';
+      html += '<div class="formula-row op"><span class="fk">+ 도형 신한</span><span class="fv">'+fmtW(c.신한자유)+'</span></div>';
     }
     html += '<div class="formula-row eq"><span class="fk">자유잔액</span><span class="fv">'+fmtW(c.자유잔액)+'</span></div>';
-    if (c.고정자물쇠 > 0) {
-      html += '<div class="formula-row op" style="color:var(--faint);margin-top:8px;border-top:1px dashed var(--border2);padding-top:8px;"><span class="fk">🔒 자물쇠 (별개 보관)</span><span class="fv">'+fmtW(c.고정자물쇠)+'</span></div>';
+    // 별도 보관액 (참고용)
+    html += '<div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--border2);">';
+    html += '<div style="color:var(--faint);font-size:11px;margin-bottom:4px;">💡 별도 관리 (자유잔액 무관)</div>';
+    if (c.다음달용 !== 0) {
+      html += '<div class="formula-row op" style="color:var(--faint);"><span class="fk">🔒 다음달 카드값 거치 <span style="font-weight:400;font-size:11px;">(결제 통장+자물쇠)</span></span><span class="fv">'+fmtW(c.다음달용)+'</span></div>';
     }
+    if (c.고정자물쇠 !== 0) {
+      const lockColor = c.고정자물쇠 < 0 ? 'color:var(--red);' : 'color:var(--faint);';
+      const lockLabel = c.고정자물쇠 < 0 ? '🔒 생활비 자물쇠 ⚠️ 초과 사용' : '🔒 생활비 자물쇠 <span style="font-weight:400;font-size:11px;">(이번달 고정/저축/투자 거치)</span>';
+      html += '<div class="formula-row op" style="'+lockColor+'"><span class="fk">'+lockLabel+'</span><span class="fv">'+fmtW(c.고정자물쇠)+'</span></div>';
+    }
+    if (c.cardSpend > 0) {
+      html += '<div class="formula-row op" style="color:var(--faint);"><span class="fk">💳 이달 신카 누적 사용</span><span class="fv">'+fmtW(c.cardSpend)+'</span></div>';
+    }
+    html += '</div>';
     formulaBody.innerHTML = html;
   }
 
@@ -5127,16 +5228,21 @@ function renderAssetPage() {
       : '';
 
     let html = '';
-    const 결제meta = cardSpendNow>0
-      ? '카드값 ' + fmtW(cardSpendNow) + ' 모임 중'
-      : '카드값용 통장';
+    // 결제 통장: 이체일 분기 정보 명시
+    const today = new Date(), todayD = today.getDate();
+    const 결제meta = c.cardSpendToAcc > 0
+      ? '카드값(>14일분) ' + fmtW(c.cardSpendToAcc) + ' 누적'
+      : (cardSpendNow > 0 ? '카드값 ' + fmtW(cardSpendNow) + ' 모임 중' : '카드값 자동출금용');
     html += unirow('결제 통장', 결제meta, c.결제, diffPill('결제 통장', diff결제), 'csb');
-    // 결제 자물쇠 (별개 항목)
-    if (c.카드자물쇠 > 0) {
+    // 결제 자물쇠 (별개 항목): ≤14일분 카드값
+    if (c.카드자물쇠 > 0 || c.cardSpendToLock > 0) {
+      const lockMeta = c.cardSpendToLock > 0
+        ? '다음달 카드값(≤14일분) ' + fmtW(c.cardSpendToLock) + ' 누적'
+        : '다음달 카드값 보관 중';
       html += '<div class="uni-row uni-sub" onclick="reconcileBank(\'결제자물쇠\')">'
         + '<div class="uni-left">'
         +   '<div class="uni-name uni-sub-name">└ 결제 자물쇠</div>'
-        +   '<div class="uni-meta">다음달 카드값 보관 중</div>'
+        +   '<div class="uni-meta">'+lockMeta+'</div>'
         + '</div>'
         + '<div class="uni-amt csb">'+fmtW(c.카드자물쇠)+'</div>'
         + '</div>';
