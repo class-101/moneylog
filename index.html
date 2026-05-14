@@ -4496,18 +4496,18 @@ function toggleTxSelectMode() {
 }
 
 function txSelectToggle(id) {
-  const numId = typeof id === 'number' ? id : parseInt(id);
-  if (window._txSelected.has(numId)) window._txSelected.delete(numId);
-  else window._txSelected.add(numId);
+  // ID를 원본 그대로 사용 (문자열/숫자 혼재 대응은 deleteSelectedTxs에서)
+  if (window._txSelected.has(id)) window._txSelected.delete(id);
+  else window._txSelected.add(id);
   const cnt=$('tx-select-count'); if(cnt) cnt.textContent=window._txSelected.size+'개 선택';
   document.querySelectorAll('.tx-sel-chk').forEach(chk=>{
-    const id2=parseInt(chk.dataset.txId);
-    chk.checked=window._txSelected.has(id2);
+    const id2=chk.dataset.txId;
+    chk.checked=window._txSelected.has(id2) || window._txSelected.has(parseInt(id2));
   });
   // 행 시각 강조
   document.querySelectorAll('.txi[data-tx-id]').forEach(row=>{
-    const rid=parseInt(row.dataset.txId);
-    if(window._txSelected.has(rid)){ row.style.background='var(--blue-light)'; }
+    const rid=row.dataset.txId;
+    if(window._txSelected.has(rid) || window._txSelected.has(parseInt(rid))){ row.style.background='var(--blue-light)'; }
     else { row.style.background=''; }
   });
 }
@@ -4525,17 +4525,40 @@ function txSelectAll(checked) {
 function deleteSelectedTxs() {
   if (window._txSelected.size === 0) { showToast('선택한 항목이 없어요'); return; }
   const cnt = window._txSelected.size;
-  // confirm 대신 즉시 삭제 + undo 토스트 (토스 패턴)
   const mon=currentMonth(), state=getState(), md=state[mon]||{transactions:[]};
-  const deletedTxs = md.transactions.filter(t => window._txSelected.has(t.id) || window._txSelected.has(parseInt(t.id)));
-  if (deletedTxs.length === 0) { showToast('삭제할 거래를 찾지 못했어요'); return; }
-  // 삭제 실행
-  md.transactions = md.transactions.filter(t => !window._txSelected.has(t.id) && !window._txSelected.has(parseInt(t.id)));
+  const beforeCount = md.transactions.length;
+  console.log('[삭제 시작] 선택 ID들:', Array.from(window._txSelected));
+  console.log('[삭제 전] 거래 수:', beforeCount);
+
+  const deletedTxs = md.transactions.filter(t => window._txSelected.has(t.id) || window._txSelected.has(parseInt(t.id)) || window._txSelected.has(String(t.id)));
+  console.log('[삭제 대상] 매칭된 거래:', deletedTxs.length, '건', deletedTxs.map(t=>({id:t.id,date:t.date,cat:t.cat})));
+
+  if (deletedTxs.length === 0) {
+    console.error('[삭제 실패] 선택 ID와 매칭되는 거래 없음. 거래 ID 샘플:', md.transactions.slice(0,3).map(t=>({id:t.id,typeOfId:typeof t.id})));
+    showToast('삭제할 거래를 찾지 못했어요 (콘솔 확인)');
+    return;
+  }
+
+  // 삭제 실행 — ID 타입 모두 매칭
+  md.transactions = md.transactions.filter(t => {
+    const idStr = String(t.id);
+    const idNum = parseInt(t.id);
+    return !window._txSelected.has(t.id)
+        && !window._txSelected.has(idStr)
+        && !window._txSelected.has(idNum);
+  });
+
+  const afterCount = md.transactions.length;
+  console.log('[삭제 후] 거래 수:', afterCount, '(삭제됨:', beforeCount-afterCount, ')');
+
   setState(state);
-  // 되돌리기 데이터 저장
+
+  // 즉시 검증
+  const verify = getState()[mon]?.transactions?.length || 0;
+  console.log('[삭제 검증] 저장 후 거래 수:', verify, verify === afterCount ? '✅ 일치' : '❌ 불일치');
+
   window._lastBulkDeleted = { mon, txs: deletedTxs };
   window._txSelected.clear();
-  // 되돌리기 가능 토스트
   showBulkDeleteUndo(deletedTxs.length);
   toggleTxSelectMode();
   renderAll();
