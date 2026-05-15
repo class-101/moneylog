@@ -5283,28 +5283,13 @@ function renderAssetPage() {
   const cardSpendNow = c.cardSpend || 0;
 
   if(cashList) {
-    const 토스결제실잔 = sn.실잔_결제 != null ? sn.실잔_결제 : null;
-    const 토스생활비실잔 = sn.실잔_생활비 != null ? sn.실잔_생활비 : null;
-    const 토스신한실잔 = sn.실잔_신한 != null ? sn.실잔_신한 : null;
-    const 토스자물쇠실잔 = sn.실잔_자물쇠 != null ? sn.실잔_자물쇠 : null;
-    const diff결제 = 토스결제실잔 != null ? (c.결제 - 토스결제실잔) : 0;
-    // 생활비 통장과 자물쇠는 별개 — 직접 비교
-    const diff생활비 = 토스생활비실잔 != null ? (c.생활비 - 토스생활비실잔) : 0;
-    const diff신한 = 토스신한실잔 != null ? (c.신한 - 토스신한실잔) : 0;
-    const diff자물쇠 = 토스자물쇠실잔 != null ? (c.고정자물쇠 - 토스자물쇠실잔) : 0;
-
-    const diffPill = (target, dirty) => dirty
-      ? '<span class="uni-diff" onclick="event.stopPropagation();reconcileBank(\''+target+'\')">⚠️ '+fmtW(Math.abs(dirty))+' 차이</span>'
-      : '';
-
     let html = '';
-    // 결제 통장: 이체일 분기 정보 명시
-    const today = new Date(), todayD = today.getDate();
+    // 결제 통장
     const 결제meta = c.cardSpendToAcc > 0
       ? '카드값(>14일분) ' + fmtW(c.cardSpendToAcc) + ' 누적'
       : (cardSpendNow > 0 ? '카드값 ' + fmtW(cardSpendNow) + ' 모임 중' : '카드값 자동출금용');
-    html += unirow('결제 통장', 결제meta, c.결제, diffPill('결제 통장', diff결제), 'csb');
-    // 결제 자물쇠 (별개 항목): ≤14일분 카드값
+    html += unirow('결제 통장', 결제meta, c.결제, '', 'csb');
+    // 결제 자물쇠
     if (c.카드자물쇠 > 0 || c.cardSpendToLock > 0) {
       const lockMeta = c.cardSpendToLock > 0
         ? '다음달 카드값(≤14일분) ' + fmtW(c.cardSpendToLock) + ' 누적'
@@ -5317,21 +5302,20 @@ function renderAssetPage() {
         + '<div class="uni-amt csb">'+fmtW(c.카드자물쇠)+'</div>'
         + '</div>';
     }
-    // 생활비 통장 (토스 표시값 그대로)
-    html += unirow('생활비 통장', null, c.생활비, diffPill('생활비 통장', diff생활비), '');
-    // 생활비 자물쇠 (별개 항목)
+    // 생활비 통장
+    html += unirow('생활비 통장', null, c.생활비, '', '');
+    // 생활비 자물쇠
     if (자물쇠잔액 !== 0) {
       const 자물쇠meta = '이번달 나갈 고정비/저축/투자 보관 중';
       html += '<div class="uni-row uni-sub" onclick="reconcileBank(\'자물쇠\')">'
         + '<div class="uni-left">'
         +   '<div class="uni-name uni-sub-name">└ 생활비 자물쇠</div>'
         +   '<div class="uni-meta">'+자물쇠meta+'</div>'
-        +   diffPill('자물쇠', diff자물쇠)
         + '</div>'
         + '<div class="uni-amt csb">'+fmtW(자물쇠잔액)+'</div>'
         + '</div>';
     }
-    html += unirow('도형 신한', null, c.신한, diffPill('도형 신한', diff신한), '', 'uni-row-last');
+    html += unirow('도형 신한', null, c.신한, '', '', 'uni-row-last');
     html += '<div class="uni-cta"><button onclick="openReconcileSheet()">잔액 편집</button></div>';
     cashList.innerHTML = html;
   }
@@ -6323,7 +6307,6 @@ function applyReconcile() {
   let c = compute(mon);
   Object.keys(inputs).forEach(name => {
     const target = inputs[name];
-    sn['실잔_'+name] = target;
     const screen = name==='결제' ? c.결제
                  : name==='결제자물쇠' ? c.카드자물쇠
                  : name==='생활비' ? c.생활비
@@ -6338,6 +6321,8 @@ function applyReconcile() {
                 : '도형신한';
     sn[snKey] = (sn[snKey] || 0) - diff;
   });
+  // 옛 실잔_ 키 모두 제거 (잔재 정리)
+  ['실잔_결제','실잔_결제자물쇠','실잔_생활비','실잔_자물쇠','실잔_신한'].forEach(k => delete sn[k]);
 
   // 2차: 적용 후 결과 검증, 안 맞으면 강제 재시도 (fool-proof)
   for (let attempt = 0; attempt < 3; attempt++) {
