@@ -2715,41 +2715,36 @@ function cleanSampleTransactions() {
     let state = {};
     try { state = JSON.parse(localStorage.getItem('ml_v4') || '{}'); } catch(_) { return; }
     let removedTotal = 0;
-    let removedDetails = [];
     
-    // 알려진 샘플 메모 (옛 코드에서 하드코딩됐던 거래들)
+    // 사용자 보호: 사용자가 직접 추가한 거래 ID는 무조건 보존 (메모리에 등록)
+    const userAdded = new Set();
+    try {
+      const ids = JSON.parse(localStorage.getItem('ml_user_added_ids')||'[]');
+      ids.forEach(id => userAdded.add(id));
+    } catch(_){}
+    
+    // 옛 샘플 거래 식별: 메모가 정확히 일치하는 것 (사용자가 직접 추가한 ID 제외)
     const sampleMemos = new Set([
       '반포한강 피크닉',
       '프랭크버거 남위례역점',
-      '스타벅스',
       '도형 월급',
       '예진 월급',
-      '월세',
-      '도형 청도계',
-      '예진 청도계',
     ]);
     
     Object.keys(state).forEach(mon => {
       const md = state[mon];
       if (!md || !Array.isArray(md.transactions)) return;
       const before = md.transactions.length;
-      
       md.transactions = md.transactions.filter(t => {
-        // 1) _sample:true 플래그
-        if (t._sample === true) {
-          removedDetails.push(mon + ' ' + (t.memo || t.cat) + ' (_sample)');
-          return false;
-        }
-        // 2) 옛 샘플 ID (id 1~8은 옛 하드코딩의 ID 범위)
-        if (t.id >= 1 && t.id <= 8 && sampleMemos.has(t.memo)) {
-          removedDetails.push(mon + ' ' + (t.memo || t.cat) + ' (id=' + t.id + ')');
-          return false;
-        }
-        // 3) 옛 정기거래 자동생성 ID (1001~1009)
-        if (t.id >= 1001 && t.id <= 1099) {
-          removedDetails.push(mon + ' ' + (t.memo || t.cat) + ' (정기거래 잔재 id=' + t.id + ')');
-          return false;
-        }
+        // 사용자가 직접 입력한 거래는 무조건 보존
+        if (userAdded.has(t.id)) return true;
+        // _sample 플래그
+        if (t._sample === true) return false;
+        // 메모 기반 (가장 강력)
+        if (t.memo && sampleMemos.has(t.memo)) return false;
+        // 옛 ID 범위 (1-8: 샘플, 1001-1099: 정기거래 잔재)
+        if (t.id >= 1 && t.id <= 8) return false;
+        if (t.id >= 1001 && t.id <= 1099) return false;
         return true;
       });
       removedTotal += (before - md.transactions.length);
@@ -2758,15 +2753,12 @@ function cleanSampleTransactions() {
     if (removedTotal > 0) {
       localStorage.setItem('ml_v4', JSON.stringify(state));
       localStorage.setItem('ml_last_local_modified', String(Date.now()));
-      console.log('[샘플청소] ' + removedTotal + '건 제거됨:', removedDetails);
-      // Supabase에도 즉시 push (재오염 방지)
       if (typeof sbPush === 'function') {
         setTimeout(() => sbPush(true), 500);
       }
     }
     return removedTotal;
   } catch(e) {
-    console.error('cleanSampleTransactions 오류:', e);
     return 0;
   }
 }
@@ -3751,25 +3743,18 @@ function compute(mon) {
 
 // ━━ RENDER HOME ━━━━━━━━━━━━━━━━━━━━━━━
 function renderHome() {
+  // 🧹 홈 진입 시마다 옛 샘플 거래 청소 (모든 페이지 렌더에 적용)
+  cleanSampleTransactions();
   const c=compute(currentMonth());
   // 히어로 — 자유잔액
   set('h-cash',fmtW(c.자유잔액)); $('h-cash').style.color=c.자유잔액>=0?'#fff':'#fca5a5';
   const subEl = $('h-cash-sub');
   if (subEl) {
-    let subTxt = '';
-    if (c.고정자물쇠 < 0) {
-      subTxt = '⚠️ 생활비 자물쇠 ' + fmtW(Math.abs(c.고정자물쇠)) + ' 초과 사용';
-    } else if (c.cardSpend > 0) {
-      subTxt = '💳 이달 신카 ' + fmtW(c.cardSpend) + ' 결제대금 거치 중';
-    }
-    subEl.textContent = subTxt;
+    subEl.textContent = c.고정자물쇠 < 0 ? '⚠️ 자물쇠 ' + fmtW(Math.abs(c.고정자물쇠)) + ' 초과' : '';
   }
-  // 칩: 카드값과 순자산만
+  // 칩: 카드값만
   const chips=$('h-chips');
-  let chipsHtml = '';
-  if (c.cardSpend > 0) chipsHtml += '<div class="hchip">카드 '+fmtW(c.cardSpend)+'</div>';
-  chipsHtml += '<div class="hchip">순자산 '+fmtW(c.순자산)+'</div>';
-  chips.innerHTML = chipsHtml;
+  chips.innerHTML = c.cardSpend > 0 ? '<div class="hchip">카드 '+fmtW(c.cardSpend)+'</div>' : '';
   // stats
   set('h-income',fmtW(c.income)); set('h-income-ss',c.bIncome?'예산 '+fmtW(c.bIncome):'거래 기준');
   set('h-expense', fmtW(c.fixed + c.variable));
@@ -3936,23 +3921,6 @@ function renderHome() {
   const nt=$('h-net-total'); if(nt){ nt.textContent=fmtW(c.순자산); nt.className='rv '+(c.순자산>=0?'cbl':'crd'); }
 
   // 전월 대비
-  const now2=new Date(), pm=new Date(now2.getFullYear(),now2.getMonth()-1,1);
-  const prevMon=pm.getFullYear()+'-'+String(pm.getMonth()+1).padStart(2,'0');
-  const state2 = getState();
-  let prevNet = 0;
-  if (state2[prevMon]) {
-    const cPrev = compute(prevMon);
-    prevNet = cPrev.순자산;
-  }
-  const delta=c.순자산-prevNet;
-  const chips2=$('h-chips');
-  if(chips2 && prevNet!==0 && delta!==0) {
-    const sign = delta>=0 ? '▲ +' : '▼ ';
-    let html = '';
-    if (c.cardSpend > 0) html += '<div class="hchip">카드 '+fmtW(c.cardSpend)+'</div>';
-    html += '<div class="hchip '+(delta>=0?'ok':'warn')+'">'+sign+fmtW(Math.abs(delta))+' 전월 대비</div>';
-    chips2.innerHTML = html;
-  }
   const ns=$('h-net-summary'); if(ns){ ns.textContent=fmtW(c.순자산); ns.className='rv '+(c.순자산>=0?'cbl':'crd'); ns.style.fontSize='14px'; ns.style.fontWeight='800'; }
 
   // 예산 초과 알림
@@ -4183,7 +4151,13 @@ function submitTx() {
   if(!date){showToast('날짜를 입력해 주세요');return;}
   if(!amt){showToast('금액을 입력해 주세요');return;}
   const mon=date.slice(0,7), state=getState(), md=ensureMonth(state,mon);
-  md.transactions.push({id:Date.now(),date,type:recType,cat,amt,memo,method});
+  const newId=Date.now();
+  md.transactions.push({id:newId,date,type:recType,cat,amt,memo,method});
+  try {
+    const ids = JSON.parse(localStorage.getItem('ml_user_added_ids')||'[]');
+    if (!ids.includes(newId)) ids.push(newId);
+    localStorage.setItem('ml_user_added_ids', JSON.stringify(ids));
+  } catch(_){}
   setState(state);
   if($('r-amt')){ $('r-amt').value=''; setTimeout(()=>{ const a=$('r-amt'); if(a) a.focus(); },80); }
   if($('r-memo')) $('r-memo').value='';
@@ -4410,6 +4384,12 @@ function submitTxDrawer() {
     if (tx.fromAcc === tx.toAcc) { showToast('출처와 도착이 같아요'); return; }
   }
   md.transactions.push(tx);
+  // 사용자가 직접 추가한 거래 ID 기록 (청소 필터 우회용)
+  try {
+    const ids = JSON.parse(localStorage.getItem('ml_user_added_ids')||'[]');
+    if (!ids.includes(tx.id)) ids.push(tx.id);
+    localStorage.setItem('ml_user_added_ids', JSON.stringify(ids));
+  } catch(_){}
   setState(state);
   closeDrawer();
   showToast((memo||cat)+' '+fmtW(amt)+' 추가했어요');
@@ -4765,6 +4745,16 @@ function undoBulkDelete() {
 }
 
 function txRow(t,mon,showDel) {
+  // 옛 샘플 거래 차단 (메모 기반 - 사용자가 직접 추가한 ID는 예외)
+  const sampleMemos = new Set(['반포한강 피크닉','프랭크버거 남위례역점','도형 월급','예진 월급']);
+  let userAdded = new Set();
+  try { JSON.parse(localStorage.getItem('ml_user_added_ids')||'[]').forEach(id=>userAdded.add(id)); } catch(_){}
+  if (!userAdded.has(t.id)) {
+    if (t._sample === true) return '';
+    if (t.memo && sampleMemos.has(t.memo)) return '';
+    if (t.id >= 1 && t.id <= 8) return '';
+    if (t.id >= 1001 && t.id <= 1099) return '';
+  }
   const ac=t.type==='income'?'cgr':t.type==='transfer'?'csb':'crd';
   const inSel = window._txSelectMode === true;
   const clickHandler = showDel
@@ -5050,6 +5040,7 @@ function renderTrendChart() {
 
 // ── 지출 분석 ──
 function renderAnalysis() {
+  cleanSampleTransactions();
   const c=compute(currentMonth());
   const sg=$('an-summary');
   if(sg) {
@@ -5216,6 +5207,7 @@ function drawDonut(svgId, segs) {
   svg.innerHTML=paths.join('');
 }
 function renderAssetPage() {
+  cleanSampleTransactions();
   const c=compute(currentMonth()), sn=c.sn;
   const ne=$('as-net-total');
   if(ne){ ne.textContent=fmtW(c.순자산); ne.style.color=c.순자산>=0?'var(--text)':'var(--red)'; }
