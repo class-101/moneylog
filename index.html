@@ -8011,6 +8011,22 @@ async function sbPull(silent = false) {
     }
 
     applyAllData(parsed);
+    // pull한 데이터에 _sample:true 거래가 있으면 즉시 영구 제거
+    try {
+      let s = JSON.parse(localStorage.getItem('ml_v4') || '{}');
+      let removed = 0;
+      Object.keys(s).forEach(mon => {
+        const md = s[mon];
+        if (!md || !Array.isArray(md.transactions)) return;
+        const before = md.transactions.length;
+        md.transactions = md.transactions.filter(t => t._sample !== true);
+        removed += (before - md.transactions.length);
+      });
+      if (removed > 0) {
+        localStorage.setItem('ml_v4', JSON.stringify(s));
+        setTimeout(() => sbPush(true).catch(()=>{}), 500);
+      }
+    } catch(_){}
     const now = new Date().toLocaleString('ko-KR');
     localStorage.setItem('sb_last_pull', now);
     updateSyncStatus();
@@ -8748,6 +8764,33 @@ async function init() {
       }
     } catch(e) { console.error('debug 오류:', e); }
   }
+
+  // ━━━ 옛 _sample:true 거래 1회 영구 제거 (코드 v2026-05-16) ━━━
+  // 머니로그 초기 버전이 박아둔 8건의 샘플 거래를 영구 제거하고 Supabase에 즉시 동기화.
+  // ml_sample_purged_final 플래그로 1회만 실행 → 이후 어떤 자동 청소도 없음.
+  try {
+    if (!localStorage.getItem('ml_sample_purged_final')) {
+      let s = {};
+      try { s = JSON.parse(localStorage.getItem('ml_v4') || '{}'); } catch(_){}
+      let removed = 0;
+      Object.keys(s).forEach(mon => {
+        const md = s[mon];
+        if (!md || !Array.isArray(md.transactions)) return;
+        const before = md.transactions.length;
+        md.transactions = md.transactions.filter(t => t._sample !== true);
+        removed += (before - md.transactions.length);
+      });
+      if (removed > 0) {
+        localStorage.setItem('ml_v4', JSON.stringify(s));
+        localStorage.setItem('ml_last_local_modified', String(Date.now()));
+      }
+      localStorage.setItem('ml_sample_purged_final', '1');
+      // Supabase에도 영구 반영 (다른 기기 새로고침 시에도 사라짐)
+      if (removed > 0) {
+        setTimeout(() => { if (typeof sbPush === 'function') sbPush(true).catch(()=>{}); }, 800);
+      }
+    }
+  } catch(e) {}
 
   buildMonthOptions();
   // 🔄 데이터 마이그레이션 (ISA 연간 → 월간)
