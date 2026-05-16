@@ -1431,8 +1431,8 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
     <div class="acc-body" id="h-acc-card-body" style="display:none;">
       <div class="acc-body-inner">
 
-        <!-- 이번달 나갈 지난달 카드값 섹션 -->
-        <div style="margin-bottom:4px;">
+        <!-- 이번달 나갈 지난달 카드값 섹션 (출금일 지난 후 자동 숨김) -->
+        <div id="h-thismonth-card-section" style="margin-bottom:4px;">
           <div style="font-size:11px;font-weight:700;color:var(--sub);letter-spacing:.2px;margin-bottom:8px;padding:6px 10px;background:var(--yellow-light);border-radius:8px;display:flex;align-items:center;gap:6px;">
             <span>📅</span><span id="h-thismonth-label">이번달 카드값</span>
           </div>
@@ -1476,7 +1476,7 @@ input.flatpickr-alt-input::placeholder{color:var(--faint);font-weight:500;font-s
           <div id="h-prevcard-alert" style="margin-top:6px;"></div>
         </div>
 
-        <div style="border-top:1.5px dashed var(--border);margin:12px 0 10px;"></div>
+        <div id="h-card-divider" style="border-top:1.5px dashed var(--border);margin:12px 0 10px;"></div>
 
         <!-- 다음달 나갈 이번달 카드값 섹션 -->
         <div>
@@ -2765,10 +2765,10 @@ function cleanSampleTransactions() {
 function getCatMap() {
   const raw = LS('ml_cats') || {
     income:['도형 월급','예진 월급','인센티브/상여','부수입','기타 수입'],
-    fixed:['월세','관리비','전세대출이자','오피스텔이자','식자재','교통','통신','인터넷','도형 운동','예진 운동','보험료','정수기','학자금대출','기타 고정'],
-    variable:['외식비','간식/음료','예진 점심','생활소모품','꾸밈비/쇼핑','꾸밈비/미용','유니','경조사','각자 용돈','문화생활','취미','여행','배달','기타 변동'],
-    saving:['도형 청약','예진 청약','도형 청도계','예진 청도계','도형 가족모임','예진 가족모임','비상금','자기계발비','경조사 비상금','기타 저축'],
-    invest:['토스 CMA','나무 CMA','퇴직연금(IRP)','Abbott 주식','Medtronic 주식','도형 ISA','예진 ISA','기타 투자'],
+    fixed:['월세','관리비','전세대출이자','식자재','교통','학자금대출','통신','인터넷','보험료','정수기','도형 운동','예진 운동','기타 고정'],
+    variable:['외식비','간식/음료','예진 점심','생활소모품','꾸밈비/쇼핑','꾸밈비/미용','병원비','문화생활','취미','여행','유니','경조사','배달','각자 용돈','기타 변동'],
+    saving:['도형 청약','예진 청약','도형 청도계','예진 청도계','비상금','자기계발비','경조사','도형 가족모임','예진 가족모임','기타 저축'],
+    invest:['도형 ISA','예진 ISA','토스 CMA','나무 CMA','퇴직연금(IRP)','Abbott 주식','Medtronic 주식','기타 투자'],
     card:['카드지출(도형)','카드지출(예진)','창업비용','기타 카드'],
     transfer:['저축 이체','투자 이체','가족 이체','개인 이체','환급','기타 이체'],
   };
@@ -2788,7 +2788,7 @@ function saveCatMap(m) {
   localStorage.setItem('ml_last_local_modified', String(Date.now()));
   if (typeof scheduleSbPush === 'function') scheduleSbPush();
 }
-function getPayMethods() { return LS('ml_methods') || ['체크카드','신용카드','현금','이체','자동이체','계좌이체','삼성페이','카카오페이','카드대금']; }
+function getPayMethods() { return LS('ml_methods') || ['체크카드','신용카드','현금','이체','자동이체','삼성페이','카카오페이','카드대금']; }
 function savePayMethods(a) {
   LS_SET('ml_methods', a);
   localStorage.setItem('ml_last_local_modified', String(Date.now()));
@@ -3811,6 +3811,17 @@ function renderHome() {
     prevCardSource = 'manual';
   }
 
+  // ── 출금일(14일) 지난 후엔 "이번달 나갈 지난달 카드값" 섹션 숨김 ──
+  // 사용자 요구: 이미 납부 완료한 카드값에 대해서는 표시 X
+  const today = new Date().getDate();
+  const currentMonKey = getMonthKey();
+  const viewingCurrentMonth = (selY+'-'+String(selM).padStart(2,'0')) === currentMonKey;
+  const cardPaidThisMonth = viewingCurrentMonth && today > 14;  // 오늘이 15일 이상 = 14일 출금 끝
+  const thisMonthSection = $('h-thismonth-card-section');
+  const cardDivider = $('h-card-divider');
+  if (thisMonthSection) thisMonthSection.style.display = cardPaidThisMonth ? 'none' : '';
+  if (cardDivider) cardDivider.style.display = cardPaidThisMonth ? 'none' : '';
+
   // ── 이번달 나갈 지난달 카드값 섹션 라벨 업데이트 ──
   const tlLabel = $('h-thismonth-label');
   if (tlLabel) tlLabel.textContent = '이번달 카드값';
@@ -3902,10 +3913,10 @@ function renderHome() {
     ca.innerHTML = alerts.join('');
   }
 
-  // 아코디언 헤더 요약값 (이번달 나갈 카드값 우선 표시)
+  // 아코디언 헤더 요약값 — 출금일 지난 후엔 다음달 카드값(cardSpend)만 표시
   const cs=$('h-card-summary');
   if(cs){
-    const summaryAmt = prevCardSpend > 0 ? prevCardSpend : cardSpend;
+    const summaryAmt = cardPaidThisMonth ? cardSpend : (prevCardSpend > 0 ? prevCardSpend : cardSpend);
     cs.textContent = summaryAmt > 0 ? '-'+fmtW(summaryAmt) : '0원';
     cs.className='rv crd';
     cs.style.fontSize='13px';
@@ -6367,6 +6378,10 @@ function applyReconcile() {
   closeDrawer();
   showToast('✅ 잔액 보정 완료');
   renderAll();
+  // 자산 페이지가 표시 중이면 강제로 한 번 더 즉시 재렌더 (캐시 방지)
+  setTimeout(() => {
+    if (typeof curPage !== 'undefined' && curPage === 'asset') renderAssetPage();
+  }, 50);
 }
 
 function reconcileBank(name) {
