@@ -2706,15 +2706,6 @@ function escapeHTML(s) {
     .replace(/'/g, '&#39;');
 }
 function esc(s) { return escapeHTML(s); }  // 단축 별칭
-
-// ━━ 샘플 거래 자동 청소 (전역) ━━━━━━━━━━━━━━━━━━━━━━
-// 옛 버전 샘플 거래 + 정기거래 자동생성 잔재를 제거
-// 호출 시점: 1) 앱 시작 시 2) Supabase pull 직후 3) 사용자 새로고침 시
-function cleanSampleTransactions() {
-  // 자동 청소 비활성화 — 사용자 데이터를 임의로 삭제하지 않음.
-  // 옛 샘플 거래가 보이면 사용자가 기록 탭에서 직접 삭제해야 함.
-  return 0;
-}
 function getCatMap() {
   const raw = LS('ml_cats') || {
     income:['도형 월급','예진 월급','인센티브/상여','부수입','기타 수입'],
@@ -3696,8 +3687,6 @@ function compute(mon) {
 
 // ━━ RENDER HOME ━━━━━━━━━━━━━━━━━━━━━━━
 function renderHome() {
-  // 🧹 홈 진입 시마다 옛 샘플 거래 청소 (모든 페이지 렌더에 적용)
-  cleanSampleTransactions();
   const c=compute(currentMonth());
   // 히어로 — 자유잔액
   set('h-cash',fmtW(c.자유잔액)); $('h-cash').style.color=c.자유잔액>=0?'#fff':'#fca5a5';
@@ -4115,13 +4104,7 @@ function submitTx() {
   if(!date){showToast('날짜를 입력해 주세요');return;}
   if(!amt){showToast('금액을 입력해 주세요');return;}
   const mon=date.slice(0,7), state=getState(), md=ensureMonth(state,mon);
-  const newId=Date.now();
-  md.transactions.push({id:newId,date,type:recType,cat,amt,memo,method});
-  try {
-    const ids = JSON.parse(localStorage.getItem('ml_user_added_ids')||'[]');
-    if (!ids.includes(newId)) ids.push(newId);
-    localStorage.setItem('ml_user_added_ids', JSON.stringify(ids));
-  } catch(_){}
+  md.transactions.push({id:Date.now(),date,type:recType,cat,amt,memo,method});
   setState(state);
   if($('r-amt')){ $('r-amt').value=''; setTimeout(()=>{ const a=$('r-amt'); if(a) a.focus(); },80); }
   if($('r-memo')) $('r-memo').value='';
@@ -4348,12 +4331,6 @@ function submitTxDrawer() {
     if (tx.fromAcc === tx.toAcc) { showToast('출처와 도착이 같아요'); return; }
   }
   md.transactions.push(tx);
-  // 사용자가 직접 추가한 거래 ID 기록 (청소 필터 우회용)
-  try {
-    const ids = JSON.parse(localStorage.getItem('ml_user_added_ids')||'[]');
-    if (!ids.includes(tx.id)) ids.push(tx.id);
-    localStorage.setItem('ml_user_added_ids', JSON.stringify(ids));
-  } catch(_){}
   setState(state);
   closeDrawer();
   showToast((memo||cat)+' '+fmtW(amt)+' 추가했어요');
@@ -4518,8 +4495,6 @@ function openRecAdd() {
 
 // 날짜별 그룹 거래 내역 렌더
 function renderRecordPage() {
-  // 🧹 페이지 진입 시마다 옛 샘플 거래 청소 (Supabase에서 다시 끌어왔어도 즉시 제거)
-  cleanSampleTransactions();
   const mon=currentMonth(), label=$('rec-mon-label');
   if(label) label.textContent=mon.replace('-','년 ')+'월';
   const state=getState(), md=state[mon]||{transactions:[]};
@@ -4994,7 +4969,6 @@ function renderTrendChart() {
 
 // ── 지출 분석 ──
 function renderAnalysis() {
-  cleanSampleTransactions();
   const c=compute(currentMonth());
   const sg=$('an-summary');
   if(sg) {
@@ -5161,7 +5135,6 @@ function drawDonut(svgId, segs) {
   svg.innerHTML=paths.join('');
 }
 function renderAssetPage() {
-  cleanSampleTransactions();
   const c=compute(currentMonth()), sn=c.sn;
   const ne=$('as-net-total');
   if(ne){ ne.textContent=fmtW(c.순자산); ne.style.color=c.순자산>=0?'var(--text)':'var(--red)'; }
@@ -8038,8 +8011,6 @@ async function sbPull(silent = false) {
     }
 
     applyAllData(parsed);
-    // 🧹 pull한 데이터에 옛 샘플 거래가 섞여있을 수 있으니 즉시 청소
-    cleanSampleTransactions();
     const now = new Date().toLocaleString('ko-KR');
     localStorage.setItem('sb_last_pull', now);
     updateSyncStatus();
@@ -8777,10 +8748,6 @@ async function init() {
       }
     } catch(e) { console.error('debug 오류:', e); }
   }
-
-  // ━━━ 🧹 샘플 데이터 자동 청소 (매 앱 시작 시 + pull 후) ━━━
-  // 옛 버전에서 생성된 샘플 거래 자동 제거 (Supabase에서 끌어왔어도 다시 제거)
-  cleanSampleTransactions();
 
   buildMonthOptions();
   // 🔄 데이터 마이그레이션 (ISA 연간 → 월간)
