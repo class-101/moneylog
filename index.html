@@ -2646,7 +2646,23 @@ const SYSTEM_CATS = {
 // ━━ STORAGE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const LS = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const LS_SET = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-function getState() { return LS('ml_v4') || {}; }
+function getState() {
+  const s = LS('ml_v4') || {};
+  // _sample:true 거래는 매 호출 시 필터링 (한 번 발견되면 영구 제거)
+  let removed = 0;
+  Object.keys(s).forEach(mon => {
+    const md = s[mon];
+    if (!md || !Array.isArray(md.transactions)) return;
+    const before = md.transactions.length;
+    md.transactions = md.transactions.filter(t => t._sample !== true);
+    removed += (before - md.transactions.length);
+  });
+  if (removed > 0) {
+    LS_SET('ml_v4', s);
+    if (typeof sbPush === 'function') setTimeout(() => sbPush(true).catch(()=>{}), 500);
+  }
+  return s;
+}
 function setState(s, silent) {
   // 🚨 빈 객체 / 손상된 데이터 가드 — 기존 데이터 보호
   if (!s || typeof s !== 'object') {
